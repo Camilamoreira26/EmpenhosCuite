@@ -7,142 +7,139 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-      background-color: #e9ffff;
-      color: #1a3a40;
-      min-height: 100vh;
-    }
+    body { font-family: "Roboto","Helvetica","Arial",sans-serif; background:#e9ffff; color:#1a3a40; min-height:100vh; }
 
     header {
-      background-color: #367886;
-      color: #ffffff;
-      padding: 18px 32px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+      background:#367886; color:#fff; padding:18px 32px;
+      display:flex; align-items:center; justify-content:space-between;
+      box-shadow:0 2px 6px rgba(0,0,0,0.18);
     }
-    header h1 { font-size: 1.35rem; font-weight: 700; letter-spacing: 0.02em; }
-    header span.subtitle { font-size: 0.85rem; opacity: 0.85; }
+    header h1 { font-size:1.35rem; font-weight:700; letter-spacing:.02em; }
+    header span.subtitle { font-size:.85rem; opacity:.85; }
 
-    /* FILTRO DE DATA */
     .filter-bar {
-      background: #90bcc3;
-      padding: 12px 32px;
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      flex-wrap: wrap;
+      background:#90bcc3; padding:12px 32px;
+      display:flex; align-items:center; gap:16px; flex-wrap:wrap;
     }
-    .filter-bar label { font-size: 0.82rem; font-weight: 600; color: #1a3a40; }
+    .filter-bar label { font-size:.82rem; font-weight:600; color:#1a3a40; }
     .filter-bar select {
-      padding: 5px 10px;
-      border-radius: 6px;
-      border: 1px solid #367886;
-      background: #ffffff;
-      color: #1a3a40;
-      font-size: 0.82rem;
-      cursor: pointer;
+      padding:5px 10px; border-radius:6px; border:1px solid #367886;
+      background:#fff; color:#1a3a40; font-size:.82rem; cursor:pointer;
     }
     .filter-bar button {
-      padding: 5px 16px;
-      border-radius: 6px;
-      border: none;
-      background: #367886;
-      color: #ffffff;
-      font-size: 0.82rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.15s;
+      padding:5px 16px; border-radius:6px; border:none;
+      background:#367886; color:#fff; font-size:.82rem; font-weight:600;
+      cursor:pointer; transition:background .15s;
     }
-    .filter-bar button:hover { background: #2a5f6e; }
-    .filter-bar button.reset { background: #ffffff; color: #367886; border: 1px solid #367886; }
-    .filter-bar button.reset:hover { background: #e9ffff; }
+    .filter-bar button:hover { background:#2a5f6e; }
+    .filter-bar button.reset { background:#fff; color:#367886; border:1px solid #367886; }
+    .filter-bar button.reset:hover { background:#e9ffff; }
 
     #loading {
-      display: flex; flex-direction: column; align-items: center;
-      justify-content: center; min-height: 60vh;
-      color: #367886; font-size: 1.1rem; gap: 16px;
+      display:flex; flex-direction:column; align-items:center;
+      justify-content:center; min-height:60vh; color:#367886; font-size:1.1rem; gap:16px;
     }
     .spinner {
-      width: 40px; height: 40px;
-      border: 4px solid #bcdde1; border-top-color: #367886;
-      border-radius: 50%; animation: spin 0.8s linear infinite;
+      width:40px; height:40px; border:4px solid #bcdde1;
+      border-top-color:#367886; border-radius:50%; animation:spin .8s linear infinite;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes spin { to { transform:rotate(360deg); } }
 
-    main { padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
+    main { padding:28px 32px; max-width:1400px; margin:0 auto; }
 
     .section-title {
-      font-size: 1rem; font-weight: 700; color: #367886;
-      text-transform: uppercase; letter-spacing: 0.06em;
-      margin-bottom: 14px; padding-bottom: 6px;
-      border-bottom: 2px solid #90bcc3;
+      font-size:1rem; font-weight:700; color:#367886; text-transform:uppercase;
+      letter-spacing:.06em; margin-bottom:14px; padding-bottom:6px;
+      border-bottom:2px solid #90bcc3;
     }
 
-    /* KPI CARDS */
-    .kpi-grid { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 36px; }
+    .kpi-grid { display:flex; flex-wrap:wrap; gap:16px; margin-bottom:36px; }
     .kpi-card {
-      background: #bcdde1; border-radius: 10px; padding: 18px 22px;
-      flex: 1 1 200px; min-width: 180px; max-width: 280px;
-      box-shadow: 0 2px 6px rgba(54,120,134,0.10);
-      display: flex; flex-direction: column; gap: 6px; transition: transform 0.15s;
+      background:#bcdde1; border-radius:10px; padding:18px 22px;
+      flex:1 1 200px; min-width:180px; max-width:280px;
+      box-shadow:0 2px 6px rgba(54,120,134,.10);
+      display:flex; flex-direction:column; gap:6px; transition:transform .15s;
     }
-    .kpi-card:hover { transform: translateY(-3px); }
-    .kpi-card.highlight { background: #367886; }
-    .kpi-card.highlight .kpi-label { color: #bcdde1; }
-    .kpi-card.highlight .kpi-value { color: #ffffff; }
-    .kpi-card.highlight .kpi-sub   { color: #bcdde1; }
-    .kpi-card.alert-card { background: #90bcc3; }
-    .kpi-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: #367886; }
-    .kpi-value { font-size: 1.45rem; font-weight: 700; color: #1a3a40; line-height: 1.2; }
-    .kpi-sub   { font-size: 0.78rem; color: #4a7a85; margin-top: 2px; }
+    .kpi-card:hover { transform:translateY(-3px); }
+    .kpi-card.highlight { background:#367886; }
+    .kpi-card.highlight .kpi-label { color:#bcdde1; }
+    .kpi-card.highlight .kpi-value { color:#fff; }
+    .kpi-card.highlight .kpi-sub   { color:#bcdde1; }
+    .kpi-card.alert-card { background:#90bcc3; }
+    .kpi-label { font-size:.72rem; font-weight:600; text-transform:uppercase; letter-spacing:.07em; color:#367886; }
+    .kpi-value { font-size:1.45rem; font-weight:700; color:#1a3a40; line-height:1.2; }
+    .kpi-sub   { font-size:.78rem; color:#4a7a85; margin-top:2px; }
 
-    /* GRÁFICO */
-    .charts-section { margin-bottom: 40px; }
+    .charts-section { margin-bottom:40px; }
     .chart-box {
-      background: #ffffff; border-radius: 10px; padding: 20px 18px;
-      box-shadow: 0 2px 8px rgba(54,120,134,0.10);
+      background:#fff; border-radius:10px; padding:20px 18px;
+      box-shadow:0 2px 8px rgba(54,120,134,.10);
     }
     .chart-box h3 {
-      font-size: 0.82rem; font-weight: 700; color: #367886;
-      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px;
+      font-size:.82rem; font-weight:700; color:#367886;
+      text-transform:uppercase; letter-spacing:.06em; margin-bottom:14px;
     }
-    .chart-box canvas { max-height: 320px; }
+    .chart-box canvas { max-height:320px; }
 
-    /* TABELAS */
-    .tables-section { margin-bottom: 40px; }
+    .tables-section { margin-bottom:40px; }
     .table-wrapper {
-      overflow-x: auto; background: #ffffff; border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(54,120,134,0.10); margin-bottom: 32px;
+      overflow-x:auto; background:#fff; border-radius:10px;
+      box-shadow:0 2px 8px rgba(54,120,134,.10); margin-bottom:32px;
     }
-    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-    thead tr { background-color: #367886; color: #ffffff; }
+    table { width:100%; border-collapse:collapse; font-size:.875rem; }
+    thead tr { background:#367886; color:#fff; }
     thead th {
-      padding: 12px 16px; text-align: left; font-weight: 600;
-      font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;
+      padding:12px 16px; text-align:left; font-weight:600;
+      font-size:.78rem; text-transform:uppercase; letter-spacing:.05em; white-space:nowrap;
     }
-    thead th.num, tbody td.num { text-align: right; }
-    tbody tr { border-bottom: 1px solid #e0f2f4; }
-    tbody tr:last-child { border-bottom: none; }
-    tbody tr:nth-child(even) { background-color: #f0fafa; }
-    tbody tr:hover { background-color: #d4eef1; }
-    tbody td { padding: 10px 16px; color: #1a3a40; white-space: nowrap; }
-    tbody td.num { font-variant-numeric: tabular-nums; }
+    thead th.num, tbody td.num { text-align:right; }
+    tbody tr { border-bottom:1px solid #e0f2f4; }
+    tbody tr:last-child { border-bottom:none; }
+    tbody tr:nth-child(even) { background:#f0fafa; }
+    tbody tr:hover { background:#d4eef1; }
+    tbody td { padding:10px 16px; color:#1a3a40; white-space:nowrap; }
+    tbody td.num { font-variant-numeric:tabular-nums; }
 
-    .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.78rem; font-weight: 600; background: #bcdde1; color: #1a3a40; }
-    .badge.good { background: #a8e6cf; color: #1a4a2e; }
-    .badge.mid  { background: #ffe0a0; color: #5a3a00; }
-    .badge.low  { background: #ffb3b3; color: #5a0000; }
+    /* Linha de histórico expandível */
+    tr.historico-row td {
+      padding:6px 16px 10px 32px;
+      font-size:.78rem; color:#4a7a85;
+      white-space:normal; background:#f7fdfd;
+      border-top:none;
+    }
+    tr.historico-row { display:none; }
+    tr.historico-row.aberto { display:table-row; }
 
-    @media (max-width: 900px) { .filter-bar { padding: 12px 16px; } }
-    @media (max-width: 600px) {
-      main { padding: 16px; }
-      header { flex-direction: column; align-items: flex-start; gap: 4px; }
-      header h1 { font-size: 1.05rem; }
-      .kpi-card { max-width: 100%; }
+    .btn-hist {
+      background:none; border:1px solid #639aa5; border-radius:4px;
+      color:#367886; font-size:.72rem; padding:2px 8px; cursor:pointer;
+      white-space:nowrap; transition:background .15s;
+    }
+    .btn-hist:hover { background:#bcdde1; }
+
+    /* Filtros da tabela fornecedores */
+    .table-filters {
+      display:flex; gap:12px; flex-wrap:wrap;
+      padding:12px 16px; background:#f0fafa;
+      border-bottom:1px solid #e0f2f4; border-radius:10px 10px 0 0;
+    }
+    .table-filters select,
+    .table-filters input {
+      padding:5px 10px; border-radius:6px; border:1px solid #90bcc3;
+      background:#fff; color:#1a3a40; font-size:.82rem; flex:1; min-width:160px;
+    }
+
+    .badge { display:inline-block; padding:2px 8px; border-radius:12px; font-size:.78rem; font-weight:600; background:#bcdde1; color:#1a3a40; }
+    .badge.good { background:#a8e6cf; color:#1a4a2e; }
+    .badge.mid  { background:#ffe0a0; color:#5a3a00; }
+    .badge.low  { background:#ffb3b3; color:#5a0000; }
+
+    @media (max-width:900px) { .filter-bar { padding:12px 16px; } }
+    @media (max-width:600px) {
+      main { padding:16px; }
+      header { flex-direction:column; align-items:flex-start; gap:4px; }
+      header h1 { font-size:1.05rem; }
+      .kpi-card { max-width:100%; }
     }
   </style>
 </head>
@@ -153,12 +150,12 @@
     <span class="subtitle">Sistema Elmar</span>
   </header>
 
-  <!-- BARRA DE FILTRO DE DATA -->
+  <!-- FILTRO DE PERÍODO -->
   <div class="filter-bar" id="filter-bar" style="display:none;">
     <label>Período:</label>
-    <label for="filtroDE">De</label>
+    <label>De</label>
     <select id="filtroDE"></select>
-    <label for="filtroATE">Até</label>
+    <label>Até</label>
     <select id="filtroATE"></select>
     <button onclick="aplicarFiltro()">Filtrar</button>
     <button class="reset" onclick="limparFiltro()">Limpar</button>
@@ -177,7 +174,7 @@
       <div class="kpi-grid" id="kpi-grid"></div>
     </section>
 
-    <!-- GRÁFICO MENSAL: Empenhado × Liquidado AM × Pago AM -->
+    <!-- GRÁFICO MENSAL -->
     <section class="charts-section">
       <p class="section-title">Evolução Mensal</p>
       <div class="chart-box">
@@ -186,7 +183,7 @@
       </div>
     </section>
 
-    <!-- TABELA POR TIPO DE PESSOA -->
+    <!-- TABELA TIPO DE PESSOA -->
     <section class="tables-section" style="margin-top:40px;">
       <p class="section-title">Por Tipo de Pessoa</p>
       <div class="table-wrapper">
@@ -205,9 +202,15 @@
         </table>
       </div>
 
-      <!-- TOP 5 FORNECEDORES -->
-      <p class="section-title">Top 5 Fornecedores por Valor Empenhado</p>
+      <!-- TABELA FORNECEDORES -->
+      <p class="section-title">Fornecedores por Valor Empenhado</p>
       <div class="table-wrapper">
+        <div class="table-filters">
+          <select id="filtroTipo" onchange="renderTabelaFornecedores()">
+            <option value="">Todos os tipos</option>
+          </select>
+          <input type="text" id="buscaFornecedor" placeholder="Buscar fornecedor..." oninput="renderTabelaFornecedores()" />
+        </div>
         <table>
           <thead>
             <tr>
@@ -216,6 +219,7 @@
               <th class="num">Empenhado (R$)</th>
               <th class="num">Pago AM (R$)</th>
               <th class="num">Saldo a Pagar (R$)</th>
+              <th>Histórico</th>
             </tr>
           </thead>
           <tbody id="tabelaFornecedores-body"></tbody>
@@ -227,280 +231,254 @@
 
   <script>
     // ==============================================================
-    // CONFIGURACAO — cole aqui a URL do Apps Script Web App
+    // CONFIGURACAO
     // ==============================================================
     var API_URL = 'https://script.google.com/macros/s/AKfycbxWaa3OuFdKH2K3Dcz6LBZCPL8qy4OfDUyn1AAyMfJoCRlaD7adQEsG_lDxMzHTgyEZ/exec';
 
-    // ==============================================================
-    // DADOS GLOBAIS
-    // ==============================================================
-    var dadosCompletos = null;   // todos os dados da API
-    var mensalFiltrado = null;   // mensal após filtro de data
+    var dadosCompletos = null;
     var chartMensal    = null;
 
     // ==============================================================
     // UTILITÁRIOS
     // ==============================================================
     function fmtBRL(v) {
-      return new Intl.NumberFormat('pt-BR', { style:'currency', currency:'BRL', minimumFractionDigits:2 }).format(v||0);
+      return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:2}).format(v||0);
     }
     function fmtPct(v) {
-      return new Intl.NumberFormat('pt-BR', { style:'percent', minimumFractionDigits:1, maximumFractionDigits:1 }).format((v||0)/100);
+      return new Intl.NumberFormat('pt-BR',{style:'percent',minimumFractionDigits:1,maximumFractionDigits:1}).format((v||0)/100);
     }
     function badgeClass(p) { return p>=75?'badge good':p>=40?'badge mid':'badge low'; }
     function parseMesAno(s) {
       var m={jan:0,fev:1,mar:2,abr:3,mai:4,jun:5,jul:6,ago:7,set:8,out:9,nov:10,dez:11};
       var p=String(s||'').toLowerCase().split('/');
       if(p.length!==2) return 0;
-      var i=m[p[0].trim()], a=parseInt(p[1].trim(),10);
+      var i=m[p[0].trim()],a=parseInt(p[1].trim(),10);
       return (i===undefined||isNaN(a))?0:a*100+i;
     }
 
     // ==============================================================
-    // BUSCA OS DADOS DA API
+    // BUSCA DADOS DA API
     // ==============================================================
     function carregarDados() {
       fetch(API_URL)
-        .then(function(res) {
-          if (!res.ok) throw new Error('HTTP ' + res.status);
-          return res.json();
-        })
-        .then(function(data) {
-          if (data.erro) throw new Error(data.erro);
+        .then(function(res){ if(!res.ok) throw new Error('HTTP '+res.status); return res.json(); })
+        .then(function(data){
+          if(data.erro) throw new Error(data.erro);
           dadosCompletos = data;
-          mensalFiltrado = data.mensal.slice();
           inicializarFiltro(data.mensal);
+          popularFiltroTipo(data.fornecedores || []);
           renderDashboard(data, data.mensal);
         })
-        .catch(function(err) {
-          mostrarErro('Erro: ' + err.message);
-        });
+        .catch(function(err){ mostrarErro('Erro: '+err.message); });
     }
 
     // ==============================================================
-    // FILTRO DE DATA
+    // FILTRO DE PERÍODO
     // ==============================================================
     function inicializarFiltro(mensal) {
-      var selectDe  = document.getElementById('filtroDE');
-      var selectAte = document.getElementById('filtroATE');
-      selectDe.innerHTML = '';
-      selectAte.innerHTML = '';
-
-      mensal.forEach(function(m) {
-        var opt1 = document.createElement('option'); opt1.value = m.mesAno; opt1.textContent = m.mesAno;
-        var opt2 = document.createElement('option'); opt2.value = m.mesAno; opt2.textContent = m.mesAno;
-        selectDe.appendChild(opt1);
-        selectAte.appendChild(opt2);
+      var de=document.getElementById('filtroDE'), ate=document.getElementById('filtroATE');
+      de.innerHTML=''; ate.innerHTML='';
+      mensal.forEach(function(m){
+        var o1=document.createElement('option'); o1.value=m.mesAno; o1.textContent=m.mesAno;
+        var o2=document.createElement('option'); o2.value=m.mesAno; o2.textContent=m.mesAno;
+        de.appendChild(o1); ate.appendChild(o2);
       });
-
-      // Pré-seleciona: De = primeiro mês, Até = último mês
-      selectDe.selectedIndex  = 0;
-      selectAte.selectedIndex = mensal.length - 1;
-
-      document.getElementById('filter-bar').style.display = 'flex';
+      de.selectedIndex=0; ate.selectedIndex=mensal.length-1;
+      document.getElementById('filter-bar').style.display='flex';
     }
 
     function aplicarFiltro() {
-      var de  = document.getElementById('filtroDE').value;
-      var ate = document.getElementById('filtroATE').value;
-      var idxDe  = parseMesAno(de);
-      var idxAte = parseMesAno(ate);
-
-      mensalFiltrado = dadosCompletos.mensal.filter(function(m) {
-        var idx = parseMesAno(m.mesAno);
-        return idx >= idxDe && idx <= idxAte;
+      var de=parseMesAno(document.getElementById('filtroDE').value);
+      var ate=parseMesAno(document.getElementById('filtroATE').value);
+      var filtrado=dadosCompletos.mensal.filter(function(m){
+        var i=parseMesAno(m.mesAno); return i>=de&&i<=ate;
       });
-
-      renderGrafico(mensalFiltrado);
+      renderGrafico(filtrado);
     }
 
     function limparFiltro() {
-      var sel = document.getElementById('filtroDE');
-      var ate = document.getElementById('filtroATE');
-      sel.selectedIndex = 0;
-      ate.selectedIndex = ate.options.length - 1;
-      mensalFiltrado = dadosCompletos.mensal.slice();
-      renderGrafico(mensalFiltrado);
+      document.getElementById('filtroDE').selectedIndex=0;
+      document.getElementById('filtroATE').selectedIndex=document.getElementById('filtroATE').options.length-1;
+      renderGrafico(dadosCompletos.mensal);
     }
 
     // ==============================================================
     // RENDERIZAÇÃO PRINCIPAL
     // ==============================================================
     function renderDashboard(data, mensal) {
-      document.getElementById('loading').style.display      = 'none';
-      document.getElementById('main-content').style.display = 'block';
+      document.getElementById('loading').style.display='none';
+      document.getElementById('main-content').style.display='block';
       renderKPIs(data);
       renderGrafico(mensal);
       renderTabelaTipos(data.tipos);
-      renderTabelaFornecedores(data.topFornecedores);
+      renderTabelaFornecedores();
     }
 
     function mostrarErro(msg) {
-      document.getElementById('loading').innerHTML =
-        '<p style="color:#c0392b;max-width:500px;text-align:center;">' + msg + '</p>';
+      document.getElementById('loading').innerHTML=
+        '<p style="color:#c0392b;max-width:500px;text-align:center;">'+msg+'</p>';
     }
 
     // ----------------------------------------------------------
     // KPI CARDS
     // ----------------------------------------------------------
     function renderKPIs(data) {
-      var grid = document.getElementById('kpi-grid');
-      grid.innerHTML = '';
+      var grid=document.getElementById('kpi-grid');
+      grid.innerHTML='';
 
-      // Fallback: calcula totalPagoAM somando tipos caso o campo venha zerado
-      var totalPago = data.totalPagoAM;
-      if (!totalPago && data.tipos && data.tipos.length) {
-        totalPago = data.tipos.reduce(function(s, t){ return s + (t.totalPago||0); }, 0);
-      }
-      var pctPago = data.totalEmpenhado > 0 ? (totalPago / data.totalEmpenhado) * 100 : 0;
+      // Fallback: calcula totalPagoAM somando tipos se campo vier zerado
+      var totalPago=data.totalPagoAM;
+      if(!totalPago && data.tipos && data.tipos.length)
+        totalPago=data.tipos.reduce(function(s,t){return s+(t.totalPago||0);},0);
+      var pctPago=data.totalEmpenhado>0?(totalPago/data.totalEmpenhado)*100:0;
 
-      // Card 1: Total Empenhado
-      grid.appendChild(criarCard('Total Empenhado', fmtBRL(data.totalEmpenhado), null, 'highlight'));
-
-      // Card 2: Total Pago AM + % do total empenhado
-      grid.appendChild(criarCard(
-        'Total Pago (AM)',
-        fmtBRL(totalPago),
-        fmtPct(pctPago) + ' do total empenhado',
-        ''
-      ));
-
-      // Card 3: Saldo a Pagar
-      grid.appendChild(criarCard('Saldo a Pagar', fmtBRL(data.saldoAPagarGeral), 'VALOR - PAGO_AM', 'alert-card'));
-
-      // Cards por Tipo de Pessoa
-      (data.tipos||[]).forEach(function(t) {
-        grid.appendChild(criarCard(
-          t.tipo,
-          fmtBRL(t.totalValor),
-          fmtPct(t.percentualDoTotal) + ' do total empenhado',
-          ''
-        ));
+      grid.appendChild(criarCard('Total Empenhado',fmtBRL(data.totalEmpenhado),null,'highlight'));
+      grid.appendChild(criarCard('Total Pago (AM)',fmtBRL(totalPago),fmtPct(pctPago)+' do total empenhado',''));
+      grid.appendChild(criarCard('Saldo a Pagar',fmtBRL(data.saldoAPagarGeral),'VALOR - PAGO_AM','alert-card'));
+      (data.tipos||[]).forEach(function(t){
+        grid.appendChild(criarCard(t.tipo,fmtBRL(t.totalValor),fmtPct(t.percentualDoTotal)+' do total empenhado',''));
       });
     }
 
-    function criarCard(label, value, sub, extra) {
-      var d = document.createElement('div'); d.className = 'kpi-card '+(extra||'');
-      var l = document.createElement('span'); l.className = 'kpi-label'; l.textContent = label;
-      var v = document.createElement('span'); v.className = 'kpi-value'; v.textContent = value;
+    function criarCard(label,value,sub,extra){
+      var d=document.createElement('div'); d.className='kpi-card '+(extra||'');
+      var l=document.createElement('span'); l.className='kpi-label'; l.textContent=label;
+      var v=document.createElement('span'); v.className='kpi-value'; v.textContent=value;
       d.appendChild(l); d.appendChild(v);
-      if (sub) { var s = document.createElement('span'); s.className = 'kpi-sub'; s.textContent = sub; d.appendChild(s); }
+      if(sub){var s=document.createElement('span');s.className='kpi-sub';s.textContent=sub;d.appendChild(s);}
       return d;
     }
 
     // ----------------------------------------------------------
-    // GRÁFICO MENSAL: Empenhado × Liquidado AM × Pago AM
+    // GRÁFICO — 3 séries de barras
     // ----------------------------------------------------------
     function renderGrafico(mensal) {
-      var labels     = mensal.map(function(m){ return m.mesAno; });
-      var empenhado  = mensal.map(function(m){ return m.valor; });
-      var liquidado  = mensal.map(function(m){ return m.liquidadoAM; });
-      var pago       = mensal.map(function(m){ return m.pagoAM; });
+      var labels    = mensal.map(function(m){return m.mesAno;});
+      var empenhado = mensal.map(function(m){return m.valor||0;});
+      var liquidado = mensal.map(function(m){return m.liquidadoAM||0;});
+      var pago      = mensal.map(function(m){return m.pagoAM||0;});
 
-      if (chartMensal) chartMensal.destroy();
+      if(chartMensal) chartMensal.destroy();
 
-      chartMensal = new Chart(document.getElementById('chartMensal').getContext('2d'), {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: 'Empenhado',
-              data: empenhado,
-              backgroundColor: 'rgba(54,120,134,0.85)',
-              borderColor: '#367886',
-              borderWidth: 1,
-              borderRadius: 4,
-              order: 1
-            },
-            {
-              label: 'Liquidado AM',
-              data: liquidado,
-              backgroundColor: 'rgba(99,154,165,0.85)',
-              borderColor: '#639aa5',
-              borderWidth: 1,
-              borderRadius: 4,
-              order: 2
-            },
-            {
-              label: 'Pago AM',
-              data: pago,
-              backgroundColor: 'rgba(26,58,64,0.80)',
-              borderColor: '#1a3a40',
-              borderWidth: 1,
-              borderRadius: 4,
-              order: 3
-            }
+      chartMensal=new Chart(document.getElementById('chartMensal').getContext('2d'),{
+        type:'bar',
+        data:{
+          labels:labels,
+          datasets:[
+            { label:'Empenhado',    data:empenhado, backgroundColor:'rgba(54,120,134,0.85)',  borderColor:'#367886', borderWidth:1, borderRadius:4 },
+            { label:'Liquidado AM', data:liquidado, backgroundColor:'rgba(99,154,165,0.85)',  borderColor:'#639aa5', borderWidth:1, borderRadius:4 },
+            { label:'Pago AM',      data:pago,      backgroundColor:'rgba(26,58,64,0.80)',    borderColor:'#1a3a40', borderWidth:1, borderRadius:4 }
           ]
         },
-        options: {
-          responsive: true,
-          interaction: { mode: 'index', intersect: false },
-          plugins: {
-            legend: {
-              display: true,
-              position: 'top',
-              labels: { font: { size: 12 }, color: '#1a3a40' }
-            },
-            tooltip: {
-              callbacks: {
-                label: function(ctx) { return ' ' + ctx.dataset.label + ': ' + fmtBRL(ctx.parsed.y); }
-              }
-            }
+        options:{
+          responsive:true,
+          interaction:{mode:'index',intersect:false},
+          plugins:{
+            legend:{display:true,position:'top',labels:{font:{size:12},color:'#1a3a40'}},
+            tooltip:{callbacks:{label:function(c){return ' '+c.dataset.label+': '+fmtBRL(c.parsed.y);}}}
           },
-          scales: {
-            x: { ticks: { maxRotation: 45, font: { size: 11 } } },
-            y: {
-              ticks: {
-                font: { size: 11 },
-                callback: function(v) { return fmtBRL(v); }
-              }
-            }
+          scales:{
+            x:{ticks:{maxRotation:45,font:{size:11}}},
+            y:{ticks:{font:{size:11},callback:function(v){return fmtBRL(v);}}}
           }
         }
       });
     }
 
     // ----------------------------------------------------------
-    // TABELA POR TIPO DE PESSOA
-    // Colunas: Tipo | Empenhado | % do Total | Pago AM | % Pago | Saldo
+    // TABELA TIPO DE PESSOA
     // ----------------------------------------------------------
     function renderTabelaTipos(tipos) {
-      var tbody = document.getElementById('tabelaTipos-body');
-      tbody.innerHTML = '';
-      (tipos||[]).forEach(function(t) {
-        var tr = document.createElement('tr');
-        tr.innerHTML =
+      var tbody=document.getElementById('tabelaTipos-body');
+      tbody.innerHTML='';
+      (tipos||[]).forEach(function(t){
+        // Calcula % pago com fallback
+        var pctPago = t.percentualPago !== undefined
+          ? t.percentualPago
+          : (dadosCompletos.totalEmpenhado>0?(t.totalPago/dadosCompletos.totalEmpenhado)*100:0);
+        var tr=document.createElement('tr');
+        tr.innerHTML=
           '<td>'+(t.tipo||'-')+'</td>'+
           '<td class="num">'+fmtBRL(t.totalValor)+'</td>'+
           '<td class="num"><span class="badge">'+fmtPct(t.percentualDoTotal)+'</span></td>'+
           '<td class="num">'+fmtBRL(t.totalPago)+'</td>'+
-          '<td class="num"><span class="'+badgeClass(t.percentualPago)+'">'+fmtPct(t.percentualPago)+'</span></td>'+
+          '<td class="num"><span class="'+badgeClass(pctPago)+'">'+fmtPct(pctPago)+'</span></td>'+
           '<td class="num">'+fmtBRL(t.saldoAPagar)+'</td>';
         tbody.appendChild(tr);
       });
-      if (!tipos||!tipos.length)
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#639aa5;">Nenhum dado encontrado</td></tr>';
+      if(!tipos||!tipos.length)
+        tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:#639aa5;">Nenhum dado</td></tr>';
     }
 
     // ----------------------------------------------------------
-    // TOP 5 FORNECEDORES
+    // FILTRO DE TIPO NA TABELA FORNECEDORES
     // ----------------------------------------------------------
-    function renderTabelaFornecedores(forn) {
-      var tbody = document.getElementById('tabelaFornecedores-body');
-      tbody.innerHTML = '';
-      (forn||[]).forEach(function(f, i) {
-        var tr = document.createElement('tr');
-        tr.innerHTML =
+    function popularFiltroTipo(fornecedores) {
+      var sel=document.getElementById('filtroTipo');
+      var tipos={};
+      fornecedores.forEach(function(f){ if(f.tipo) tipos[f.tipo]=true; });
+      Object.keys(tipos).sort().forEach(function(t){
+        var o=document.createElement('option'); o.value=t; o.textContent=t;
+        // Pré-seleciona Pessoa Jurídica
+        if(t==='Pessoa Jurídica') o.selected=true;
+        sel.appendChild(o);
+      });
+    }
+
+    // ----------------------------------------------------------
+    // TABELA FORNECEDORES — com filtro, busca, 10 linhas, histórico
+    // ----------------------------------------------------------
+    function renderTabelaFornecedores() {
+      if(!dadosCompletos) return;
+      var fornecedores = dadosCompletos.fornecedores || dadosCompletos.topFornecedores || [];
+      var tipoFiltro   = document.getElementById('filtroTipo').value.toLowerCase();
+      var busca        = (document.getElementById('buscaFornecedor').value||'').toLowerCase();
+
+      var filtrados = fornecedores.filter(function(f){
+        var tipoOk  = !tipoFiltro || (f.tipo||'').toLowerCase()===tipoFiltro;
+        var buscaOk = !busca      || (f.nomeFornecedor||'').toLowerCase().indexOf(busca)>=0;
+        return tipoOk && buscaOk;
+      });
+
+      var tbody=document.getElementById('tabelaFornecedores-body');
+      tbody.innerHTML='';
+
+      var top10=filtrados.slice(0,10);
+      top10.forEach(function(f,i){
+        var idHist='hist-'+i;
+
+        // Linha principal
+        var tr=document.createElement('tr');
+        tr.innerHTML=
           '<td><strong>'+(i+1)+'</strong></td>'+
           '<td>'+(f.nomeFornecedor||'-')+'</td>'+
           '<td class="num">'+fmtBRL(f.totalEmpenhado)+'</td>'+
           '<td class="num">'+fmtBRL(f.totalPago)+'</td>'+
-          '<td class="num">'+fmtBRL(f.saldoAPagar)+'</td>';
+          '<td class="num">'+fmtBRL(f.saldoAPagar)+'</td>'+
+          '<td>'+(f.historicos&&f.historicos.length
+            ? '<button class="btn-hist" onclick="toggleHist(\''+idHist+'\',this)">+ ver</button>'
+            : '-')+'</td>';
         tbody.appendChild(tr);
+
+        // Linha de histórico (oculta por padrão)
+        if(f.historicos&&f.historicos.length){
+          var trH=document.createElement('tr');
+          trH.className='historico-row';
+          trH.id=idHist;
+          trH.innerHTML='<td colspan="6">'+f.historicos.join(' · ')+'</td>';
+          tbody.appendChild(trH);
+        }
       });
-      if (!forn||!forn.length)
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#639aa5;">Nenhum dado encontrado</td></tr>';
+
+      if(!top10.length)
+        tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:#639aa5;">Nenhum fornecedor encontrado</td></tr>';
+    }
+
+    function toggleHist(id, btn) {
+      var row=document.getElementById(id);
+      if(!row) return;
+      var aberto=row.classList.toggle('aberto');
+      btn.textContent=aberto?'- fechar':'+ ver';
     }
 
     // ==============================================================
