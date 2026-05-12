@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Financeiro - Empenhos e Pagamentos</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+      background-color: #e9ffff;
+      color: #1a3a40;
+      min-height: 100vh;
+    }
+
+    header {
+      background-color: #367886;
+      color: #ffffff;
+      padding: 18px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+    }
+    header h1 { font-size: 1.35rem; font-weight: 700; letter-spacing: 0.02em; }
+    header span.subtitle { font-size: 0.85rem; opacity: 0.85; }
+
+    #loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 60vh;
+      color: #367886;
+      font-size: 1.1rem;
+      gap: 16px;
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 4px solid #bcdde1;
+      border-top-color: #367886;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    main { padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
+
+    .section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #367886;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 14px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #90bcc3;
+    }
+
+    .kpi-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 36px;
+    }
+    .kpi-card {
+      background: #bcdde1;
+      border-radius: 10px;
+      padding: 18px 22px;
+      flex: 1 1 200px;
+      min-width: 180px;
+      max-width: 280px;
+      box-shadow: 0 2px 6px rgba(54,120,134,0.10);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: transform 0.15s;
+    }
+    .kpi-card:hover { transform: translateY(-3px); }
+    .kpi-card.highlight { background: #367886; color: #ffffff; }
+    .kpi-card.highlight .kpi-label { color: #bcdde1; }
+    .kpi-card.highlight .kpi-value { color: #ffffff; }
+    .kpi-card.alert-card { background: #90bcc3; }
+    .kpi-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: #367886; }
+    .kpi-value { font-size: 1.45rem; font-weight: 700; color: #1a3a40; line-height: 1.2; }
+    .kpi-sub { font-size: 0.78rem; color: #4a7a85; margin-top: 2px; }
+    .kpi-card.highlight .kpi-sub { color: #bcdde1; }
+
+    .charts-section { margin-bottom: 40px; }
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .chart-box {
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 20px 18px;
+      box-shadow: 0 2px 8px rgba(54,120,134,0.10);
+    }
+    .chart-box h3 {
+      font-size: 0.82rem; font-weight: 700; color: #367886;
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px;
+    }
+    .chart-box canvas { max-height: 280px; }
+
+    .tables-section { margin-bottom: 40px; }
+    .table-wrapper {
+      overflow-x: auto;
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(54,120,134,0.10);
+      margin-bottom: 32px;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    thead tr { background-color: #367886; color: #ffffff; }
+    thead th {
+      padding: 12px 16px; text-align: left; font-weight: 600;
+      font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;
+    }
+    thead th.num, tbody td.num { text-align: right; }
+    tbody tr { border-bottom: 1px solid #e0f2f4; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:nth-child(even) { background-color: #f0fafa; }
+    tbody tr:hover { background-color: #d4eef1; }
+    tbody td { padding: 10px 16px; color: #1a3a40; white-space: nowrap; }
+    tbody td.num { font-variant-numeric: tabular-nums; }
+
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.78rem; font-weight: 600; background: #bcdde1; color: #1a3a40; }
+    .badge.good { background: #a8e6cf; color: #1a4a2e; }
+    .badge.mid  { background: #ffe0a0; color: #5a3a00; }
+    .badge.low  { background: #ffb3b3; color: #5a0000; }
+
+    @media (max-width: 900px) { .charts-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 600px) {
+      main { padding: 16px; }
+      header { flex-direction: column; align-items: flex-start; gap: 4px; }
+      header h1 { font-size: 1.05rem; }
+      .kpi-card { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Dashboard Financeiro - Empenhos e Pagamentos</h1>
+    <span class="subtitle">Fonte: Google Sheets · Aba "Dados"</span>
+  </header>
+
+  <div id="loading">
+    <div class="spinner"></div>
+    <span>Carregando dados da planilha...</span>
+  </div>
+
+  <main id="main-content" style="display:none;">
+
+    <section style="margin-bottom:40px;">
+      <p class="section-title">Indicadores Principais</p>
+      <div class="kpi-grid" id="kpi-grid"></div>
+    </section>
+
+    <section class="charts-section">
+      <p class="section-title">Evolucao Mensal</p>
+      <div class="charts-grid">
+        <div class="chart-box">
+          <h3>Pago no Mes (PAGO_NM)</h3>
+          <canvas id="chartPagoNM"></canvas>
+        </div>
+        <div class="chart-box">
+          <h3>Pago Acumulado (PAGO_AM)</h3>
+          <canvas id="chartPagoAM"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section class="tables-section" style="margin-top:40px;">
+      <p class="section-title">Por Tipo de Pessoa</p>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Tipo de Pessoa</th>
+              <th class="num">Empenhado (R$)</th>
+              <th class="num">Pago AM (R$)</th>
+              <th class="num">Liquidado AM (R$)</th>
+              <th class="num">% Liquidado</th>
+              <th class="num">Saldo a Pagar (R$)</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaTipos-body"></tbody>
+        </table>
+      </div>
+
+      <p class="section-title">Top 5 Fornecedores por Valor Empenhado</p>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Fornecedor</th>
+              <th class="num">Empenhado (R$)</th>
+              <th class="num">Pago AM (R$)</th>
+              <th class="num">Saldo a Pagar (R$)</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaFornecedores-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // ==============================================================
+    // CONFIGURACAO — cole o ID da sua planilha aqui
+    // O ID fica na URL do Sheets entre /d/ e /edit
+    // Exemplo: https://docs.google.com/spreadsheets/d/SEU_ID_AQUI/edit
+    // ==============================================================
+    var SPREADSHEET_ID = "1pE0tnk-9yGUuLhLTV0Yp8kDAtoyPEkQJ_Nxc_9sHELJ9Kgq_PDA3iONX";
+    var SHEET_NAME     = "Fornecedor";
+
+    // Indices das colunas (0 = coluna A)
+    var COL = {
+      TIPO_PESSOA:     5,   // F
+      NOME_FORNECEDOR: 7,   // H
+      VALOR:           9,   // J
+      PAGO_NM:         12,  // M
+      PAGO_AM:         13,  // N
+      LIQUIDADO_AM:    15,  // P
+      MES_ANO:         16   // Q
+    };
+
+    // --------------------------------------------------------------
+    // UTILITARIOS
+    // --------------------------------------------------------------
+    function fmtBRL(v) {
+      return new Intl.NumberFormat("pt-BR", { style:"currency", currency:"BRL", minimumFractionDigits:2 }).format(v||0);
+    }
+    function fmtPct(v) {
+      return new Intl.NumberFormat("pt-BR", { style:"percent", minimumFractionDigits:1, maximumFractionDigits:1 }).format((v||0)/100);
+    }
+    function badgeClass(p) { return p>=75?"badge good":p>=40?"badge mid":"badge low"; }
+    function toNum(v) {
+      if (v===null||v===undefined||v==="") return 0;
+      var n = parseFloat(String(v).replace(",","."));
+      return isNaN(n)?0:n;
+    }
+    function round2(n) { return Math.round((n||0)*100)/100; }
+    function parseMesAno(s) {
+      var m={jan:0,fev:1,mar:2,abr:3,mai:4,jun:5,jul:6,ago:7,set:8,out:9,nov:10,dez:11};
+      var p=String(s||"").toLowerCase().split("/");
+      if(p.length!==2) return 0;
+      var i=m[p[0].trim()], a=parseInt(p[1].trim(),10);
+      return (i===undefined||isNaN(a))?0:a*100+i;
+    }
+
+    // --------------------------------------------------------------
+    // BUSCA OS DADOS DA API (Code.gs implantado como Web App)
+    // --------------------------------------------------------------
+    function carregarDados() {
+      var url = "https://script.google.com/macros/s/AKfycbxWaa3OuFdKH2K3Dcz6LBZCPL8qy4OfDUyn1AAyMfJoCRlaD7adQEsG_lDxMzHTgyEZ/exec";
+
+      fetch(url)
+        .then(function(res) {
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          return res.json();
+        })
+        .then(function(data) {
+          if (data.erro) throw new Error(data.erro);
+          renderDashboard(data);
+        })
+        .catch(function(err) {
+          mostrarErro("Erro: " + err.message);
+        });
+    }
+
+    // --------------------------------------------------------------
+    // PROCESSA OS DADOS BRUTOS DO GVIZ
+    // --------------------------------------------------------------
+    function processarDados(table) {
+      var rows = table.rows || [];
+      var totalEmpenhado=0, totalLiquidadoAM=0, totalPagoAM=0;
+      var tiposMap={}, mensalMap={}, mensalOrder=[], fornecedoresMap={};
+
+      rows.forEach(function(row) {
+        var c = row.c || [];
+        function cel(i) { return (c[i]&&c[i].v!==null)?c[i].v:""; }
+
+        var tipo   = String(cel(COL.TIPO_PESSOA)||"").trim();
+        var fornec = String(cel(COL.NOME_FORNECEDOR)||"").trim();
+        var mesAno = String(cel(COL.MES_ANO)||"").trim();
+        var valor  = toNum(cel(COL.VALOR));
+        var pagoNM = toNum(cel(COL.PAGO_NM));
+        var pagoAM = toNum(cel(COL.PAGO_AM));
+        var liqAM  = toNum(cel(COL.LIQUIDADO_AM));
+
+        totalEmpenhado   += valor;
+        totalLiquidadoAM += liqAM;
+        totalPagoAM      += pagoAM;
+
+        if (tipo) {
+          if (!tiposMap[tipo]) tiposMap[tipo]={totalValor:0,totalPago:0,totalLiquidado:0};
+          tiposMap[tipo].totalValor     += valor;
+          tiposMap[tipo].totalPago      += pagoAM;
+          tiposMap[tipo].totalLiquidado += liqAM;
+        }
+        if (mesAno) {
+          if (!mensalMap[mesAno]) { mensalMap[mesAno]={pagoNM:0,pagoAM:0}; mensalOrder.push(mesAno); }
+          mensalMap[mesAno].pagoNM += pagoNM;
+          mensalMap[mesAno].pagoAM += pagoAM;
+        }
+        if (fornec) {
+          if (!fornecedoresMap[fornec]) fornecedoresMap[fornec]={totalEmpenhado:0,totalPago:0};
+          fornecedoresMap[fornec].totalEmpenhado += valor;
+          fornecedoresMap[fornec].totalPago      += pagoAM;
+        }
+      });
+
+      var tiposArray=[];
+      for (var tp in tiposMap) {
+        var t=tiposMap[tp];
+        tiposArray.push({
+          tipo:tp,
+          totalValor:          round2(t.totalValor),
+          percentualDoTotal:   round2(totalEmpenhado>0?(t.totalValor/totalEmpenhado)*100:0),
+          totalPago:           round2(t.totalPago),
+          totalLiquidado:      round2(t.totalLiquidado),
+          percentualLiquidado: round2(t.totalValor>0?(t.totalLiquidado/t.totalValor)*100:0),
+          saldoAPagar:         round2(t.totalValor-t.totalPago)
+        });
+      }
+      tiposArray.sort(function(a,b){return b.totalValor-a.totalValor;});
+
+      var seen={}, mensalArray=[];
+      mensalOrder.forEach(function(k){
+        if(seen[k]) return; seen[k]=true;
+        mensalArray.push({mesAno:k,pagoNM:round2(mensalMap[k].pagoNM),pagoAM:round2(mensalMap[k].pagoAM)});
+      });
+      mensalArray.sort(function(a,b){return parseMesAno(a.mesAno)-parseMesAno(b.mesAno);});
+
+      var fornecArray=[];
+      for (var f in fornecedoresMap) {
+        var fv=fornecedoresMap[f];
+        fornecArray.push({nomeFornecedor:f,totalEmpenhado:round2(fv.totalEmpenhado),totalPago:round2(fv.totalPago),saldoAPagar:round2(fv.totalEmpenhado-fv.totalPago)});
+      }
+      fornecArray.sort(function(a,b){return b.totalEmpenhado-a.totalEmpenhado;});
+
+      return {
+        totalEmpenhado:           round2(totalEmpenhado),
+        percentualLiquidadoGeral: round2(totalEmpenhado>0?(totalLiquidadoAM/totalEmpenhado)*100:0),
+        saldoAPagarGeral:         round2(totalEmpenhado-totalPagoAM),
+        tipos:                    tiposArray,
+        mensal:                   mensalArray,
+        topFornecedores:          fornecArray.slice(0,5)
+      };
+    }
+
+    // --------------------------------------------------------------
+    // RENDERIZACAO
+    // --------------------------------------------------------------
+    function renderDashboard(data) {
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("main-content").style.display = "block";
+      renderKPIs(data);
+      renderGraficos(data.mensal);
+      renderTabelaTipos(data.tipos);
+      renderTabelaFornecedores(data.topFornecedores);
+    }
+
+    function mostrarErro(msg) {
+      document.getElementById("loading").innerHTML =
+        "<p style='color:#c0392b;max-width:500px;text-align:center;'>" + msg + "</p>";
+    }
+
+    function renderKPIs(data) {
+      var grid = document.getElementById("kpi-grid");
+      grid.innerHTML = "";
+      grid.appendChild(criarCard("Total Empenhado",       fmtBRL(data.totalEmpenhado),           null,                  "highlight"));
+      grid.appendChild(criarCard("% Liquidado (Geral)",   fmtPct(data.percentualLiquidadoGeral), "LIQUIDADO_AM / VALOR",""));
+      grid.appendChild(criarCard("Saldo a Pagar (Geral)", fmtBRL(data.saldoAPagarGeral),         "VALOR - PAGO_AM",     "alert-card"));
+      (data.tipos||[]).forEach(function(t){
+        grid.appendChild(criarCard(t.tipo, fmtBRL(t.totalValor), fmtPct(t.percentualDoTotal)+" do total empenhado",""));
+      });
+    }
+
+    function criarCard(label,value,sub,extra) {
+      var d=document.createElement("div"); d.className="kpi-card "+(extra||"");
+      var l=document.createElement("span"); l.className="kpi-label"; l.textContent=label;
+      var v=document.createElement("span"); v.className="kpi-value"; v.textContent=value;
+      d.appendChild(l); d.appendChild(v);
+      if(sub){var s=document.createElement("span");s.className="kpi-sub";s.textContent=sub;d.appendChild(s);}
+      return d;
+    }
+
+    var chartNM=null, chartAM=null;
+    function renderGraficos(mensal) {
+      var labels=(mensal||[]).map(function(m){return m.mesAno;});
+      var nm=(mensal||[]).map(function(m){return m.pagoNM;});
+      var am=(mensal||[]).map(function(m){return m.pagoAM;});
+      if(chartNM) chartNM.destroy();
+      if(chartAM) chartAM.destroy();
+
+      chartNM=new Chart(document.getElementById("chartPagoNM").getContext("2d"),{
+        type:"bar",
+        data:{labels:labels,datasets:[{label:"Pago no Mes (R$)",data:nm,
+          backgroundColor:"rgba(54,120,134,0.75)",borderColor:"#367886",borderWidth:1,borderRadius:4}]},
+        options:{responsive:true,plugins:{legend:{display:false},
+          tooltip:{callbacks:{label:function(c){return " "+fmtBRL(c.parsed.y);}}}},
+          scales:{x:{ticks:{maxRotation:45,font:{size:11}}},
+            y:{ticks:{font:{size:11},callback:function(v){return fmtBRL(v);}}}}}
+      });
+
+      chartAM=new Chart(document.getElementById("chartPagoAM").getContext("2d"),{
+        type:"line",
+        data:{labels:labels,datasets:[{label:"Pago Acumulado (R$)",data:am,
+          borderColor:"#367886",backgroundColor:"rgba(188,221,225,0.35)",
+          pointBackgroundColor:"#367886",pointRadius:4,fill:true,tension:0.35}]},
+        options:{responsive:true,plugins:{legend:{display:false},
+          tooltip:{callbacks:{label:function(c){return " "+fmtBRL(c.parsed.y);}}}},
+          scales:{x:{ticks:{maxRotation:45,font:{size:11}}},
+            y:{ticks:{font:{size:11},callback:function(v){return fmtBRL(v);}}}}}
+      });
+    }
+
+    function renderTabelaTipos(tipos) {
+      var tbody=document.getElementById("tabelaTipos-body");
+      tbody.innerHTML="";
+      (tipos||[]).forEach(function(t){
+        var tr=document.createElement("tr");
+        tr.innerHTML="<td>"+(t.tipo||"-")+"</td>"+
+          "<td class='num'>"+fmtBRL(t.totalValor)+"</td>"+
+          "<td class='num'>"+fmtBRL(t.totalPago)+"</td>"+
+          "<td class='num'>"+fmtBRL(t.totalLiquidado)+"</td>"+
+          "<td class='num'><span class='"+badgeClass(t.percentualLiquidado)+"'>"+fmtPct(t.percentualLiquidado)+"</span></td>"+
+          "<td class='num'>"+fmtBRL(t.saldoAPagar)+"</td>";
+        tbody.appendChild(tr);
+      });
+      if(!tipos||!tipos.length)
+        tbody.innerHTML="<tr><td colspan='6' style='text-align:center;color:#639aa5;'>Nenhum dado encontrado</td></tr>";
+    }
+
+    function renderTabelaFornecedores(forn) {
+      var tbody=document.getElementById("tabelaFornecedores-body");
+      tbody.innerHTML="";
+      (forn||[]).forEach(function(f,i){
+        var tr=document.createElement("tr");
+        tr.innerHTML="<td><strong>"+(i+1)+"</strong></td>"+
+          "<td>"+(f.nomeFornecedor||"-")+"</td>"+
+          "<td class='num'>"+fmtBRL(f.totalEmpenhado)+"</td>"+
+          "<td class='num'>"+fmtBRL(f.totalPago)+"</td>"+
+          "<td class='num'>"+fmtBRL(f.saldoAPagar)+"</td>";
+        tbody.appendChild(tr);
+      });
+      if(!forn||!forn.length)
+        tbody.innerHTML="<tr><td colspan='5' style='text-align:center;color:#639aa5;'>Nenhum dado encontrado</td></tr>";
+    }
+
+    // Inicia
+    carregarDados();
+  </script>
+
+</body>
+</html>
