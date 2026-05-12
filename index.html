@@ -347,14 +347,21 @@
       var grid = document.getElementById('kpi-grid');
       grid.innerHTML = '';
 
+      // Fallback: calcula totalPagoAM somando tipos caso o campo venha zerado
+      var totalPago = data.totalPagoAM;
+      if (!totalPago && data.tipos && data.tipos.length) {
+        totalPago = data.tipos.reduce(function(s, t){ return s + (t.totalPago||0); }, 0);
+      }
+      var pctPago = data.totalEmpenhado > 0 ? (totalPago / data.totalEmpenhado) * 100 : 0;
+
       // Card 1: Total Empenhado
       grid.appendChild(criarCard('Total Empenhado', fmtBRL(data.totalEmpenhado), null, 'highlight'));
 
       // Card 2: Total Pago AM + % do total empenhado
       grid.appendChild(criarCard(
         'Total Pago (AM)',
-        fmtBRL(data.totalPagoAM),
-        fmtPct(data.percentualPagoGeral) + ' do total empenhado',
+        fmtBRL(totalPago),
+        fmtPct(pctPago) + ' do total empenhado',
         ''
       ));
 
@@ -418,14 +425,11 @@
             {
               label: 'Pago AM',
               data: pago,
-              type: 'line',
+              backgroundColor: 'rgba(26,58,64,0.80)',
               borderColor: '#1a3a40',
-              backgroundColor: 'rgba(26,58,64,0.10)',
-              pointBackgroundColor: '#1a3a40',
-              pointRadius: 4,
-              fill: false,
-              tension: 0.3,
-              order: 0
+              borderWidth: 1,
+              borderRadius: 4,
+              order: 3
             }
           ]
         },
