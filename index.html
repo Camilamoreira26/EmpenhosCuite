@@ -71,7 +71,6 @@
     .kpi-value { font-size:1.45rem; font-weight:700; color:#1a3a40; line-height:1.2; }
     .kpi-sub   { font-size:.78rem; color:#4a7a85; margin-top:2px; }
 
-    /* Botão colapsar gráfico */
     .btn-toggle {
       background:none; border:1px solid #639aa5; border-radius:6px;
       color:#367886; font-size:.75rem; font-weight:600; padding:3px 12px;
@@ -101,64 +100,66 @@
       padding:12px 16px; text-align:left; font-weight:600;
       font-size:.78rem; text-transform:uppercase; letter-spacing:.05em; white-space:nowrap;
     }
-    thead th.num, tbody td.num { text-align:right; }
+    thead th.num { text-align:right; }
     thead th.sortable { cursor:pointer; user-select:none; }
     thead th.sortable:hover { background:#2a5f6e; }
-    .sort-icon { margin-left:4px; opacity:.6; font-style:normal; }
-    thead th.sort-asc .sort-icon::after  { content:'▲'; }
-    thead th.sort-desc .sort-icon::after { content:'▼'; }
+    .sort-icon { margin-left:4px; font-style:normal; font-size:.7rem; opacity:.7; }
+    thead th.sort-asc  .sort-icon::after { content:'▲'; opacity:1; }
+    thead th.sort-desc .sort-icon::after { content:'▼'; opacity:1; }
     thead th:not(.sort-asc):not(.sort-desc) .sort-icon::after { content:'⇅'; opacity:.4; }
 
     tbody tr { border-bottom:1px solid #e0f2f4; }
     tbody tr:last-child { border-bottom:none; }
     tbody tr:nth-child(even) { background:#f0fafa; }
-    tbody tr:hover { background:#d4eef1; }
+    tbody tr:hover:not(.detail-row) { background:#d4eef1; }
     tbody td { padding:10px 16px; color:#1a3a40; white-space:nowrap; }
-    tbody td.num { font-variant-numeric:tabular-nums; }
+    tbody td.num { text-align:right; font-variant-numeric:tabular-nums; }
 
-    /* Linha expandível */
-    tr.detail-row td {
-      padding:0; background:#f7fdfd; border-top:none;
+    /* Botão + ao lado do nome */
+    .btn-expand {
+      display:inline-flex; align-items:center; justify-content:center;
+      width:18px; height:18px; border-radius:50%;
+      border:1px solid #639aa5; background:none; color:#367886;
+      font-size:.8rem; font-weight:700; cursor:pointer; margin-right:7px;
+      flex-shrink:0; transition:background .15s, color .15s;
+      vertical-align:middle; line-height:1;
     }
+    .btn-expand:hover { background:#367886; color:#fff; border-color:#367886; }
+
+    /* Linhas de detalhe expandíveis */
     tr.detail-row { display:none; }
     tr.detail-row.aberto { display:table-row; }
 
-    .detail-inner {
-      padding:10px 20px 16px 36px;
+    /* Linhas de mês */
+    tr.detalhe-mes td {
+      padding:5px 16px;
+      font-size:.8rem; color:#2a5f6e;
+      background:#f7fdfd !important;
+      border-bottom:1px solid #e9f7f8;
+    }
+    tr.detalhe-mes td:first-child { color:#639aa5; font-style:italic; }
+
+    /* Linha de média */
+    tr.detalhe-media td {
+      padding:7px 16px;
+      font-size:.8rem; font-weight:700;
+      background:#daf0f3 !important;
+      border-top:2px solid #90bcc3;
+      border-bottom:2px solid #90bcc3;
     }
 
-    /* Tabela mensal dentro do detalhe */
-    .mini-table-wrap { overflow-x:auto; margin-bottom:10px; }
-    .mini-table {
-      border-collapse:collapse; font-size:.78rem;
-      min-width:400px; width:auto;
+    /* Linha de histórico */
+    tr.detalhe-hist td {
+      padding:6px 16px 10px;
+      background:#f7fdfd !important;
+      border-bottom:none;
     }
-    .mini-table th {
-      background:#367886; color:#fff;
-      padding:6px 12px; text-align:right; font-weight:600; white-space:nowrap;
-    }
-    .mini-table th:first-child { text-align:left; }
-    .mini-table td {
-      padding:5px 12px; border-bottom:1px solid #e0f2f4;
-      text-align:right; white-space:nowrap; color:#1a3a40;
-    }
-    .mini-table td:first-child { text-align:left; font-weight:500; }
-    .mini-table tr.media-row td { background:#bcdde1; font-weight:700; }
-    .mini-table tr:nth-child(even):not(.media-row) td { background:#f0fafa; }
+    .hist-bloco { display:flex; align-items:flex-start; gap:8px; flex-wrap:wrap; }
+    .hist-label { font-size:.72rem; font-weight:700; color:#367886; white-space:nowrap; text-transform:uppercase; padding-top:2px; }
+    .hist-tags  { display:flex; flex-wrap:wrap; gap:4px; }
+    .hist-tag   { background:#bcdde1; border-radius:4px; padding:2px 8px; font-size:.75rem; color:#1a3a40; white-space:normal; }
 
-    /* Histórico */
-    .hist-label { font-size:.72rem; font-weight:700; color:#367886; text-transform:uppercase; letter-spacing:.05em; margin-top:6px; margin-bottom:3px; }
-    .hist-tags { display:flex; flex-wrap:wrap; gap:4px; }
-    .hist-tag { background:#bcdde1; border-radius:4px; padding:2px 8px; font-size:.75rem; color:#1a3a40; }
-
-    .btn-hist {
-      background:none; border:1px solid #639aa5; border-radius:4px;
-      color:#367886; font-size:.72rem; padding:2px 8px; cursor:pointer;
-      white-space:nowrap; transition:background .15s;
-    }
-    .btn-hist:hover { background:#bcdde1; }
-
-    /* Filtros da tabela fornecedores */
+    /* Filtros */
     .table-filters {
       display:flex; gap:12px; flex-wrap:wrap;
       padding:12px 16px; background:#f0fafa;
@@ -191,7 +192,6 @@
     <span class="subtitle">Sistema Elmar</span>
   </header>
 
-  <!-- FILTRO DE PERÍODO -->
   <div class="filter-bar" id="filter-bar" style="display:none;">
     <label>Período:</label>
     <label>De</label>
@@ -260,21 +260,12 @@
         <table>
           <thead>
             <tr>
-              <th>#</th>
+              <th style="width:40px">#</th>
               <th>Fornecedor</th>
-              <th class="num sortable" id="th-empenhado" onclick="setSortCol('empenhado')">
-                Empenhado (R$) <i class="sort-icon"></i>
-              </th>
-              <th class="num sortable" id="th-liquidado" onclick="setSortCol('liquidado')">
-                Liquidado AM (R$) <i class="sort-icon"></i>
-              </th>
-              <th class="num sortable" id="th-pago" onclick="setSortCol('pago')">
-                Pago AM (R$) <i class="sort-icon"></i>
-              </th>
-              <th class="num sortable" id="th-saldo" onclick="setSortCol('saldo')">
-                Saldo a Pagar (R$) <i class="sort-icon"></i>
-              </th>
-              <th>Detalhes</th>
+              <th class="num sortable" id="th-empenhado" onclick="setSortCol('empenhado')">Empenhado (R$) <i class="sort-icon"></i></th>
+              <th class="num sortable" id="th-liquidado" onclick="setSortCol('liquidado')">Liquidado AM (R$) <i class="sort-icon"></i></th>
+              <th class="num sortable" id="th-pago"      onclick="setSortCol('pago')">Pago AM (R$) <i class="sort-icon"></i></th>
+              <th class="num sortable" id="th-saldo"     onclick="setSortCol('saldo')">Saldo a Pagar (R$) <i class="sort-icon"></i></th>
             </tr>
           </thead>
           <tbody id="tabelaFornecedores-body"></tbody>
@@ -285,29 +276,22 @@
   </main>
 
   <script>
-    // ==============================================================
-    // CONFIGURACAO
-    // ==============================================================
     var API_URL = 'https://script.google.com/macros/s/AKfycbxWaa3OuFdKH2K3Dcz6LBZCPL8qy4OfDUyn1AAyMfJoCRlaD7adQEsG_lDxMzHTgyEZ/exec';
 
-    var dadosCompletos  = null;
-    var chartMensal     = null;
-    var graficoVisivel  = true;
+    var dadosCompletos = null;
+    var chartMensal    = null;
+    var graficoVisivel = true;
+    var sortCol        = 'empenhado';
+    var sortDir        = 'desc';
 
-    // Sort state para tabela de fornecedores
-    var sortCol = 'empenhado';
-    var sortDir = 'desc';
-
-    // ==============================================================
-    // UTILITÁRIOS
-    // ==============================================================
+    // ── UTILITÁRIOS ──────────────────────────────────────────────
     function fmtBRL(v) {
       return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:2}).format(v||0);
     }
     function fmtPct(v) {
       return new Intl.NumberFormat('pt-BR',{style:'percent',minimumFractionDigits:1,maximumFractionDigits:1}).format((v||0)/100);
     }
-    function badgeClass(p) { return p>=75?'badge good':p>=40?'badge mid':'badge low'; }
+    function badgeClass(p){ return p>=75?'badge good':p>=40?'badge mid':'badge low'; }
     function parseMesAno(s) {
       var m={jan:0,fev:1,mar:2,abr:3,mai:4,jun:5,jul:6,ago:7,set:8,out:9,nov:10,dez:11};
       var p=String(s||'').toLowerCase().split('/');
@@ -315,13 +299,12 @@
       var i=m[p[0].trim()],a=parseInt(p[1].trim(),10);
       return (i===undefined||isNaN(a))?0:a*100+i;
     }
+    function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-    // ==============================================================
-    // BUSCA DADOS DA API
-    // ==============================================================
+    // ── CARREGAR DADOS ───────────────────────────────────────────
     function carregarDados() {
       fetch(API_URL)
-        .then(function(res){ if(!res.ok) throw new Error('HTTP '+res.status); return res.json(); })
+        .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
         .then(function(data){
           if(data.erro) throw new Error(data.erro);
           dadosCompletos = data;
@@ -332,172 +315,127 @@
         .catch(function(err){ mostrarErro('Erro: '+err.message); });
     }
 
-    // ==============================================================
-    // FILTRO DE PERÍODO
-    // ==============================================================
+    // ── FILTRO DE PERÍODO ────────────────────────────────────────
     function inicializarFiltro(mensal) {
-      var de = document.getElementById('filtroDE');
-      var ate = document.getElementById('filtroATE');
-      de.innerHTML = ''; ate.innerHTML = '';
-      mensal.forEach(function(m) {
-        var o1 = document.createElement('option'); o1.value = m.mesAno; o1.textContent = m.mesAno;
-        var o2 = document.createElement('option'); o2.value = m.mesAno; o2.textContent = m.mesAno;
-        de.appendChild(o1); ate.appendChild(o2);
+      var de=document.getElementById('filtroDE'), ate=document.getElementById('filtroATE');
+      de.innerHTML=''; ate.innerHTML='';
+      mensal.forEach(function(m){
+        var a=document.createElement('option'); a.value=m.mesAno; a.textContent=m.mesAno;
+        var b=document.createElement('option'); b.value=m.mesAno; b.textContent=m.mesAno;
+        de.appendChild(a); ate.appendChild(b);
       });
-      de.selectedIndex = 0;
-      ate.selectedIndex = mensal.length - 1;
-      document.getElementById('filter-bar').style.display = 'flex';
+      de.selectedIndex=0; ate.selectedIndex=mensal.length-1;
+      document.getElementById('filter-bar').style.display='flex';
     }
 
     function aplicarFiltro() {
-      var deVal  = document.getElementById('filtroDE').value;
-      var ateVal = document.getElementById('filtroATE').value;
-      var de     = parseMesAno(deVal);
-      var ate    = parseMesAno(ateVal);
-      if (ate < de) { alert('O período "Até" deve ser maior ou igual ao "De".'); return; }
-
-      var filtrado = dadosCompletos.mensal.filter(function(m) {
-        var i = parseMesAno(m.mesAno); return i >= de && i <= ate;
+      var de  = parseMesAno(document.getElementById('filtroDE').value);
+      var ate = parseMesAno(document.getElementById('filtroATE').value);
+      if(ate < de){ alert('O período "Até" deve ser maior ou igual ao "De".'); return; }
+      var filtrado = dadosCompletos.mensal.filter(function(m){
+        var i=parseMesAno(m.mesAno); return i>=de && i<=ate;
       });
-
       renderGrafico(filtrado);
       renderKPIsFiltrado(filtrado);
     }
 
     function limparFiltro() {
-      document.getElementById('filtroDE').selectedIndex = 0;
-      document.getElementById('filtroATE').selectedIndex = document.getElementById('filtroATE').options.length - 1;
+      document.getElementById('filtroDE').selectedIndex=0;
+      document.getElementById('filtroATE').selectedIndex=document.getElementById('filtroATE').options.length-1;
       renderGrafico(dadosCompletos.mensal);
       renderKPIs(dadosCompletos);
     }
 
-    // Recalcula KPIs a partir dos meses filtrados
     function renderKPIsFiltrado(mensal) {
-      var totalEmp  = mensal.reduce(function(s,m){ return s + (m.valor       || 0); }, 0);
-      var totalPago = mensal.reduce(function(s,m){ return s + (m.pagoAM      || 0); }, 0);
-      var totalLiq  = mensal.reduce(function(s,m){ return s + (m.liquidadoAM || 0); }, 0);
+      var totalEmp  = mensal.reduce(function(s,m){ return s+(m.valor||0); },0);
+      var totalPago = mensal.reduce(function(s,m){ return s+(m.pagoAM||0); },0);
       var saldo     = totalEmp - totalPago;
-      var pctPago   = totalEmp > 0 ? (totalPago / totalEmp) * 100 : 0;
-
-      var dataFiltrada = Object.assign({}, dadosCompletos, {
-        totalEmpenhado:   totalEmp,
-        totalPagoAM:      totalPago,
-        saldoAPagarGeral: saldo,
-        percentualPagoGeral: pctPago
-      });
-      renderKPIs(dataFiltrada);
+      var pctPago   = totalEmp>0?(totalPago/totalEmp)*100:0;
+      renderKPIs(Object.assign({}, dadosCompletos, {
+        totalEmpenhado:totalEmp, totalPagoAM:totalPago,
+        saldoAPagarGeral:saldo, percentualPagoGeral:pctPago
+      }));
     }
 
-    // ==============================================================
-    // TOGGLE GRÁFICO
-    // ==============================================================
+    // ── TOGGLE GRÁFICO ───────────────────────────────────────────
     function toggleGrafico() {
       graficoVisivel = !graficoVisivel;
-      var container = document.getElementById('chart-container');
-      var btn       = document.getElementById('btnToggleChart');
-      if (graficoVisivel) {
-        container.style.display = 'block';
-        btn.textContent = '▼ Ocultar gráfico';
-      } else {
-        container.style.display = 'none';
-        btn.textContent = '▶ Exibir gráfico';
-      }
+      document.getElementById('chart-container').style.display = graficoVisivel ? 'block' : 'none';
+      document.getElementById('btnToggleChart').textContent    = graficoVisivel ? '▼ Ocultar gráfico' : '▶ Exibir gráfico';
     }
 
-    // ==============================================================
-    // RENDERIZAÇÃO PRINCIPAL
-    // ==============================================================
+    // ── RENDER PRINCIPAL ─────────────────────────────────────────
     function renderDashboard(data, mensal) {
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('main-content').style.display = 'block';
+      document.getElementById('loading').style.display='none';
+      document.getElementById('main-content').style.display='block';
       renderKPIs(data);
       renderGrafico(mensal);
       renderTabelaTipos(data.tipos);
       renderTabelaFornecedores();
     }
-
     function mostrarErro(msg) {
-      document.getElementById('loading').innerHTML =
-        '<p style="color:#c0392b;max-width:500px;text-align:center;">'+msg+'</p>';
+      document.getElementById('loading').innerHTML='<p style="color:#c0392b;max-width:500px;text-align:center;">'+msg+'</p>';
     }
 
-    // ----------------------------------------------------------
-    // KPI CARDS
-    // ----------------------------------------------------------
+    // ── KPI CARDS ────────────────────────────────────────────────
     function renderKPIs(data) {
-      var grid = document.getElementById('kpi-grid');
-      grid.innerHTML = '';
-
-      var totalPago = data.totalPagoAM;
-      if (!totalPago && data.tipos && data.tipos.length)
-        totalPago = data.tipos.reduce(function(s,t){ return s+(t.totalPago||0); }, 0);
-      var pctPago = data.totalEmpenhado > 0 ? (totalPago / data.totalEmpenhado) * 100 : 0;
-
-      grid.appendChild(criarCard('Total Empenhado',  fmtBRL(data.totalEmpenhado),  null, 'highlight'));
-      grid.appendChild(criarCard('Total Pago (AM)',   fmtBRL(totalPago),  fmtPct(pctPago)+' do total empenhado', ''));
-      grid.appendChild(criarCard('Saldo a Pagar',     fmtBRL(data.saldoAPagarGeral), 'VALOR - PAGO_AM', 'alert-card'));
-      (data.tipos||[]).forEach(function(t) {
+      var grid=document.getElementById('kpi-grid'); grid.innerHTML='';
+      var totalPago=data.totalPagoAM;
+      if(!totalPago && data.tipos && data.tipos.length)
+        totalPago=data.tipos.reduce(function(s,t){ return s+(t.totalPago||0); },0);
+      var pctPago=data.totalEmpenhado>0?(totalPago/data.totalEmpenhado)*100:0;
+      grid.appendChild(criarCard('Total Empenhado', fmtBRL(data.totalEmpenhado), null, 'highlight'));
+      grid.appendChild(criarCard('Total Pago (AM)', fmtBRL(totalPago), fmtPct(pctPago)+' do total empenhado', ''));
+      grid.appendChild(criarCard('Saldo a Pagar', fmtBRL(data.saldoAPagarGeral), 'VALOR - PAGO_AM', 'alert-card'));
+      (data.tipos||[]).forEach(function(t){
         grid.appendChild(criarCard(t.tipo, fmtBRL(t.totalValor), fmtPct(t.percentualDoTotal)+' do total empenhado', ''));
       });
     }
-
-    function criarCard(label, value, sub, extra) {
-      var d = document.createElement('div'); d.className = 'kpi-card '+(extra||'');
-      var l = document.createElement('span'); l.className = 'kpi-label'; l.textContent = label;
-      var v = document.createElement('span'); v.className = 'kpi-value'; v.textContent = value;
+    function criarCard(label,value,sub,extra){
+      var d=document.createElement('div'); d.className='kpi-card '+(extra||'');
+      var l=document.createElement('span'); l.className='kpi-label'; l.textContent=label;
+      var v=document.createElement('span'); v.className='kpi-value'; v.textContent=value;
       d.appendChild(l); d.appendChild(v);
-      if (sub) { var s = document.createElement('span'); s.className = 'kpi-sub'; s.textContent = sub; d.appendChild(s); }
+      if(sub){var s=document.createElement('span');s.className='kpi-sub';s.textContent=sub;d.appendChild(s);}
       return d;
     }
 
-    // ----------------------------------------------------------
-    // GRÁFICO — 3 séries de barras
-    // ----------------------------------------------------------
+    // ── GRÁFICO ──────────────────────────────────────────────────
     function renderGrafico(mensal) {
       var labels    = mensal.map(function(m){ return m.mesAno; });
-      var empenhado = mensal.map(function(m){ return m.valor       || 0; });
-      var liquidado = mensal.map(function(m){ return m.liquidadoAM || 0; });
-      var pago      = mensal.map(function(m){ return m.pagoAM      || 0; });
-
-      if (chartMensal) chartMensal.destroy();
-
-      chartMensal = new Chart(document.getElementById('chartMensal').getContext('2d'), {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [
-            { label:'Empenhado',    data:empenhado, backgroundColor:'rgba(54,120,134,0.85)',  borderColor:'#367886', borderWidth:1, borderRadius:4 },
-            { label:'Liquidado AM', data:liquidado, backgroundColor:'rgba(99,154,165,0.85)',  borderColor:'#639aa5', borderWidth:1, borderRadius:4 },
-            { label:'Pago AM',      data:pago,      backgroundColor:'rgba(26,58,64,0.80)',    borderColor:'#1a3a40', borderWidth:1, borderRadius:4 }
-          ]
-        },
-        options: {
-          responsive: true,
-          interaction: { mode:'index', intersect:false },
-          plugins: {
-            legend: { display:true, position:'top', labels:{ font:{size:12}, color:'#1a3a40' } },
-            tooltip: { callbacks: { label: function(c){ return ' '+c.dataset.label+': '+fmtBRL(c.parsed.y); } } }
+      var empenhado = mensal.map(function(m){ return m.valor||0; });
+      var liquidado = mensal.map(function(m){ return m.liquidadoAM||0; });
+      var pago      = mensal.map(function(m){ return m.pagoAM||0; });
+      if(chartMensal) chartMensal.destroy();
+      chartMensal=new Chart(document.getElementById('chartMensal').getContext('2d'),{
+        type:'bar',
+        data:{ labels:labels, datasets:[
+          {label:'Empenhado',    data:empenhado, backgroundColor:'rgba(54,120,134,0.85)', borderColor:'#367886', borderWidth:1, borderRadius:4},
+          {label:'Liquidado AM', data:liquidado, backgroundColor:'rgba(99,154,165,0.85)', borderColor:'#639aa5', borderWidth:1, borderRadius:4},
+          {label:'Pago AM',      data:pago,      backgroundColor:'rgba(26,58,64,0.80)',   borderColor:'#1a3a40', borderWidth:1, borderRadius:4}
+        ]},
+        options:{
+          responsive:true, interaction:{mode:'index',intersect:false},
+          plugins:{
+            legend:{display:true,position:'top',labels:{font:{size:12},color:'#1a3a40'}},
+            tooltip:{callbacks:{label:function(c){return ' '+c.dataset.label+': '+fmtBRL(c.parsed.y);}}}
           },
-          scales: {
-            x: { ticks:{ maxRotation:45, font:{size:11} } },
-            y: { ticks:{ font:{size:11}, callback: function(v){ return fmtBRL(v); } } }
+          scales:{
+            x:{ticks:{maxRotation:45,font:{size:11}}},
+            y:{ticks:{font:{size:11},callback:function(v){return fmtBRL(v);}}}
           }
         }
       });
     }
 
-    // ----------------------------------------------------------
-    // TABELA TIPO DE PESSOA
-    // ----------------------------------------------------------
+    // ── TABELA TIPO DE PESSOA ────────────────────────────────────
     function renderTabelaTipos(tipos) {
-      var tbody = document.getElementById('tabelaTipos-body');
-      tbody.innerHTML = '';
-      (tipos||[]).forEach(function(t) {
-        var pctPago = t.percentualPago !== undefined
-          ? t.percentualPago
-          : (dadosCompletos.totalEmpenhado > 0 ? (t.totalPago / dadosCompletos.totalEmpenhado) * 100 : 0);
-        var tr = document.createElement('tr');
-        tr.innerHTML =
+      var tbody=document.getElementById('tabelaTipos-body'); tbody.innerHTML='';
+      (tipos||[]).forEach(function(t){
+        var pctPago=t.percentualPago!==undefined?t.percentualPago
+          :(dadosCompletos.totalEmpenhado>0?(t.totalPago/dadosCompletos.totalEmpenhado)*100:0);
+        var tr=document.createElement('tr');
+        tr.innerHTML=
           '<td>'+(t.tipo||'-')+'</td>'+
           '<td class="num">'+fmtBRL(t.totalValor)+'</td>'+
           '<td class="num"><span class="badge">'+fmtPct(t.percentualDoTotal)+'</span></td>'+
@@ -506,160 +444,142 @@
           '<td class="num">'+fmtBRL(t.saldoAPagar)+'</td>';
         tbody.appendChild(tr);
       });
-      if (!tipos || !tipos.length)
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#639aa5;">Nenhum dado</td></tr>';
+      if(!tipos||!tipos.length)
+        tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:#639aa5;">Nenhum dado</td></tr>';
     }
 
-    // ----------------------------------------------------------
-    // FILTRO DE TIPO NA TABELA FORNECEDORES
-    // ----------------------------------------------------------
+    // ── FILTRO TIPO NA TABELA DE FORNECEDORES ────────────────────
     function popularFiltroTipo(fornecedores) {
-      var sel = document.getElementById('filtroTipo');
-      var tipos = {};
-      fornecedores.forEach(function(f){ if (f.tipo) tipos[f.tipo] = true; });
-      Object.keys(tipos).sort().forEach(function(t) {
-        var o = document.createElement('option'); o.value = t; o.textContent = t;
-        if (t === 'Pessoa Jurídica') o.selected = true;
+      var sel=document.getElementById('filtroTipo');
+      var tipos={};
+      fornecedores.forEach(function(f){ if(f.tipo) tipos[f.tipo]=true; });
+      Object.keys(tipos).sort().forEach(function(t){
+        var o=document.createElement('option'); o.value=t; o.textContent=t;
+        if(t==='Pessoa Jurídica') o.selected=true;
         sel.appendChild(o);
       });
     }
 
-    // ----------------------------------------------------------
-    // SORT
-    // ----------------------------------------------------------
+    // ── SORT ─────────────────────────────────────────────────────
     function setSortCol(col) {
-      if (sortCol === col) {
-        sortDir = sortDir === 'desc' ? 'asc' : 'desc';
-      } else {
-        sortCol = col;
-        sortDir = 'desc';
-      }
-      atualizarIconesSort();
+      sortDir = (sortCol===col && sortDir==='desc') ? 'asc' : 'desc';
+      sortCol = col;
       renderTabelaFornecedores();
     }
-
     function atualizarIconesSort() {
-      var cols = ['empenhado','liquidado','pago','saldo'];
-      cols.forEach(function(c) {
-        var th = document.getElementById('th-'+c);
-        if (!th) return;
+      ['empenhado','liquidado','pago','saldo'].forEach(function(c){
+        var th=document.getElementById('th-'+c);
+        if(!th) return;
         th.classList.remove('sort-asc','sort-desc');
-        if (sortCol === c) th.classList.add(sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+        if(sortCol===c) th.classList.add(sortDir==='asc'?'sort-asc':'sort-desc');
       });
     }
 
-    // ----------------------------------------------------------
-    // TABELA FORNECEDORES — 50 linhas, filtro, sort, detalhes expansíveis
-    // ----------------------------------------------------------
+    // ── TABELA FORNECEDORES ──────────────────────────────────────
     function renderTabelaFornecedores() {
-      if (!dadosCompletos) return;
+      if(!dadosCompletos) return;
       var fornecedores = dadosCompletos.fornecedores || dadosCompletos.topFornecedores || [];
       var tipoFiltro   = document.getElementById('filtroTipo').value.toLowerCase();
-      var busca        = (document.getElementById('buscaFornecedor').value || '').toLowerCase();
+      var busca        = (document.getElementById('buscaFornecedor').value||'').toLowerCase();
 
-      // Filtra
-      var filtrados = fornecedores.filter(function(f) {
-        var tipoOk  = !tipoFiltro || (f.tipo||'').toLowerCase() === tipoFiltro;
-        var buscaOk = !busca      || (f.nomeFornecedor||'').toLowerCase().indexOf(busca) >= 0;
-        return tipoOk && buscaOk;
+      var filtrados = fornecedores.filter(function(f){
+        var tOk = !tipoFiltro || (f.tipo||'').toLowerCase()===tipoFiltro;
+        var bOk = !busca      || (f.nomeFornecedor||'').toLowerCase().indexOf(busca)>=0;
+        return tOk && bOk;
       });
 
-      // Ordena
-      var fieldMap = { empenhado:'totalEmpenhado', liquidado:'totalLiquidado', pago:'totalPago', saldo:'saldoAPagar' };
-      var field    = fieldMap[sortCol] || 'totalEmpenhado';
-      filtrados.sort(function(a, b) {
-        var diff = (a[field]||0) - (b[field]||0);
-        return sortDir === 'desc' ? -diff : diff;
-      });
+      var fieldMap={empenhado:'totalEmpenhado',liquidado:'totalLiquidado',pago:'totalPago',saldo:'saldoAPagar'};
+      var field=fieldMap[sortCol]||'totalEmpenhado';
+      filtrados.sort(function(a,b){ var d=(a[field]||0)-(b[field]||0); return sortDir==='desc'?-d:d; });
 
       atualizarIconesSort();
 
-      var tbody = document.getElementById('tabelaFornecedores-body');
-      tbody.innerHTML = '';
+      var tbody=document.getElementById('tabelaFornecedores-body');
+      tbody.innerHTML='';
 
-      var top50 = filtrados.slice(0, 50);
-      top50.forEach(function(f, i) {
-        var idDetail = 'detail-' + i;
+      filtrados.slice(0,50).forEach(function(f,i){
+        var grp='grp'+i;
 
-        // Linha principal
-        var tr = document.createElement('tr');
-        tr.innerHTML =
+        // ── Linha principal
+        var tr=document.createElement('tr');
+        tr.innerHTML=
           '<td><strong>'+(i+1)+'</strong></td>'+
-          '<td>'+(f.nomeFornecedor||'-')+'</td>'+
+          '<td>'+
+            '<button class="btn-expand" onclick="toggleGrupo(\''+grp+'\',this)" title="Ver detalhes">+</button>'+
+            esc(f.nomeFornecedor||'-')+
+          '</td>'+
           '<td class="num">'+fmtBRL(f.totalEmpenhado)+'</td>'+
-          '<td class="num">'+fmtBRL(f.totalLiquidado != null ? f.totalLiquidado : 0)+'</td>'+
+          '<td class="num">'+fmtBRL(f.totalLiquidado||0)+'</td>'+
           '<td class="num">'+fmtBRL(f.totalPago)+'</td>'+
-          '<td class="num">'+fmtBRL(f.saldoAPagar)+'</td>'+
-          '<td><button class="btn-hist" onclick="toggleDetail(\''+idDetail+'\',this)">+ detalhes</button></td>';
+          '<td class="num">'+fmtBRL(f.saldoAPagar)+'</td>';
         tbody.appendChild(tr);
 
-        // Linha de detalhes (oculta)
-        var trD = document.createElement('tr');
-        trD.className = 'detail-row';
-        trD.id = idDetail;
-
-        var inner = '<td colspan="7"><div class="detail-inner">';
-
-        // Mini tabela mensal
+        // ── Linhas de mês (alinhadas com as colunas)
         var mensal = f.mensal || [];
-        if (mensal.length > 0) {
-          var sumEmp = 0, sumPago = 0, sumLiq = 0;
-          mensal.forEach(function(m){ sumEmp += m.empenhado||0; sumPago += m.pago||0; sumLiq += m.liquidado||0; });
-          var n    = mensal.length;
-          var avgE = sumEmp / n, avgP = sumPago / n, avgL = sumLiq / n;
+        var sumE=0, sumL=0, sumP=0, n=mensal.length;
 
-          inner += '<div class="mini-table-wrap"><table class="mini-table">';
-          inner += '<thead><tr><th>Mês</th><th>Empenhado</th><th>Liquidado AM</th><th>Pago AM</th></tr></thead><tbody>';
-          mensal.forEach(function(m) {
-            inner += '<tr>'+
-              '<td>'+m.mesAno+'</td>'+
-              '<td>'+fmtBRL(m.empenhado)+'</td>'+
-              '<td>'+fmtBRL(m.liquidado||0)+'</td>'+
-              '<td>'+fmtBRL(m.pago)+'</td>'+
-              '</tr>';
-          });
-          // Linha de média
-          inner += '<tr class="media-row">'+
-            '<td>Média mensal</td>'+
-            '<td>'+fmtBRL(avgE)+'</td>'+
-            '<td>'+fmtBRL(avgL)+'</td>'+
-            '<td>'+fmtBRL(avgP)+'</td>'+
-            '</tr>';
-          inner += '</tbody></table></div>';
+        mensal.forEach(function(m){
+          sumE += m.empenhado||0; sumL += m.liquidado||0; sumP += m.pago||0;
+          var saldoM = (m.empenhado||0) - (m.pago||0);
+          var trM=document.createElement('tr');
+          trM.className='detail-row detalhe-mes'; trM.dataset.group=grp;
+          trM.innerHTML=
+            '<td></td>'+
+            '<td style="padding-left:42px;font-style:italic;font-size:.78rem;color:#639aa5;">'+esc(m.mesAno)+'</td>'+
+            '<td class="num">'+fmtBRL(m.empenhado||0)+'</td>'+
+            '<td class="num">'+fmtBRL(m.liquidado||0)+'</td>'+
+            '<td class="num">'+fmtBRL(m.pago||0)+'</td>'+
+            '<td class="num">'+fmtBRL(saldoM)+'</td>';
+          tbody.appendChild(trM);
+        });
+
+        // ── Linha de média
+        if(n>0){
+          var trAvg=document.createElement('tr');
+          trAvg.className='detail-row detalhe-media'; trAvg.dataset.group=grp;
+          var avgSaldo = (sumE - sumP) / n;
+          trAvg.innerHTML=
+            '<td></td>'+
+            '<td style="padding-left:42px;">Média mensal</td>'+
+            '<td class="num">'+fmtBRL(sumE/n)+'</td>'+
+            '<td class="num">'+fmtBRL(sumL/n)+'</td>'+
+            '<td class="num">'+fmtBRL(sumP/n)+'</td>'+
+            '<td class="num">'+fmtBRL(avgSaldo)+'</td>';
+          tbody.appendChild(trAvg);
         }
 
-        // Histórico
-        if (f.historicos && f.historicos.length) {
-          inner += '<div class="hist-label">Histórico</div>';
-          inner += '<div class="hist-tags">';
-          f.historicos.forEach(function(h) {
-            inner += '<span class="hist-tag">'+h+'</span>';
-          });
-          inner += '</div>';
+        // ── Linha de histórico (último mês)
+        var hist = f.historicos || [];
+        if(hist.length){
+          var trH=document.createElement('tr');
+          trH.className='detail-row detalhe-hist'; trH.dataset.group=grp;
+          var tags=hist.map(function(h){ return '<span class="hist-tag">'+esc(h)+'</span>'; }).join('');
+          trH.innerHTML=
+            '<td></td>'+
+            '<td colspan="5">'+
+              '<div class="hist-bloco">'+
+                '<span class="hist-label">Histórico ('+esc(f.ultimoMes||'')+')</span>'+
+                '<div class="hist-tags">'+tags+'</div>'+
+              '</div>'+
+            '</td>';
+          tbody.appendChild(trH);
         }
-
-        inner += '</div></td>';
-        trD.innerHTML = inner;
-        tbody.appendChild(trD);
       });
 
-      if (!top50.length)
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#639aa5;">Nenhum fornecedor encontrado</td></tr>';
+      if(!filtrados.length)
+        tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:#639aa5;padding:16px;">Nenhum fornecedor encontrado</td></tr>';
     }
 
-    function toggleDetail(id, btn) {
-      var row = document.getElementById(id);
-      if (!row) return;
-      var aberto = row.classList.toggle('aberto');
-      btn.textContent = aberto ? '- fechar' : '+ detalhes';
+    function toggleGrupo(grp, btn) {
+      var rows = document.querySelectorAll('[data-group="'+grp+'"]');
+      var abrindo = !rows[0].classList.contains('aberto');
+      rows.forEach(function(r){ r.classList.toggle('aberto', abrindo); });
+      btn.textContent = abrindo ? '−' : '+';
     }
 
-    // ==============================================================
-    // INICIALIZAÇÃO
-    // ==============================================================
+    // ── INIT ─────────────────────────────────────────────────────
     atualizarIconesSort();
     carregarDados();
   </script>
-
 </body>
 </html>
