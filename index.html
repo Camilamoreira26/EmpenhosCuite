@@ -197,6 +197,18 @@
       background:#fff; color:#1a3a40; font-size:.82rem; flex:1; min-width:160px;
     }
 
+    /* Truncate com tooltip */
+    .cell-trunc {
+      display:block; max-width:220px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      cursor:help;
+    }
+    .cell-trunc-sm {
+      display:block; max-width:160px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      cursor:help;
+    }
+
     .badge { display:inline-block; padding:2px 8px; border-radius:12px; font-size:.78rem; font-weight:600; background:#bcdde1; color:#1a3a40; }
     .badge.good { background:#a8e6cf; color:#1a4a2e; }
     .badge.mid  { background:#ffe0a0; color:#5a3a00; }
@@ -726,7 +738,8 @@
         var neg = r.difCF < 0;
         var tr=document.createElement('tr');
         tr.innerHTML=
-          '<td>'+esc(r.a)+'</td><td>'+esc(r.b)+'</td>'+
+          '<td><span class="cell-trunc-sm" title="'+esc(r.a)+'">'+esc(r.a)+'</span></td>'+
+          '<td><span class="cell-trunc" title="'+esc(r.b)+'">'+esc(r.b)+'</span></td>'+
           '<td class="num">'+fmtBRL(r.c)+'</td>'+
           '<td class="num">'+fmtBRL(r.f)+'</td>'+
           '<td class="num '+(neg?'neg':'pos')+'">'+fmtBRL(r.difCF)+'</td>';
@@ -738,7 +751,8 @@
       (data.rows||[]).forEach(function(r){
         var tr=document.createElement('tr');
         tr.innerHTML=
-          '<td>'+esc(r.a)+'</td><td>'+esc(r.b)+'</td>'+
+          '<td><span class="cell-trunc-sm" title="'+esc(r.a)+'">'+esc(r.a)+'</span></td>'+
+          '<td><span class="cell-trunc" title="'+esc(r.b)+'">'+esc(r.b)+'</span></td>'+
           '<td class="num">'+fmtBRL(r.e)+'</td>'+
           '<td class="num">'+fmtBRL(r.f)+'</td>'+
           '<td class="num '+(r.restosP<0?'neg':'')+'">'+fmtBRL(r.restosP)+'</td>';
@@ -750,7 +764,8 @@
       (data.rows||[]).forEach(function(r){
         var tr=document.createElement('tr');
         tr.innerHTML=
-          '<td>'+esc(r.a)+'</td><td>'+esc(r.b)+'</td>'+
+          '<td><span class="cell-trunc-sm" title="'+esc(r.a)+'">'+esc(r.a)+'</span></td>'+
+          '<td><span class="cell-trunc" title="'+esc(r.b)+'">'+esc(r.b)+'</span></td>'+
           '<td class="num">'+fmtBRL(r.d)+'</td>'+
           '<td class="num">'+fmtBRL(r.e)+'</td>'+
           '<td class="num '+(r.restosNP<0?'neg':'')+'">'+fmtBRL(r.restosNP)+'</td>';
