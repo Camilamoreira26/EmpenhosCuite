@@ -369,35 +369,6 @@
             </table>
           </div>
 
-          <!-- RESTOS A PAGAR PROCESSADOS -->
-          <p class="section-title">Restos a Pagar Processados (E − F)</p>
-          <div class="table-wrapper">
-            <table>
-              <thead><tr>
-                <th id="th-rpa">A</th>
-                <th id="th-rpb">B — Conta</th>
-                <th class="num" id="th-rpe">E (Liquidado)</th>
-                <th class="num" id="th-rpf">F (Pago)</th>
-                <th class="num">Restos Processados</th>
-              </tr></thead>
-              <tbody id="tabelaRestosP-body"></tbody>
-            </table>
-          </div>
-
-          <!-- RESTOS A PAGAR NÃO PROCESSADOS -->
-          <p class="section-title">Restos a Pagar Não Processados (D − E)</p>
-          <div class="table-wrapper">
-            <table>
-              <thead><tr>
-                <th id="th-rnpa">A</th>
-                <th id="th-rnpb">B — Conta</th>
-                <th class="num" id="th-rnpd">D (Empenhado)</th>
-                <th class="num" id="th-rnpe">E (Liquidado)</th>
-                <th class="num">Restos Não Processados</th>
-              </tr></thead>
-              <tbody id="tabelaRestosNP-body"></tbody>
-            </table>
-          </div>
         </section>
 
       </main>
@@ -708,14 +679,6 @@
       document.getElementById('th-fb').textContent  = lblB || 'Descrição';
       document.getElementById('th-fc').textContent  = lblC || 'C';
       document.getElementById('th-ff').textContent  = lblF || 'F';
-      document.getElementById('th-rpa').textContent = lblA;
-      document.getElementById('th-rpb').textContent = lblB;
-      document.getElementById('th-rpe').textContent = lblE;
-      document.getElementById('th-rpf').textContent = lblF;
-      document.getElementById('th-rnpa').textContent = lblA;
-      document.getElementById('th-rnpb').textContent = lblB;
-      document.getElementById('th-rnpd').textContent = lblD;
-      document.getElementById('th-rnpe').textContent = lblE;
       document.getElementById('chart-fontes-1-title').textContent = lblC + ' por Conta (maior → menor)';
       document.getElementById('chart-fontes-2-title').textContent = lblF + ' por Conta (maior → menor)';
 
@@ -749,31 +712,6 @@
         tbody1.appendChild(tr);
       });
 
-      // Tabela Restos Processados (E - F)
-      var tbody2 = document.getElementById('tabelaRestosP-body'); tbody2.innerHTML='';
-      (data.rows||[]).forEach(function(r){
-        var tr=document.createElement('tr');
-        tr.innerHTML=
-          '<td><span class="cell-trunc-sm" title="'+esc(r.a)+'">'+esc(r.a)+'</span></td>'+
-          '<td><span class="cell-trunc" title="'+esc(r.b)+'">'+esc(r.b)+'</span></td>'+
-          '<td class="num">'+fmtBRL(r.e)+'</td>'+
-          '<td class="num">'+fmtBRL(r.f)+'</td>'+
-          '<td class="num '+(r.restosP<0?'neg':'')+'">'+fmtBRL(r.restosP)+'</td>';
-        tbody2.appendChild(tr);
-      });
-
-      // Tabela Restos Não Processados (D - E)
-      var tbody3 = document.getElementById('tabelaRestosNP-body'); tbody3.innerHTML='';
-      (data.rows||[]).forEach(function(r){
-        var tr=document.createElement('tr');
-        tr.innerHTML=
-          '<td><span class="cell-trunc-sm" title="'+esc(r.a)+'">'+esc(r.a)+'</span></td>'+
-          '<td><span class="cell-trunc" title="'+esc(r.b)+'">'+esc(r.b)+'</span></td>'+
-          '<td class="num">'+fmtBRL(r.d)+'</td>'+
-          '<td class="num">'+fmtBRL(r.e)+'</td>'+
-          '<td class="num '+(r.restosNP<0?'neg':'')+'">'+fmtBRL(r.restosNP)+'</td>';
-        tbody3.appendChild(tr);
-      });
     }
 
     function criarCardFonte(label, value, cls) {
