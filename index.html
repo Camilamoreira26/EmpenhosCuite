@@ -351,17 +351,19 @@
           </div>
         </section>
 
-        <!-- TABELA A, B, C, F, C-F -->
+        <!-- TABELA A, B, C, F, C-F, L-P, E-L -->
         <section class="tables-section">
           <p class="section-title">Comparativo — Dotação × Realizado</p>
           <div class="table-wrapper">
             <table>
               <thead><tr>
-                <th id="th-fa">A</th>
-                <th id="th-fb">B — Conta</th>
-                <th class="num" id="th-fc">C</th>
-                <th class="num" id="th-ff">F</th>
-                <th class="num">Diferença (C − F)</th>
+                <th id="th-fa" style="white-space:normal;min-width:70px;">A</th>
+                <th id="th-fb" style="white-space:normal;min-width:160px;">B — Conta</th>
+                <th class="num" id="th-fc" style="white-space:normal;min-width:110px;">C</th>
+                <th class="num" id="th-ff" style="white-space:normal;min-width:110px;">F</th>
+                <th class="num" style="white-space:normal;min-width:110px;">Diferença<br>(C − F)</th>
+                <th class="num" style="white-space:normal;min-width:120px;">Restos a Pagar<br>Processados<br>(L − P)</th>
+                <th class="num" style="white-space:normal;min-width:120px;">Restos a Pagar<br>Não Processados<br>(E − L)</th>
               </tr></thead>
               <tbody id="tabelaFontes-body"></tbody>
             </table>
@@ -702,10 +704,10 @@
       var lblA = h[0]||'A', lblB = h[1]||'Conta', lblC = h[2]||'C', lblD = h[3]||'D', lblE = h[4]||'E', lblF = h[5]||'F';
 
       // Atualiza labels dinâmicos das tabelas
-      document.getElementById('th-fa').textContent  = lblA;
-      document.getElementById('th-fb').textContent  = lblB;
-      document.getElementById('th-fc').textContent  = lblC;
-      document.getElementById('th-ff').textContent  = lblF;
+      document.getElementById('th-fa').textContent  = lblA || 'Código';
+      document.getElementById('th-fb').textContent  = lblB || 'Descrição';
+      document.getElementById('th-fc').textContent  = lblC || 'C';
+      document.getElementById('th-ff').textContent  = lblF || 'F';
       document.getElementById('th-rpa').textContent = lblA;
       document.getElementById('th-rpb').textContent = lblB;
       document.getElementById('th-rpe').textContent = lblE;
@@ -735,14 +737,15 @@
       // Tabela comparativo
       var tbody1 = document.getElementById('tabelaFontes-body'); tbody1.innerHTML='';
       (data.rows||[]).forEach(function(r){
-        var neg = r.difCF < 0;
         var tr=document.createElement('tr');
         tr.innerHTML=
           '<td><span class="cell-trunc-sm" title="'+esc(r.a)+'">'+esc(r.a)+'</span></td>'+
           '<td><span class="cell-trunc" title="'+esc(r.b)+'">'+esc(r.b)+'</span></td>'+
           '<td class="num">'+fmtBRL(r.c)+'</td>'+
           '<td class="num">'+fmtBRL(r.f)+'</td>'+
-          '<td class="num '+(neg?'neg':'pos')+'">'+fmtBRL(r.difCF)+'</td>';
+          '<td class="num '+(r.difCF<0?'neg':'pos')+'">'+fmtBRL(r.difCF)+'</td>'+
+          '<td class="num '+(r.restosP2<0?'neg':'pos')+'">'+fmtBRL(r.restosP2||0)+'</td>'+
+          '<td class="num '+(r.restosNP2<0?'neg':'pos')+'">'+fmtBRL(r.restosNP2||0)+'</td>';
         tbody1.appendChild(tr);
       });
 
