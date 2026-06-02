@@ -744,8 +744,8 @@
           '<td class="num">'+fmtBRL(r.c)+'</td>'+
           '<td class="num">'+fmtBRL(r.f)+'</td>'+
           '<td class="num '+(r.difCF<0?'neg':'pos')+'">'+fmtBRL(r.difCF)+'</td>'+
-          '<td class="num '+(r.restosP2<0?'neg':'pos')+'">'+fmtBRL(r.restosP2||0)+'</td>'+
-          '<td class="num '+(r.restosNP2<0?'neg':'pos')+'">'+fmtBRL(r.restosNP2||0)+'</td>';
+          '<td class="num '+(r.restosP<0?'neg':'pos')+'">'+fmtBRL(r.restosP||0)+'</td>'+
+          '<td class="num '+(r.restosNP<0?'neg':'pos')+'">'+fmtBRL(r.restosNP||0)+'</td>';
         tbody1.appendChild(tr);
       });
 
