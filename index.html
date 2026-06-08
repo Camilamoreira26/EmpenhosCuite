@@ -360,11 +360,11 @@
               <thead><tr>
                 <th id="th-fa" style="white-space:normal;min-width:70px;">A</th>
                 <th id="th-fb" style="white-space:normal;min-width:160px;">B — Conta</th>
-                <th class="num" id="th-fc" style="white-space:normal;min-width:110px;">C</th>
-                <th class="num" id="th-ff" style="white-space:normal;min-width:110px;">F</th>
-                <th class="num" style="white-space:normal;min-width:110px;">Diferença<br>(C − F)</th>
-                <th class="num" style="white-space:normal;min-width:120px;">Restos a Pagar<br>Processados<br>(L − P)</th>
-                <th class="num" style="white-space:normal;min-width:120px;">Restos a Pagar<br>Não Processados<br>(E − L)</th>
+                <th class="num sortable" id="fth-c"   onclick="setSortFontes('c')"   style="white-space:normal;min-width:110px;"><span id="th-fc">C</span> <i class="sort-icon"></i></th>
+                <th class="num sortable" id="fth-f"   onclick="setSortFontes('f')"   style="white-space:normal;min-width:110px;"><span id="th-ff">F</span> <i class="sort-icon"></i></th>
+                <th class="num sortable" id="fth-dif" onclick="setSortFontes('dif')" style="white-space:normal;min-width:110px;">Diferença<br>(C − F) <i class="sort-icon"></i></th>
+                <th class="num sortable" id="fth-rp"  onclick="setSortFontes('rp')"  style="white-space:normal;min-width:120px;">Restos a Pagar<br>Processados<br>(L − P) <i class="sort-icon"></i></th>
+                <th class="num sortable" id="fth-rnp" onclick="setSortFontes('rnp')" style="white-space:normal;min-width:120px;">Restos a Pagar<br>Não Processados<br>(E − L) <i class="sort-icon"></i></th>
               </tr></thead>
               <tbody id="tabelaFontes-body"></tbody>
             </table>
@@ -388,6 +388,8 @@
     var graficoVisivel = true;
     var sortCol = 'empenhado';
     var sortDir = 'desc';
+    var sortColFontes = null;
+    var sortDirFontes = 'desc';
 
     // ── UTILITÁRIOS ──────────────────────────────────────────────
     function fmtBRL(v) {
@@ -606,7 +608,7 @@
       });
     }
 
-    // Sort
+    // Sort — tabela fornecedores
     function setSortCol(col) {
       sortDir=(sortCol===col&&sortDir==='desc')?'asc':'desc';
       sortCol=col;
@@ -617,6 +619,45 @@
         var th=document.getElementById('th-'+c); if(!th) return;
         th.classList.remove('sort-asc','sort-desc');
         if(sortCol===c) th.classList.add(sortDir==='asc'?'sort-asc':'sort-desc');
+      });
+    }
+
+    // Sort — tabela comparativo fontes
+    function setSortFontes(col) {
+      sortDirFontes = (sortColFontes===col && sortDirFontes==='desc') ? 'asc' : 'desc';
+      sortColFontes = col;
+      atualizarIconesSortFontes();
+      renderTabelaComparativo(dadosFontes.rows||[]);
+    }
+    function atualizarIconesSortFontes() {
+      ['c','f','dif','rp','rnp'].forEach(function(c){
+        var th=document.getElementById('fth-'+c); if(!th) return;
+        th.classList.remove('sort-asc','sort-desc');
+        if(sortColFontes===c) th.classList.add(sortDirFontes==='asc'?'sort-asc':'sort-desc');
+      });
+    }
+    function renderTabelaComparativo(rows) {
+      var fieldMap={c:'c',f:'f',dif:'difCF',rp:'restosP',rnp:'restosNP'};
+      var sorted = rows.slice();
+      if(sortColFontes) {
+        var field = fieldMap[sortColFontes]||'c';
+        sorted.sort(function(a,b){
+          var diff=(a[field]||0)-(b[field]||0);
+          return sortDirFontes==='desc'?-diff:diff;
+        });
+      }
+      var tbody1=document.getElementById('tabelaFontes-body'); tbody1.innerHTML='';
+      sorted.forEach(function(r){
+        var tr=document.createElement('tr');
+        tr.innerHTML=
+          '<td><span class="cell-trunc-sm" title="'+esc(r.a)+'">'+esc(r.a)+'</span></td>'+
+          '<td><span class="cell-trunc" title="'+esc(r.b)+'">'+esc(r.b)+'</span></td>'+
+          '<td class="num">'+fmtBRL(r.c)+'</td>'+
+          '<td class="num">'+fmtBRL(r.f)+'</td>'+
+          '<td class="num '+(r.difCF<0?'neg':'pos')+'">'+fmtBRL(r.difCF)+'</td>'+
+          '<td class="num '+(r.restosP<0?'neg':'pos')+'">'+fmtBRL(r.restosP||0)+'</td>'+
+          '<td class="num '+(r.restosNP<0?'neg':'pos')+'">'+fmtBRL(r.restosNP||0)+'</td>';
+        tbody1.appendChild(tr);
       });
     }
 
@@ -737,20 +778,9 @@
       renderChartFonte('chartFontes2', chartF2, data.chart2||[], 'conta', 'f',
         'rgba(26,58,64,0.80)', '#1a3a40', function(c){ chartF2=c; });
 
-      // Tabela comparativo
-      var tbody1 = document.getElementById('tabelaFontes-body'); tbody1.innerHTML='';
-      (data.rows||[]).forEach(function(r){
-        var tr=document.createElement('tr');
-        tr.innerHTML=
-          '<td><span class="cell-trunc-sm" title="'+esc(r.a)+'">'+esc(r.a)+'</span></td>'+
-          '<td><span class="cell-trunc" title="'+esc(r.b)+'">'+esc(r.b)+'</span></td>'+
-          '<td class="num">'+fmtBRL(r.c)+'</td>'+
-          '<td class="num">'+fmtBRL(r.f)+'</td>'+
-          '<td class="num '+(r.difCF<0?'neg':'pos')+'">'+fmtBRL(r.difCF)+'</td>'+
-          '<td class="num '+(r.restosP<0?'neg':'pos')+'">'+fmtBRL(r.restosP||0)+'</td>'+
-          '<td class="num '+(r.restosNP<0?'neg':'pos')+'">'+fmtBRL(r.restosNP||0)+'</td>';
-        tbody1.appendChild(tr);
-      });
+      // Tabela comparativo (com sort)
+      atualizarIconesSortFontes();
+      renderTabelaComparativo(data.rows||[]);
 
     }
 
