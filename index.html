@@ -282,6 +282,7 @@
           <div class="table-wrapper">
             <table>
               <thead><tr>
+                <th style="width:40px"></th>
                 <th>Tipo de Pessoa</th>
                 <th class="num">Empenhado (R$)</th>
                 <th class="num">% do Total</th>
@@ -535,14 +536,22 @@
       });
     }
 
-    // Tabela tipos
+    // Tabela tipos — com expansão mensal
     function renderTabelaTipos(tipos) {
       var tbody=document.getElementById('tabelaTipos-body'); tbody.innerHTML='';
-      (tipos||[]).forEach(function(t){
+      if(!tipos||!tipos.length){
+        tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:#639aa5;">Nenhum dado</td></tr>';
+        return;
+      }
+      (tipos||[]).forEach(function(t, i){
         var pctPago=t.percentualPago!==undefined?t.percentualPago
           :(dadosFolha.totalEmpenhado>0?(t.totalPago/dadosFolha.totalEmpenhado)*100:0);
+        var grp='tipo'+i;
+
+        // Linha principal
         var tr=document.createElement('tr');
         tr.innerHTML=
+          '<td><button class="btn-expand" onclick="toggleGrupo(\''+grp+'\',this)">+</button></td>'+
           '<td>'+(t.tipo||'-')+'</td>'+
           '<td class="num">'+fmtBRL(t.totalValor)+'</td>'+
           '<td class="num"><span class="badge">'+fmtPct(t.percentualDoTotal)+'</span></td>'+
@@ -550,9 +559,40 @@
           '<td class="num"><span class="'+badgeClass(pctPago)+'">'+fmtPct(pctPago)+'</span></td>'+
           '<td class="num">'+fmtBRL(t.saldoAPagar)+'</td>';
         tbody.appendChild(tr);
+
+        // Linhas de mês
+        var mensal=t.mensal||[];
+        var sumV=0, sumP=0, sumL=0, n=mensal.length;
+        mensal.forEach(function(m){
+          sumV+=m.valor||0; sumP+=m.pago||0; sumL+=m.liquidado||0;
+          var trM=document.createElement('tr');
+          trM.className='detail-row detalhe-mes'; trM.dataset.group=grp;
+          trM.innerHTML=
+            '<td></td>'+
+            '<td style="padding-left:36px;font-style:italic;font-size:.78rem;color:#639aa5;">'+esc(m.mesAno)+'</td>'+
+            '<td class="num">'+fmtBRL(m.valor||0)+'</td>'+
+            '<td class="num">—</td>'+
+            '<td class="num">'+fmtBRL(m.pago||0)+'</td>'+
+            '<td class="num">—</td>'+
+            '<td class="num">'+fmtBRL((m.valor||0)-(m.pago||0))+'</td>';
+          tbody.appendChild(trM);
+        });
+
+        // Linha de média
+        if(n>0){
+          var trAvg=document.createElement('tr');
+          trAvg.className='detail-row detalhe-media'; trAvg.dataset.group=grp;
+          trAvg.innerHTML=
+            '<td></td>'+
+            '<td style="padding-left:36px;">Média mensal</td>'+
+            '<td class="num">'+fmtBRL(sumV/n)+'</td>'+
+            '<td class="num">—</td>'+
+            '<td class="num">'+fmtBRL(sumP/n)+'</td>'+
+            '<td class="num">—</td>'+
+            '<td class="num">'+fmtBRL((sumV-sumP)/n)+'</td>';
+          tbody.appendChild(trAvg);
+        }
       });
-      if(!tipos||!tipos.length)
-        tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:#639aa5;">Nenhum dado</td></tr>';
     }
 
     // Filtro tipo fornecedor
