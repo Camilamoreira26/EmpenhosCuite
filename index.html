@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Acompanhamento Financeiro</title>
+  <title>Prefeitura Municipal de Cuité</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -18,20 +18,45 @@
     header h1 { font-size:1.35rem; font-weight:700; letter-spacing:.02em; }
     header span.subtitle { font-size:.85rem; opacity:.85; }
 
-    /* ── ABAS ── */
-    .tab-nav {
-      background:#1a3a40; display:flex; gap:0;
-      box-shadow:0 2px 4px rgba(0,0,0,0.2);
+    /* ── NAVEGAÇÃO PRINCIPAL (abas pai) ── */
+    .main-nav {
+      background:#0f2428; display:flex; align-items:stretch; gap:0;
+      box-shadow:0 2px 6px rgba(0,0,0,0.35);
     }
+    .main-tab {
+      padding:14px 32px; color:#7ab5be; font-size:.95rem; font-weight:700;
+      border:none; background:none; cursor:pointer; letter-spacing:.05em;
+      border-bottom:3px solid transparent; transition:all .2s;
+      display:flex; align-items:center; gap:9px; text-transform:uppercase;
+      position:relative;
+    }
+    .main-tab:hover { color:#fff; background:rgba(255,255,255,.06); }
+    .main-tab.active {
+      color:#fff; border-bottom-color:#63d4e0;
+      background:rgba(99,212,224,.10);
+    }
+    .main-tab .main-icon { font-size:1.05rem; }
+    .main-tab .arrow {
+      font-size:.65rem; margin-left:4px; opacity:.6;
+      transition:transform .2s;
+    }
+    .main-tab.active .arrow { transform:rotate(180deg); opacity:1; }
+
+    /* ── SUB-NAVEGAÇÃO (abas filhas) ── */
+    .sub-nav {
+      background:#1a3a40; display:flex; gap:0;
+      border-bottom:1px solid rgba(99,154,165,.25);
+    }
+    .sub-nav.hidden { display:none; }
     .tab-btn {
-      padding:13px 28px; color:#90bcc3; font-size:.9rem; font-weight:600;
+      padding:10px 24px; color:#90bcc3; font-size:.85rem; font-weight:600;
       border:none; background:none; cursor:pointer; letter-spacing:.03em;
       border-bottom:3px solid transparent; transition:all .2s;
-      display:flex; align-items:center; gap:8px;
+      display:flex; align-items:center; gap:7px;
     }
     .tab-btn:hover  { color:#fff; background:rgba(255,255,255,.07); }
     .tab-btn.active { color:#fff; border-bottom-color:#90bcc3; background:rgba(255,255,255,.05); }
-    .tab-icon { font-size:1.1rem; }
+    .tab-icon { font-size:1rem; }
 
     /* ── FILTRO ── */
     .filter-bar {
@@ -226,17 +251,44 @@
 <body>
 
   <header>
-    <h1>Acompanhamento Financeiro</h1>
+    <h1>Prefeitura Municipal de Cuité</h1>
     <span class="subtitle">Sistema Elmar</span>
   </header>
 
-  <!-- ABAS -->
-  <nav class="tab-nav">
+  <!-- NAV PRINCIPAL -->
+  <nav class="main-nav">
+    <button class="main-tab active" id="main-financeiro" onclick="switchMain('financeiro')">
+      <span class="main-icon">💰</span> Financeiro <span class="arrow">▼</span>
+    </button>
+    <button class="main-tab" id="main-educacao" onclick="switchMain('educacao')">
+      <span class="main-icon">📚</span> Educação <span class="arrow">▼</span>
+    </button>
+    <button class="main-tab" id="main-saude" onclick="switchMain('saude')">
+      <span class="main-icon">🏥</span> Saúde <span class="arrow">▼</span>
+    </button>
+  </nav>
+
+  <!-- SUB-NAV FINANCEIRO -->
+  <nav class="sub-nav" id="subnav-financeiro">
     <button class="tab-btn active" id="tab-btn-folha" onclick="switchTab('folha')">
       <span class="tab-icon">👥</span> Folha de Pagamento
     </button>
     <button class="tab-btn" id="tab-btn-fontes" onclick="switchTab('fontes')">
       <span class="tab-icon">⚖️</span> Receita x Despesa
+    </button>
+  </nav>
+
+  <!-- SUB-NAV EDUCAÇÃO -->
+  <nav class="sub-nav hidden" id="subnav-educacao">
+    <button class="tab-btn active" id="tab-btn-educacao">
+      <span class="tab-icon">🏫</span> Em breve
+    </button>
+  </nav>
+
+  <!-- SUB-NAV SAÚDE -->
+  <nav class="sub-nav hidden" id="subnav-saude">
+    <button class="tab-btn active" id="tab-btn-saude">
+      <span class="tab-icon">🏥</span> Em breve
     </button>
   </nav>
 
@@ -376,6 +428,32 @@
     </div>
   </div><!-- /tab-fontes -->
 
+  <!-- ================================================================
+       ABA EDUCAÇÃO
+  ================================================================ -->
+  <div id="tab-educacao" class="tab-content">
+    <main>
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:50vh;gap:16px;color:#639aa5;">
+        <span style="font-size:3rem;">📚</span>
+        <p style="font-size:1.2rem;font-weight:700;color:#367886;">Educação</p>
+        <p style="font-size:.9rem;">Módulo em desenvolvimento</p>
+      </div>
+    </main>
+  </div>
+
+  <!-- ================================================================
+       ABA SAÚDE
+  ================================================================ -->
+  <div id="tab-saude" class="tab-content">
+    <main>
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:50vh;gap:16px;color:#639aa5;">
+        <span style="font-size:3rem;">🏥</span>
+        <p style="font-size:1.2rem;font-weight:700;color:#367886;">Saúde</p>
+        <p style="font-size:.9rem;">Módulo em desenvolvimento</p>
+      </div>
+    </main>
+  </div>
+
   <script>
     var API_URL = 'https://script.google.com/macros/s/AKfycbxWaa3OuFdKH2K3Dcz6LBZCPL8qy4OfDUyn1AAyMfJoCRlaD7adQEsG_lDxMzHTgyEZ/exec';
 
@@ -409,10 +487,38 @@
     }
     function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-    // ── TROCA DE ABAS ────────────────────────────────────────────
+    // ── TROCA DE ABA PRINCIPAL ───────────────────────────────────
+    var currentMain = 'financeiro';
+
+    function switchMain(area) {
+      currentMain = area;
+
+      // Atualiza botões principais
+      document.querySelectorAll('.main-tab').forEach(function(el){ el.classList.remove('active'); });
+      document.getElementById('main-'+area).classList.add('active');
+
+      // Mostra sub-nav correto
+      document.querySelectorAll('.sub-nav').forEach(function(el){ el.classList.add('hidden'); });
+      document.getElementById('subnav-'+area).classList.remove('hidden');
+
+      // Mostra conteúdo correto
+      document.querySelectorAll('.tab-content').forEach(function(el){ el.classList.remove('active'); });
+
+      if (area === 'financeiro') {
+        // Volta para a sub-aba ativa dentro de financeiro
+        var activeSubBtn = document.querySelector('#subnav-financeiro .tab-btn.active');
+        var activeTab = activeSubBtn ? activeSubBtn.id.replace('tab-btn-','') : 'folha';
+        document.getElementById('tab-'+activeTab).classList.add('active');
+        if (activeTab === 'fontes' && !fontesLoaded) carregarFontes();
+      } else {
+        document.getElementById('tab-'+area).classList.add('active');
+      }
+    }
+
+    // ── TROCA DE SUB-ABA ─────────────────────────────────────────
     function switchTab(tab) {
       document.querySelectorAll('.tab-content').forEach(function(el){ el.classList.remove('active'); });
-      document.querySelectorAll('.tab-btn').forEach(function(el){ el.classList.remove('active'); });
+      document.querySelectorAll('#subnav-financeiro .tab-btn').forEach(function(el){ el.classList.remove('active'); });
       document.getElementById('tab-'+tab).classList.add('active');
       document.getElementById('tab-btn-'+tab).classList.add('active');
 
