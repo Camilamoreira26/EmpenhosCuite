@@ -7,114 +7,95 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: "Roboto","Helvetica","Arial",sans-serif; background:#e9ffff; color:#1a3a40; min-height:100vh; }
+    body { font-family: "Roboto","Helvetica","Arial",sans-serif; background:#e9ffff; color:#1a3a40; min-height:100vh; display:flex; flex-direction:column; }
 
     /* ── HEADER ── */
     header {
-      background:#367886; color:#fff; padding:16px 32px;
+      background:#367886; color:#fff; padding:14px 24px;
       display:flex; align-items:center; justify-content:space-between;
-      box-shadow:0 2px 6px rgba(0,0,0,0.18);
+      box-shadow:0 2px 6px rgba(0,0,0,0.22); flex-shrink:0; z-index:10;
     }
-    header h1 { font-size:1.35rem; font-weight:700; letter-spacing:.02em; }
-    header span.subtitle { font-size:.85rem; opacity:.85; }
+    header h1 { font-size:1.25rem; font-weight:700; letter-spacing:.02em; }
+    header span.subtitle { font-size:.82rem; opacity:.85; }
 
-    /* ── NAVEGAÇÃO PRINCIPAL (abas pai) ── */
-    .main-nav {
-      background:#0f2428; display:flex; align-items:stretch; gap:0;
-      box-shadow:0 2px 6px rgba(0,0,0,0.35);
-    }
-    .main-tab {
-      padding:14px 32px; color:#7ab5be; font-size:.95rem; font-weight:700;
-      border:none; background:none; cursor:pointer; letter-spacing:.05em;
-      border-bottom:3px solid transparent; transition:all .2s;
-      display:flex; align-items:center; gap:9px; text-transform:uppercase;
-      position:relative;
-    }
-    .main-tab:hover { color:#fff; background:rgba(255,255,255,.06); }
-    .main-tab.active {
-      color:#fff; border-bottom-color:#63d4e0;
-      background:rgba(99,212,224,.10);
-    }
-    .main-tab .main-icon { font-size:1.05rem; }
-    .main-tab .arrow {
-      font-size:.65rem; margin-left:4px; opacity:.6;
-      transition:transform .2s;
-    }
-    .main-tab.active .arrow { transform:rotate(180deg); opacity:1; }
+    /* ── LAYOUT: sidebar + content ── */
+    .app-layout { display:flex; flex:1; overflow:hidden; }
 
-    /* ── SUB-NAVEGAÇÃO (abas filhas) ── */
-    .sub-nav {
-      background:#1a3a40; display:flex; gap:0;
-      border-bottom:1px solid rgba(99,154,165,.25);
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width:220px; flex-shrink:0; background:#0f2428;
+      display:flex; flex-direction:column;
+      overflow-y:auto; overflow-x:hidden;
     }
-    .sub-nav.hidden { display:none; }
-    .tab-btn {
-      padding:10px 24px; color:#90bcc3; font-size:.85rem; font-weight:600;
-      border:none; background:none; cursor:pointer; letter-spacing:.03em;
-      border-bottom:3px solid transparent; transition:all .2s;
-      display:flex; align-items:center; gap:7px;
+    .sidebar-group { border-bottom:1px solid rgba(255,255,255,.07); }
+    .sidebar-header {
+      display:flex; align-items:center; gap:10px;
+      padding:14px 18px; cursor:pointer;
+      color:#7ab5be; font-size:.88rem; font-weight:700;
+      text-transform:uppercase; letter-spacing:.06em;
+      transition:background .18s, color .18s;
+      user-select:none;
     }
-    .tab-btn:hover  { color:#fff; background:rgba(255,255,255,.07); }
-    .tab-btn.active { color:#fff; border-bottom-color:#90bcc3; background:rgba(255,255,255,.05); }
-    .tab-icon { font-size:1rem; }
+    .sidebar-header:hover { background:rgba(255,255,255,.07); color:#fff; }
+    .sidebar-header.active { color:#fff; background:rgba(99,212,224,.12); border-left:3px solid #63d4e0; }
+    .sidebar-header .sh-arrow { margin-left:auto; font-size:.65rem; opacity:.5; transition:transform .2s; }
+    .sidebar-header.active .sh-arrow { transform:rotate(180deg); opacity:1; }
+    .sidebar-subs { overflow:hidden; }
+    .sidebar-subs.hidden { display:none; }
+    .sidebar-sub {
+      display:flex; align-items:center; gap:9px;
+      width:100%; padding:10px 18px 10px 36px;
+      background:none; border:none; cursor:pointer;
+      color:#8ab8be; font-size:.82rem; font-weight:500;
+      text-align:left; transition:background .15s, color .15s;
+      border-left:3px solid transparent;
+    }
+    .sidebar-sub:hover { background:rgba(255,255,255,.06); color:#fff; }
+    .sidebar-sub.active { color:#fff; background:rgba(99,212,224,.10); border-left-color:#63d4e0; }
+
+    /* ── CONTENT AREA ── */
+    .content-area { flex:1; overflow-y:auto; display:flex; flex-direction:column; }
+    .tab-content { display:none; flex:1; }
+    .tab-content.active { display:block; }
 
     /* ── FILTRO ── */
     .filter-bar {
-      background:#90bcc3; padding:12px 32px;
-      display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+      background:#90bcc3; padding:10px 24px;
+      display:flex; align-items:center; gap:14px; flex-wrap:wrap; flex-shrink:0;
     }
     .filter-bar label { font-size:.82rem; font-weight:600; color:#1a3a40; }
-    .filter-bar select {
-      padding:5px 10px; border-radius:6px; border:1px solid #367886;
-      background:#fff; color:#1a3a40; font-size:.82rem; cursor:pointer;
-    }
-    .filter-bar button {
-      padding:5px 16px; border-radius:6px; border:none;
-      background:#367886; color:#fff; font-size:.82rem; font-weight:600;
-      cursor:pointer; transition:background .15s;
-    }
+    .filter-bar select { padding:5px 10px; border-radius:6px; border:1px solid #367886; background:#fff; color:#1a3a40; font-size:.82rem; cursor:pointer; }
+    .filter-bar button { padding:5px 16px; border-radius:6px; border:none; background:#367886; color:#fff; font-size:.82rem; font-weight:600; cursor:pointer; transition:background .15s; }
     .filter-bar button:hover { background:#2a5f6e; }
     .filter-bar button.reset { background:#fff; color:#367886; border:1px solid #367886; }
     .filter-bar button.reset:hover { background:#e9ffff; }
 
     /* ── LOADING ── */
-    .loading-box {
-      display:flex; flex-direction:column; align-items:center;
-      justify-content:center; min-height:50vh; color:#367886; font-size:1.1rem; gap:16px;
-    }
-    .spinner {
-      width:40px; height:40px; border:4px solid #bcdde1;
-      border-top-color:#367886; border-radius:50%; animation:spin .8s linear infinite;
-    }
+    .loading-box { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:50vh; color:#367886; font-size:1.1rem; gap:16px; }
+    .spinner { width:40px; height:40px; border:4px solid #bcdde1; border-top-color:#367886; border-radius:50%; animation:spin .8s linear infinite; }
     @keyframes spin { to { transform:rotate(360deg); } }
 
-    /* ── MAIN ── */
-    .tab-content { display:none; }
-    .tab-content.active { display:block; }
-    main { padding:28px 32px; max-width:1400px; margin:0 auto; }
+    /* ── MAIN INNER ── */
+    main { padding:24px 28px; max-width:1400px; margin:0 auto; width:100%; }
 
     /* ── SECTION TITLE ── */
     .section-title {
-      font-size:1rem; font-weight:700; color:#367886; text-transform:uppercase;
+      font-size:.95rem; font-weight:700; color:#367886; text-transform:uppercase;
       letter-spacing:.06em; margin-bottom:14px; padding-bottom:6px;
       border-bottom:2px solid #90bcc3;
       display:flex; align-items:center; justify-content:space-between;
     }
 
     /* ── KPI CARDS ── */
-    .kpi-grid { display:flex; flex-wrap:wrap; gap:16px; margin-bottom:36px; }
+    .kpi-grid { display:flex; flex-wrap:wrap; gap:14px; margin-bottom:32px; }
     .kpi-card {
-      background:#bcdde1; border-radius:10px; padding:18px 22px;
-      flex:1 1 200px; min-width:180px; max-width:280px;
+      background:#bcdde1; border-radius:10px; padding:16px 20px;
+      flex:1 1 190px; min-width:170px; max-width:280px;
       box-shadow:0 2px 6px rgba(54,120,134,.10);
-      display:flex; flex-direction:column; gap:6px;
-      transition:transform .2s, box-shadow .2s;
-      cursor:default;
+      display:flex; flex-direction:column; gap:5px;
+      transition:transform .2s, box-shadow .2s; cursor:default;
     }
-    .kpi-card:hover {
-      transform:translateY(-5px);
-      box-shadow:0 8px 20px rgba(54,120,134,.22);
-    }
+    .kpi-card:hover { transform:translateY(-4px); box-shadow:0 8px 20px rgba(54,120,134,.22); }
     .kpi-card.highlight { background:#367886; }
     .kpi-card.highlight .kpi-label { color:#bcdde1; }
     .kpi-card.highlight .kpi-value { color:#fff; }
@@ -124,44 +105,31 @@
     .kpi-card.card-d { background:#d4edf0; border-left:4px solid #639aa5; }
     .kpi-card.card-e { background:#bddde1; border-left:4px solid #1a5f6e; }
     .kpi-card.card-f { background:#a8d4d9; border-left:4px solid #1a3a40; }
+    .kpi-card.card-green  { background:#c8f0d8; border-left:4px solid #27ae60; }
+    .kpi-card.card-yellow { background:#fff3cd; border-left:4px solid #f0ad00; }
+    .kpi-card.card-red    { background:#ffe0e0; border-left:4px solid #c0392b; }
     .kpi-label { font-size:.72rem; font-weight:600; text-transform:uppercase; letter-spacing:.07em; color:#367886; }
-    .kpi-value { font-size:1.35rem; font-weight:700; color:#1a3a40; line-height:1.2; }
-    .kpi-sub   { font-size:.78rem; color:#4a7a85; margin-top:2px; }
+    .kpi-value { font-size:1.3rem; font-weight:700; color:#1a3a40; line-height:1.2; }
+    .kpi-sub   { font-size:.76rem; color:#4a7a85; margin-top:2px; }
 
     /* ── BTN TOGGLE ── */
-    .btn-toggle {
-      background:none; border:1px solid #639aa5; border-radius:6px;
-      color:#367886; font-size:.75rem; font-weight:600; padding:3px 12px;
-      cursor:pointer; transition:background .15s; white-space:nowrap;
-    }
+    .btn-toggle { background:none; border:1px solid #639aa5; border-radius:6px; color:#367886; font-size:.75rem; font-weight:600; padding:3px 12px; cursor:pointer; transition:background .15s; white-space:nowrap; }
     .btn-toggle:hover { background:#bcdde1; }
 
     /* ── CHARTS ── */
-    .charts-section { margin-bottom:40px; }
-    .charts-row { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px; }
+    .charts-section { margin-bottom:36px; }
+    .charts-row { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:18px; }
     @media (max-width:900px) { .charts-row { grid-template-columns:1fr; } }
-    .chart-box {
-      background:#fff; border-radius:10px; padding:20px 18px;
-      box-shadow:0 2px 8px rgba(54,120,134,.10);
-    }
-    .chart-box h3 {
-      font-size:.82rem; font-weight:700; color:#367886;
-      text-transform:uppercase; letter-spacing:.06em; margin-bottom:14px;
-    }
+    .chart-box { background:#fff; border-radius:10px; padding:18px 16px; box-shadow:0 2px 8px rgba(54,120,134,.10); }
+    .chart-box h3 { font-size:.8rem; font-weight:700; color:#367886; text-transform:uppercase; letter-spacing:.06em; margin-bottom:12px; }
     .chart-box canvas { max-height:340px; }
 
     /* ── TABELAS ── */
-    .tables-section { margin-bottom:40px; }
-    .table-wrapper {
-      overflow-x:auto; background:#fff; border-radius:10px;
-      box-shadow:0 2px 8px rgba(54,120,134,.10); margin-bottom:32px;
-    }
+    .tables-section { margin-bottom:36px; }
+    .table-wrapper { overflow-x:auto; background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(54,120,134,.10); margin-bottom:28px; }
     table { width:100%; border-collapse:collapse; font-size:.875rem; }
     thead tr { background:#367886; color:#fff; }
-    thead th {
-      padding:12px 16px; text-align:left; font-weight:600;
-      font-size:.78rem; text-transform:uppercase; letter-spacing:.05em; white-space:nowrap;
-    }
+    thead th { padding:11px 14px; text-align:left; font-weight:600; font-size:.76rem; text-transform:uppercase; letter-spacing:.05em; white-space:nowrap; }
     thead th.num { text-align:right; }
     thead th.sortable { cursor:pointer; user-select:none; }
     thead th.sortable:hover { background:#2a5f6e; }
@@ -174,77 +142,90 @@
     tbody tr:last-child { border-bottom:none; }
     tbody tr:nth-child(even) { background:#f0fafa; }
     tbody tr:hover:not(.detail-row) { background:#d4eef1; }
-    tbody td { padding:10px 16px; color:#1a3a40; white-space:nowrap; }
+    tbody td { padding:9px 14px; color:#1a3a40; white-space:nowrap; }
     tbody td.num { text-align:right; font-variant-numeric:tabular-nums; }
     tbody td.neg { color:#c0392b; }
     tbody td.pos { color:#27ae60; }
 
     /* ── EXPAND BTN ── */
-    .btn-expand {
-      display:inline-flex; align-items:center; justify-content:center;
-      width:18px; height:18px; border-radius:50%;
-      border:1px solid #639aa5; background:none; color:#367886;
-      font-size:.8rem; font-weight:700; cursor:pointer; margin-right:7px;
-      flex-shrink:0; transition:background .15s, color .15s;
-      vertical-align:middle; line-height:1;
-    }
+    .btn-expand { display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:50%; border:1px solid #639aa5; background:none; color:#367886; font-size:.8rem; font-weight:700; cursor:pointer; margin-right:6px; flex-shrink:0; transition:background .15s, color .15s; vertical-align:middle; line-height:1; }
     .btn-expand:hover { background:#367886; color:#fff; border-color:#367886; }
 
     /* ── DETAIL ROWS ── */
     tr.detail-row { display:none; }
     tr.detail-row.aberto { display:table-row; }
-    tr.detalhe-mes td {
-      padding:5px 16px; font-size:.8rem; color:#2a5f6e;
-      background:#f7fdfd !important; border-bottom:1px solid #e9f7f8;
-    }
-    tr.detalhe-media td {
-      padding:7px 16px; font-size:.8rem; font-weight:700;
-      background:#daf0f3 !important;
-      border-top:2px solid #90bcc3; border-bottom:2px solid #90bcc3;
-    }
-    tr.detalhe-hist td {
-      padding:6px 16px 10px; background:#f7fdfd !important; border-bottom:none;
-    }
+    tr.detalhe-mes td { padding:5px 14px; font-size:.78rem; color:#2a5f6e; background:#f7fdfd !important; border-bottom:1px solid #e9f7f8; }
+    tr.detalhe-media td { padding:7px 14px; font-size:.78rem; font-weight:700; background:#daf0f3 !important; border-top:2px solid #90bcc3; border-bottom:2px solid #90bcc3; }
+    tr.detalhe-hist td { padding:6px 14px 10px; background:#f7fdfd !important; border-bottom:none; }
     .hist-bloco { display:flex; align-items:flex-start; gap:8px; flex-wrap:wrap; }
     .hist-label { font-size:.72rem; font-weight:700; color:#367886; white-space:nowrap; text-transform:uppercase; padding-top:2px; }
     .hist-tags  { display:flex; flex-wrap:wrap; gap:4px; }
     .hist-tag   { background:#bcdde1; border-radius:4px; padding:2px 8px; font-size:.75rem; color:#1a3a40; white-space:normal; }
 
     /* ── FILTROS TABELA ── */
-    .table-filters {
-      display:flex; gap:12px; flex-wrap:wrap;
-      padding:12px 16px; background:#f0fafa;
-      border-bottom:1px solid #e0f2f4; border-radius:10px 10px 0 0;
-    }
-    .table-filters select,
-    .table-filters input {
-      padding:5px 10px; border-radius:6px; border:1px solid #90bcc3;
-      background:#fff; color:#1a3a40; font-size:.82rem; flex:1; min-width:160px;
-    }
+    .table-filters { display:flex; gap:10px; flex-wrap:wrap; padding:10px 14px; background:#f0fafa; border-bottom:1px solid #e0f2f4; border-radius:10px 10px 0 0; }
+    .table-filters select, .table-filters input { padding:5px 10px; border-radius:6px; border:1px solid #90bcc3; background:#fff; color:#1a3a40; font-size:.82rem; flex:1; min-width:150px; }
 
-    /* Truncate com tooltip */
-    .cell-trunc {
-      display:block; max-width:220px;
-      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-      cursor:help;
-    }
-    .cell-trunc-sm {
-      display:block; max-width:160px;
-      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-      cursor:help;
-    }
+    /* ── CELL TRUNCATE ── */
+    .cell-trunc    { display:block; max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:help; }
+    .cell-trunc-sm { display:block; max-width:140px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:help; }
 
-    .badge { display:inline-block; padding:2px 8px; border-radius:12px; font-size:.78rem; font-weight:600; background:#bcdde1; color:#1a3a40; }
-    .badge.good { background:#a8e6cf; color:#1a4a2e; }
-    .badge.mid  { background:#ffe0a0; color:#5a3a00; }
-    .badge.low  { background:#ffb3b3; color:#5a0000; }
+    /* ── BADGES ── */
+    .badge        { display:inline-block; padding:2px 8px; border-radius:12px; font-size:.78rem; font-weight:600; background:#bcdde1; color:#1a3a40; }
+    .badge.good   { background:#a8e6cf; color:#1a4a2e; }
+    .badge.mid    { background:#ffe0a0; color:#5a3a00; }
+    .badge.low    { background:#ffb3b3; color:#5a0000; }
+    .badge.green  { background:#a8e6cf; color:#1a4a2e; }
+    .badge.yellow { background:#ffe0a0; color:#5a3a00; }
+    .badge.red    { background:#ffb3b3; color:#5a0000; }
+    .badge.new    { background:#c5e8ff; color:#003a6e; }
+    .badge.gone   { background:#f0d0ff; color:#3a006e; }
 
-    @media (max-width:600px) {
-      main { padding:16px; }
-      header { flex-direction:column; align-items:flex-start; gap:4px; }
-      header h1 { font-size:1.05rem; }
-      .tab-btn { padding:10px 16px; font-size:.8rem; }
+    /* ── ANÁLISE HISTÓRICA ── */
+    .hist-search-box { display:flex; align-items:center; gap:10px; padding:12px 0 18px; flex-wrap:wrap; }
+    .hist-search-box input { flex:1; min-width:240px; max-width:400px; padding:8px 14px; border-radius:8px; border:1px solid #90bcc3; font-size:.88rem; color:#1a3a40; background:#fff; }
+    .hist-search-box button { padding:8px 20px; border-radius:8px; border:none; background:#367886; color:#fff; font-size:.85rem; font-weight:600; cursor:pointer; transition:background .15s; }
+    .hist-search-box button:hover { background:#2a5f6e; }
+    .hist-search-box button.sec { background:#fff; color:#367886; border:1px solid #367886; }
+    .hist-search-box button.sec:hover { background:#e9ffff; }
+
+    .analise-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px; margin-bottom:28px; }
+    .analise-card { background:#fff; border-radius:10px; padding:18px 16px; box-shadow:0 2px 8px rgba(54,120,134,.10); border-left:4px solid #639aa5; }
+    .analise-card h4 { font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#367886; margin-bottom:10px; }
+    .analise-card .ac-item { display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid #e9f7f8; font-size:.82rem; gap:8px; }
+    .analise-card .ac-item:last-child { border-bottom:none; }
+    .analise-card .ac-name { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#1a3a40; }
+    .analise-card .ac-val  { font-weight:700; white-space:nowrap; font-size:.8rem; }
+
+    .sugestoes-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:14px; margin-bottom:28px; }
+    .sugestao-card { background:#fff; border-radius:10px; padding:16px; box-shadow:0 2px 6px rgba(54,120,134,.08); border-top:3px solid #63d4e0; cursor:default; transition:transform .18s; }
+    .sugestao-card:hover { transform:translateY(-3px); }
+    .sugestao-card .sq-icon { font-size:1.5rem; margin-bottom:8px; }
+    .sugestao-card h4 { font-size:.82rem; font-weight:700; color:#367886; margin-bottom:6px; }
+    .sugestao-card p  { font-size:.78rem; color:#4a7a85; line-height:1.5; }
+
+    /* ── ALERT BANNER ── */
+    .alert-banner { display:flex; align-items:center; gap:12px; background:#ffe4e4; border:1px solid #e57373; border-radius:8px; padding:12px 18px; margin-bottom:20px; }
+    .alert-banner .ab-icon { font-size:1.4rem; }
+    .alert-banner p { font-size:.85rem; color:#7b1f1f; font-weight:600; }
+
+    /* ── PLACEHOLDER TABS ── */
+    .placeholder-tab { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60vh; gap:14px; color:#639aa5; }
+    .placeholder-tab .pt-icon { font-size:3rem; }
+    .placeholder-tab h2 { font-size:1.15rem; font-weight:700; color:#367886; }
+    .placeholder-tab p  { font-size:.88rem; }
+
+    @media (max-width:700px) {
+      .sidebar { width:180px; }
+      main { padding:14px; }
+      .charts-row { grid-template-columns:1fr; }
       .kpi-card { max-width:100%; }
+    }
+    @media (max-width:500px) {
+      .app-layout { flex-direction:column; }
+      .sidebar { width:100%; flex-direction:row; overflow-x:auto; flex-shrink:0; }
+      .sidebar-group { border-bottom:none; border-right:1px solid rgba(255,255,255,.07); }
+      .sidebar-subs { display:none; }
     }
   </style>
 </head>
@@ -255,219 +236,358 @@
     <span class="subtitle">Sistema Elmar</span>
   </header>
 
-  <!-- NAV PRINCIPAL -->
-  <nav class="main-nav">
-    <button class="main-tab active" id="main-financeiro" onclick="switchMain('financeiro')">
-      <span class="main-icon">💰</span> Financeiro <span class="arrow">▼</span>
-    </button>
-    <button class="main-tab" id="main-educacao" onclick="switchMain('educacao')">
-      <span class="main-icon">📚</span> Educação <span class="arrow">▼</span>
-    </button>
-    <button class="main-tab" id="main-saude" onclick="switchMain('saude')">
-      <span class="main-icon">🏥</span> Saúde <span class="arrow">▼</span>
-    </button>
-  </nav>
+  <div class="app-layout">
 
-  <!-- SUB-NAV FINANCEIRO -->
-  <nav class="sub-nav" id="subnav-financeiro">
-    <button class="tab-btn active" id="tab-btn-folha" onclick="switchTab('folha')">
-      <span class="tab-icon">👥</span> Folha de Pagamento
-    </button>
-    <button class="tab-btn" id="tab-btn-fontes" onclick="switchTab('fontes')">
-      <span class="tab-icon">⚖️</span> Receita x Despesa
-    </button>
-  </nav>
+    <!-- ══ SIDEBAR ══ -->
+    <aside class="sidebar" id="sidebar">
 
-  <!-- SUB-NAV EDUCAÇÃO -->
-  <nav class="sub-nav hidden" id="subnav-educacao">
-    <button class="tab-btn active" id="tab-btn-educacao">
-      <span class="tab-icon">🏫</span> Em breve
-    </button>
-  </nav>
-
-  <!-- SUB-NAV SAÚDE -->
-  <nav class="sub-nav hidden" id="subnav-saude">
-    <button class="tab-btn active" id="tab-btn-saude">
-      <span class="tab-icon">🏥</span> Em breve
-    </button>
-  </nav>
-
-  <!-- ================================================================
-       ABA 1 — FOLHA DE PAGAMENTO
-  ================================================================ -->
-  <div id="tab-folha" class="tab-content active">
-
-    <div class="filter-bar" id="filter-bar" style="display:none;">
-      <label>Período:</label>
-      <label>De</label>  <select id="filtroDE"></select>
-      <label>Até</label> <select id="filtroATE"></select>
-      <button onclick="aplicarFiltro()">Filtrar</button>
-      <button class="reset" onclick="limparFiltro()">Limpar</button>
-    </div>
-
-    <div id="loading-folha" class="loading-box">
-      <div class="spinner"></div><span>Carregando dados...</span>
-    </div>
-
-    <div id="content-folha" style="display:none;">
-      <main>
-        <section style="margin-bottom:40px;">
-          <p class="section-title">Indicadores Principais</p>
-          <div class="kpi-grid" id="kpi-grid"></div>
-        </section>
-
-        <section class="charts-section">
-          <p class="section-title">
-            Evolução Mensal
-            <button class="btn-toggle" id="btnToggleChart" onclick="toggleGrafico()">▼ Ocultar gráfico</button>
-          </p>
-          <div id="chart-container">
-            <div class="chart-box">
-              <h3>Empenhado × Liquidado AM × Pago AM por Mês</h3>
-              <canvas id="chartMensal"></canvas>
-            </div>
-          </div>
-        </section>
-
-        <section class="tables-section" style="margin-top:40px;">
-          <p class="section-title">Por Tipo de Pessoa</p>
-          <div class="table-wrapper">
-            <table>
-              <thead><tr>
-                <th style="width:40px"></th>
-                <th>Tipo de Pessoa</th>
-                <th class="num">Empenhado (R$)</th>
-                <th class="num">% do Total</th>
-                <th class="num">Pago AM (R$)</th>
-                <th class="num">% Pago</th>
-                <th class="num">Saldo a Pagar (R$)</th>
-              </tr></thead>
-              <tbody id="tabelaTipos-body"></tbody>
-            </table>
-          </div>
-
-          <p class="section-title">Fornecedores por Valor Empenhado</p>
-          <div class="table-wrapper">
-            <div class="table-filters">
-              <select id="filtroTipo" onchange="renderTabelaFornecedores()">
-                <option value="">Todos os tipos</option>
-              </select>
-              <input type="text" id="buscaFornecedor" placeholder="Buscar fornecedor..." oninput="renderTabelaFornecedores()" />
-            </div>
-            <table>
-              <thead><tr>
-                <th style="width:40px">#</th>
-                <th>Fornecedor</th>
-                <th class="num sortable" id="th-empenhado" onclick="setSortCol('empenhado')">Empenhado (R$) <i class="sort-icon"></i></th>
-                <th class="num sortable" id="th-liquidado" onclick="setSortCol('liquidado')">Liquidado AM (R$) <i class="sort-icon"></i></th>
-                <th class="num sortable" id="th-pago"      onclick="setSortCol('pago')">Pago AM (R$) <i class="sort-icon"></i></th>
-                <th class="num sortable" id="th-saldo"     onclick="setSortCol('saldo')">Saldo a Pagar (R$) <i class="sort-icon"></i></th>
-              </tr></thead>
-              <tbody id="tabelaFornecedores-body"></tbody>
-            </table>
-          </div>
-        </section>
-      </main>
-    </div>
-  </div><!-- /tab-folha -->
-
-  <!-- ================================================================
-       ABA 2 — RECEITA x DESPESA
-  ================================================================ -->
-  <div id="tab-fontes" class="tab-content">
-
-    <div id="loading-fontes" class="loading-box">
-      <div class="spinner"></div><span>Carregando dados...</span>
-    </div>
-
-    <div id="content-fontes" style="display:none;">
-      <main>
-
-        <!-- KPI CARDS -->
-        <section style="margin-bottom:40px;">
-          <p class="section-title">Totais por Coluna</p>
-          <div class="kpi-grid" id="fontes-kpi-grid"></div>
-        </section>
-
-        <!-- DOIS GRÁFICOS LADO A LADO -->
-        <section class="charts-section">
-          <p class="section-title">Análise por Conta</p>
-          <div class="charts-row">
-            <div class="chart-box">
-              <h3 id="chart-fontes-1-title">Valores — Coluna C por Conta</h3>
-              <canvas id="chartFontes1"></canvas>
-            </div>
-            <div class="chart-box">
-              <h3 id="chart-fontes-2-title">Valores — Coluna F por Conta</h3>
-              <canvas id="chartFontes2"></canvas>
-            </div>
-          </div>
-        </section>
-
-        <!-- TABELA A, B, C, F, C-F, L-P, E-L -->
-        <section class="tables-section">
-          <p class="section-title">Comparativo — Dotação × Realizado</p>
-          <div class="table-wrapper">
-            <table>
-              <thead><tr>
-                <th id="th-fa" style="white-space:normal;min-width:70px;">A</th>
-                <th id="th-fb" style="white-space:normal;min-width:160px;">B — Conta</th>
-                <th class="num sortable" id="fth-c"   onclick="setSortFontes('c')"   style="white-space:normal;min-width:110px;"><span id="th-fc">C</span> <i class="sort-icon"></i></th>
-                <th class="num sortable" id="fth-f"   onclick="setSortFontes('f')"   style="white-space:normal;min-width:110px;"><span id="th-ff">F</span> <i class="sort-icon"></i></th>
-                <th class="num sortable" id="fth-dif" onclick="setSortFontes('dif')" style="white-space:normal;min-width:110px;">Diferença<br>(C − F) <i class="sort-icon"></i></th>
-                <th class="num sortable" id="fth-rp"  onclick="setSortFontes('rp')"  style="white-space:normal;min-width:120px;">Restos a Pagar<br>Processados<br>(L − P) <i class="sort-icon"></i></th>
-                <th class="num sortable" id="fth-rnp" onclick="setSortFontes('rnp')" style="white-space:normal;min-width:120px;">Restos a Pagar<br>Não Processados<br>(E − L) <i class="sort-icon"></i></th>
-              </tr></thead>
-              <tbody id="tabelaFontes-body"></tbody>
-            </table>
-          </div>
-
-        </section>
-
-      </main>
-    </div>
-  </div><!-- /tab-fontes -->
-
-  <!-- ================================================================
-       ABA EDUCAÇÃO
-  ================================================================ -->
-  <div id="tab-educacao" class="tab-content">
-    <main>
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:50vh;gap:16px;color:#639aa5;">
-        <span style="font-size:3rem;">📚</span>
-        <p style="font-size:1.2rem;font-weight:700;color:#367886;">Educação</p>
-        <p style="font-size:.9rem;">Módulo em desenvolvimento</p>
+      <!-- FINANCEIRO -->
+      <div class="sidebar-group">
+        <div class="sidebar-header active" id="sh-financeiro" onclick="switchMain('financeiro')">
+          <span>💰</span> Financeiro <span class="sh-arrow">▾</span>
+        </div>
+        <div class="sidebar-subs" id="subs-financeiro">
+          <button class="sidebar-sub active" id="ssub-folha"     onclick="switchTab('folha')">👥 Folha de Pagamento</button>
+          <button class="sidebar-sub"        id="ssub-fontes"    onclick="switchTab('fontes')">⚖️ Receita x Despesa</button>
+          <button class="sidebar-sub"        id="ssub-historico" onclick="switchTab('historico')">📊 Análise Histórica</button>
+        </div>
       </div>
-    </main>
-  </div>
 
-  <!-- ================================================================
-       ABA SAÚDE
-  ================================================================ -->
-  <div id="tab-saude" class="tab-content">
-    <main>
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:50vh;gap:16px;color:#639aa5;">
-        <span style="font-size:3rem;">🏥</span>
-        <p style="font-size:1.2rem;font-weight:700;color:#367886;">Saúde</p>
-        <p style="font-size:.9rem;">Módulo em desenvolvimento</p>
+      <!-- EDUCAÇÃO -->
+      <div class="sidebar-group">
+        <div class="sidebar-header" id="sh-educacao" onclick="switchMain('educacao')">
+          <span>📚</span> Educação <span class="sh-arrow">▾</span>
+        </div>
+        <div class="sidebar-subs hidden" id="subs-educacao">
+          <button class="sidebar-sub active">🏫 Em breve</button>
+        </div>
       </div>
-    </main>
-  </div>
+
+      <!-- SAÚDE -->
+      <div class="sidebar-group">
+        <div class="sidebar-header" id="sh-saude" onclick="switchMain('saude')">
+          <span>🏥</span> Saúde <span class="sh-arrow">▾</span>
+        </div>
+        <div class="sidebar-subs hidden" id="subs-saude">
+          <button class="sidebar-sub active">🏥 Em breve</button>
+        </div>
+      </div>
+
+    </aside><!-- /sidebar -->
+
+    <!-- ══ CONTENT AREA ══ -->
+    <div class="content-area">
+
+      <!-- ── FILTRO PERÍODO (Folha) ── -->
+      <div class="filter-bar" id="filter-bar" style="display:none;">
+        <label>Período:</label>
+        <label>De</label>  <select id="filtroDE"></select>
+        <label>Até</label> <select id="filtroATE"></select>
+        <button onclick="aplicarFiltro()">Filtrar</button>
+        <button class="reset" onclick="limparFiltro()">Limpar</button>
+      </div>
+
+      <!-- ================================================================
+           ABA 1 — FOLHA DE PAGAMENTO
+      ================================================================ -->
+      <div id="tab-folha" class="tab-content active">
+        <div id="loading-folha" class="loading-box">
+          <div class="spinner"></div><span>Carregando dados...</span>
+        </div>
+        <div id="content-folha" style="display:none;">
+          <main>
+            <section style="margin-bottom:36px;">
+              <p class="section-title">Indicadores Principais</p>
+              <div class="kpi-grid" id="kpi-grid"></div>
+            </section>
+            <section class="charts-section">
+              <p class="section-title">
+                Evolução Mensal
+                <button class="btn-toggle" id="btnToggleChart" onclick="toggleGrafico()">▼ Ocultar gráfico</button>
+              </p>
+              <div id="chart-container">
+                <div class="chart-box">
+                  <h3>Empenhado × Liquidado AM × Pago AM por Mês</h3>
+                  <canvas id="chartMensal"></canvas>
+                </div>
+              </div>
+            </section>
+            <section class="tables-section" style="margin-top:36px;">
+              <p class="section-title">Por Tipo de Pessoa</p>
+              <div class="table-wrapper">
+                <table>
+                  <thead><tr>
+                    <th style="width:36px"></th>
+                    <th>Tipo de Pessoa</th>
+                    <th class="num">Empenhado (R$)</th>
+                    <th class="num">% do Total</th>
+                    <th class="num">Pago AM (R$)</th>
+                    <th class="num">% Pago</th>
+                    <th class="num">Saldo a Pagar (R$)</th>
+                  </tr></thead>
+                  <tbody id="tabelaTipos-body"></tbody>
+                </table>
+              </div>
+              <p class="section-title">Fornecedores por Valor Empenhado</p>
+              <div class="table-wrapper">
+                <div class="table-filters">
+                  <select id="filtroTipo" onchange="renderTabelaFornecedores()">
+                    <option value="">Todos os tipos</option>
+                  </select>
+                  <input type="text" id="buscaFornecedor" placeholder="Buscar fornecedor..." oninput="renderTabelaFornecedores()" />
+                </div>
+                <table>
+                  <thead><tr>
+                    <th style="width:36px">#</th>
+                    <th>Fornecedor</th>
+                    <th class="num sortable" id="th-empenhado" onclick="setSortCol('empenhado')">Empenhado (R$) <i class="sort-icon"></i></th>
+                    <th class="num sortable" id="th-liquidado" onclick="setSortCol('liquidado')">Liquidado AM (R$) <i class="sort-icon"></i></th>
+                    <th class="num sortable" id="th-pago"      onclick="setSortCol('pago')">Pago AM (R$) <i class="sort-icon"></i></th>
+                    <th class="num sortable" id="th-saldo"     onclick="setSortCol('saldo')">Saldo a Pagar (R$) <i class="sort-icon"></i></th>
+                  </tr></thead>
+                  <tbody id="tabelaFornecedores-body"></tbody>
+                </table>
+              </div>
+            </section>
+          </main>
+        </div>
+      </div><!-- /tab-folha -->
+
+      <!-- ================================================================
+           ABA 2 — RECEITA x DESPESA
+      ================================================================ -->
+      <div id="tab-fontes" class="tab-content">
+        <div id="loading-fontes" class="loading-box">
+          <div class="spinner"></div><span>Carregando dados...</span>
+        </div>
+        <div id="content-fontes" style="display:none;">
+          <main>
+            <section style="margin-bottom:36px;">
+              <p class="section-title">Totais por Coluna</p>
+              <div class="kpi-grid" id="fontes-kpi-grid"></div>
+            </section>
+            <section class="charts-section">
+              <p class="section-title">Análise por Conta</p>
+              <div class="charts-row">
+                <div class="chart-box">
+                  <h3 id="chart-fontes-1-title">Valores — Coluna C por Conta</h3>
+                  <canvas id="chartFontes1"></canvas>
+                </div>
+                <div class="chart-box">
+                  <h3 id="chart-fontes-2-title">Valores — Coluna F por Conta</h3>
+                  <canvas id="chartFontes2"></canvas>
+                </div>
+              </div>
+            </section>
+            <section class="tables-section">
+              <p class="section-title">Comparativo — Dotação × Realizado</p>
+              <div class="table-wrapper">
+                <table>
+                  <thead><tr>
+                    <th id="th-fa" style="white-space:normal;min-width:70px;">A</th>
+                    <th id="th-fb" style="white-space:normal;min-width:160px;">B — Conta</th>
+                    <th class="num sortable" id="fth-c"   onclick="setSortFontes('c')"   style="white-space:normal;min-width:100px;"><span id="th-fc">C</span> <i class="sort-icon"></i></th>
+                    <th class="num sortable" id="fth-f"   onclick="setSortFontes('f')"   style="white-space:normal;min-width:100px;"><span id="th-ff">F</span> <i class="sort-icon"></i></th>
+                    <th class="num sortable" id="fth-dif" onclick="setSortFontes('dif')" style="white-space:normal;min-width:100px;">Diferença<br>(C − F) <i class="sort-icon"></i></th>
+                    <th class="num sortable" id="fth-rp"  onclick="setSortFontes('rp')"  style="white-space:normal;min-width:110px;">Restos a Pagar<br>Processados<br>(L − P) <i class="sort-icon"></i></th>
+                    <th class="num sortable" id="fth-rnp" onclick="setSortFontes('rnp')" style="white-space:normal;min-width:110px;">Restos a Pagar<br>Não Processados<br>(E − L) <i class="sort-icon"></i></th>
+                  </tr></thead>
+                  <tbody id="tabelaFontes-body"></tbody>
+                </table>
+              </div>
+            </section>
+          </main>
+        </div>
+      </div><!-- /tab-fontes -->
+
+      <!-- ================================================================
+           ABA 3 — ANÁLISE HISTÓRICA (2025 x 2026)
+      ================================================================ -->
+      <div id="tab-historico" class="tab-content">
+        <div id="loading-historico" class="loading-box">
+          <div class="spinner"></div><span>Carregando análise histórica...</span>
+        </div>
+        <div id="content-historico" style="display:none;">
+          <main>
+
+            <!-- ALERT BANNER (aparece se pct > 85%) -->
+            <div id="alert-banner" class="alert-banner" style="display:none;">
+              <span class="ab-icon">🚨</span>
+              <p id="alert-banner-msg">Atenção: o gasto de 2026 já ultrapassou 85% do total pago em 2025!</p>
+            </div>
+
+            <!-- KPI CARDS COMPARATIVO -->
+            <section style="margin-bottom:36px;">
+              <p class="section-title">Comparativo Geral de Pagamentos</p>
+              <div class="kpi-grid" id="hist-kpi-grid"></div>
+            </section>
+
+            <!-- BUSCA POR HISTÓRICO -->
+            <section style="margin-bottom:36px;">
+              <p class="section-title">Busca por Palavra-Chave no Histórico</p>
+              <div class="hist-search-box">
+                <input type="text" id="hist-keyword" placeholder="Digite uma palavra-chave do histórico..." oninput="filtrarPorHistorico()" />
+                <button class="sec" onclick="document.getElementById('hist-keyword').value='';filtrarPorHistorico()">Limpar</button>
+              </div>
+              <div id="hist-search-result">
+                <p style="color:#639aa5;font-size:.85rem;">Digite uma palavra-chave para buscar fornecedores pelo histórico de empenho.</p>
+              </div>
+            </section>
+
+            <!-- TIPOS: PAGO NM e PAGO AM por ano -->
+            <section class="tables-section">
+              <p class="section-title">Pagamentos por Tipo de Pessoa — 2025 vs 2026</p>
+              <div class="table-wrapper">
+                <table>
+                  <thead><tr>
+                    <th>Tipo de Pessoa</th>
+                    <th class="num">Pago NM 2025</th>
+                    <th class="num">Pago AM 2025</th>
+                    <th class="num">Pago NM 2026</th>
+                    <th class="num">Pago AM 2026</th>
+                    <th class="num sortable" id="hth-cresc-tipo" onclick="setSortHistTipo()">Crescimento <i class="sort-icon"></i></th>
+                  </tr></thead>
+                  <tbody id="hist-tipos-body"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <!-- FORNECEDORES: PAGO NM e PAGO por ano -->
+            <section class="tables-section">
+              <p class="section-title">Fornecedores — Pago NM e Pago AM — 2025 vs 2026</p>
+              <div class="table-wrapper">
+                <div class="table-filters">
+                  <input type="text" id="hist-busca-fornec" placeholder="Buscar fornecedor..." oninput="renderHistFornec()" />
+                  <select id="hist-filtro-ano" onchange="renderHistFornec()">
+                    <option value="">Todos os anos</option>
+                    <option value="ambos">Presentes nos 2 anos</option>
+                    <option value="2025">Somente 2025</option>
+                    <option value="2026">Somente 2026</option>
+                  </select>
+                </div>
+                <table>
+                  <thead><tr>
+                    <th style="width:32px">#</th>
+                    <th>Fornecedor</th>
+                    <th class="num sortable" id="hth-pnm25" onclick="setSortHistFornec('pagoNM2025')">Pago NM 2025 <i class="sort-icon"></i></th>
+                    <th class="num sortable" id="hth-pam25" onclick="setSortHistFornec('pago2025')">Pago AM 2025 <i class="sort-icon"></i></th>
+                    <th class="num sortable" id="hth-pnm26" onclick="setSortHistFornec('pagoNM2026')">Pago NM 2026 <i class="sort-icon"></i></th>
+                    <th class="num sortable" id="hth-pam26" onclick="setSortHistFornec('pago2026')">Pago AM 2026 <i class="sort-icon"></i></th>
+                    <th class="num sortable" id="hth-cresc" onclick="setSortHistFornec('crescimento')">Crescimento <i class="sort-icon"></i></th>
+                  </tr></thead>
+                  <tbody id="hist-fornec-body"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <!-- ANÁLISE AVANÇADA -->
+            <section style="margin-bottom:36px;">
+              <p class="section-title">Análise Avançada de Mudanças</p>
+              <div class="analise-cards" id="hist-analise-cards"></div>
+            </section>
+
+            <!-- SUGESTÕES -->
+            <section style="margin-bottom:36px;">
+              <p class="section-title">💡 Sugestões de Análises Avançadas</p>
+              <div class="sugestoes-grid">
+                <div class="sugestao-card">
+                  <div class="sq-icon">📅</div>
+                  <h4>Sazonalidade Mensal</h4>
+                  <p>Compare mês a mês os pagamentos de 2025 e 2026 para identificar padrões sazonais e antecipar picos de gasto.</p>
+                </div>
+                <div class="sugestao-card">
+                  <div class="sq-icon">🏗️</div>
+                  <h4>Concentração de Fornecedores</h4>
+                  <p>Medir quantos fornecedores representam 80% do gasto total (análise de Pareto) nos dois anos para detectar dependência excessiva.</p>
+                </div>
+                <div class="sugestao-card">
+                  <div class="sq-icon">⚖️</div>
+                  <h4>Taxa de Execução Orçamentária</h4>
+                  <p>Comparar o empenho vs liquidado vs pago por mês para identificar restos a pagar acumulados e risco de suborçamento.</p>
+                </div>
+                <div class="sugestao-card">
+                  <div class="sq-icon">🔄</div>
+                  <h4>Fidelidade de Fornecedores</h4>
+                  <p>Quantificar fornecedores recorrentes (presentes nos dois anos), novos e descontinuados como indicador de estabilidade contratual.</p>
+                </div>
+                <div class="sugestao-card">
+                  <div class="sq-icon">📊</div>
+                  <h4>Projeção de Gastos Anual</h4>
+                  <p>Extrapolar o gasto de 2026 com base nos meses já executados para projetar o total ao final do ano e comparar com 2025.</p>
+                </div>
+                <div class="sugestao-card">
+                  <div class="sq-icon">🎯</div>
+                  <h4>Análise por Fonte de Receita</h4>
+                  <p>Cruzar as fontes de receita com as despesas por tipo/fornecedor para garantir que os gastos estão alinhados com as dotações.</p>
+                </div>
+                <div class="sugestao-card">
+                  <div class="sq-icon">⚠️</div>
+                  <h4>Alerta de Contratos Suspeitos</h4>
+                  <p>Destacar fornecedores com crescimento acima de 200% ou valores que ultrapassem limites de dispensa de licitação.</p>
+                </div>
+                <div class="sugestao-card">
+                  <div class="sq-icon">🏛️</div>
+                  <h4>Análise por Secretaria / Órgão</h4>
+                  <p>Se disponível no histórico, agrupar gastos por secretaria para um painel de controle gerencial por área de governo.</p>
+                </div>
+              </div>
+            </section>
+
+          </main>
+        </div>
+      </div><!-- /tab-historico -->
+
+      <!-- ================================================================
+           ABA EDUCAÇÃO
+      ================================================================ -->
+      <div id="tab-educacao" class="tab-content">
+        <main>
+          <div class="placeholder-tab">
+            <span class="pt-icon">📚</span>
+            <h2>Educação</h2>
+            <p>Módulo em desenvolvimento</p>
+          </div>
+        </main>
+      </div>
+
+      <!-- ================================================================
+           ABA SAÚDE
+      ================================================================ -->
+      <div id="tab-saude" class="tab-content">
+        <main>
+          <div class="placeholder-tab">
+            <span class="pt-icon">🏥</span>
+            <h2>Saúde</h2>
+            <p>Módulo em desenvolvimento</p>
+          </div>
+        </main>
+      </div>
+
+    </div><!-- /content-area -->
+  </div><!-- /app-layout -->
 
   <script>
     var API_URL = 'https://script.google.com/macros/s/AKfycbxWaa3OuFdKH2K3Dcz6LBZCPL8qy4OfDUyn1AAyMfJoCRlaD7adQEsG_lDxMzHTgyEZ/exec';
 
-    var dadosFolha   = null;
-    var dadosFontes  = null;
-    var fontesLoaded = false;
-    var chartMensal  = null;
-    var chartF1      = null;
-    var chartF2      = null;
+    var dadosFolha    = null;
+    var dadosFontes   = null;
+    var dadosHistorico= null;
+    var fontesLoaded  = false;
+    var histLoaded    = false;
+    var chartMensal   = null;
+    var chartF1       = null;
+    var chartF2       = null;
     var graficoVisivel = true;
-    var sortCol = 'empenhado';
-    var sortDir = 'desc';
-    var sortColFontes = null;
-    var sortDirFontes = 'desc';
+
+    // Sort states
+    var sortCol        = 'empenhado';
+    var sortDir        = 'desc';
+    var sortColFontes  = null;
+    var sortDirFontes  = 'desc';
+    var sortHistFornec = 'pago2025';
+    var sortDirHistF   = 'desc';
+    var sortHistTipo   = 'pago2025';
+    var sortDirHistT   = 'desc';
 
     // ── UTILITÁRIOS ──────────────────────────────────────────────
     function fmtBRL(v) {
@@ -476,7 +596,16 @@
     function fmtPct(v) {
       return new Intl.NumberFormat('pt-BR',{style:'percent',minimumFractionDigits:1,maximumFractionDigits:1}).format((v||0)/100);
     }
+    function fmtCresc(v) {
+      if (v === null || v === undefined) return '—';
+      return (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
+    }
     function badgeClass(p){ return p>=75?'badge good':p>=40?'badge mid':'badge low'; }
+    function crescBadge(pct2026vs2025) {
+      if (pct2026vs2025 < 50)  return 'badge green';
+      if (pct2026vs2025 <= 85) return 'badge yellow';
+      return 'badge red';
+    }
     function parseMesAno(s) {
       var m={jan:0,fev:1,mar:2,abr:3,mai:4,jun:5,jul:6,ago:7,set:8,out:9,nov:10,dez:11};
       var p=String(s||'').toLowerCase().split('/');
@@ -487,44 +616,43 @@
     }
     function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-    // ── TROCA DE ABA PRINCIPAL ───────────────────────────────────
+    // ── NAVEGAÇÃO PRINCIPAL ──────────────────────────────────────
     var currentMain = 'financeiro';
+    var currentSub  = 'folha';
 
     function switchMain(area) {
+      if (currentMain === area) return; // toggle off: não fecha, só re-foca
       currentMain = area;
 
-      // Atualiza botões principais
-      document.querySelectorAll('.main-tab').forEach(function(el){ el.classList.remove('active'); });
-      document.getElementById('main-'+area).classList.add('active');
+      document.querySelectorAll('.sidebar-header').forEach(function(el){ el.classList.remove('active'); });
+      document.getElementById('sh-'+area).classList.add('active');
 
-      // Mostra sub-nav correto
-      document.querySelectorAll('.sub-nav').forEach(function(el){ el.classList.add('hidden'); });
-      document.getElementById('subnav-'+area).classList.remove('hidden');
+      document.querySelectorAll('.sidebar-subs').forEach(function(el){ el.classList.add('hidden'); });
+      document.getElementById('subs-'+area).classList.remove('hidden');
 
-      // Mostra conteúdo correto
       document.querySelectorAll('.tab-content').forEach(function(el){ el.classList.remove('active'); });
 
       if (area === 'financeiro') {
-        // Volta para a sub-aba ativa dentro de financeiro
-        var activeSubBtn = document.querySelector('#subnav-financeiro .tab-btn.active');
-        var activeTab = activeSubBtn ? activeSubBtn.id.replace('tab-btn-','') : 'folha';
-        document.getElementById('tab-'+activeTab).classList.add('active');
-        if (activeTab === 'fontes' && !fontesLoaded) carregarFontes();
+        document.getElementById('tab-'+currentSub).classList.add('active');
+        document.getElementById('filter-bar').style.display = (currentSub === 'folha') ? 'flex' : 'none';
       } else {
         document.getElementById('tab-'+area).classList.add('active');
+        document.getElementById('filter-bar').style.display = 'none';
       }
     }
 
-    // ── TROCA DE SUB-ABA ─────────────────────────────────────────
     function switchTab(tab) {
+      currentSub = tab;
       document.querySelectorAll('.tab-content').forEach(function(el){ el.classList.remove('active'); });
-      document.querySelectorAll('#subnav-financeiro .tab-btn').forEach(function(el){ el.classList.remove('active'); });
+      document.querySelectorAll('.sidebar-sub').forEach(function(el){ el.classList.remove('active'); });
       document.getElementById('tab-'+tab).classList.add('active');
-      document.getElementById('tab-btn-'+tab).classList.add('active');
+      var ssub = document.getElementById('ssub-'+tab);
+      if (ssub) ssub.classList.add('active');
 
-      if (tab === 'fontes' && !fontesLoaded) {
-        carregarFontes();
-      }
+      document.getElementById('filter-bar').style.display = (tab === 'folha') ? 'flex' : 'none';
+
+      if (tab === 'fontes'    && !fontesLoaded) carregarFontes();
+      if (tab === 'historico' && !histLoaded)   carregarHistorico();
     }
 
     // ── ABA 1: FOLHA ─────────────────────────────────────────────
@@ -535,7 +663,7 @@
           if(data.erro) throw new Error(data.erro);
           dadosFolha = data;
           inicializarFiltro(data.mensal);
-          popularFiltroTipo(data.fornecedores || []);
+          popularFiltroTipo(data.fornecedores||[]);
           renderFolha(data, data.mensal);
         })
         .catch(function(err){ erroBox('loading-folha','Erro: '+err.message); });
@@ -550,7 +678,6 @@
       renderTabelaFornecedores();
     }
 
-    // Filtro de período
     function inicializarFiltro(mensal) {
       var de=document.getElementById('filtroDE'), ate=document.getElementById('filtroATE');
       de.innerHTML=''; ate.innerHTML='';
@@ -586,14 +713,12 @@
       }));
     }
 
-    // Toggle gráfico
     function toggleGrafico() {
       graficoVisivel=!graficoVisivel;
       document.getElementById('chart-container').style.display=graficoVisivel?'block':'none';
       document.getElementById('btnToggleChart').textContent=graficoVisivel?'▼ Ocultar gráfico':'▶ Exibir gráfico';
     }
 
-    // KPI cards
     function renderKPIs(data) {
       var grid=document.getElementById('kpi-grid'); grid.innerHTML='';
       var totalPago=data.totalPagoAM||0;
@@ -616,7 +741,6 @@
       return d;
     }
 
-    // Gráfico mensal
     function renderGrafico(mensal) {
       var labels=mensal.map(function(m){ return m.mesAno; });
       var emp=mensal.map(function(m){ return m.valor||0; });
@@ -644,7 +768,6 @@
       });
     }
 
-    // Tabela tipos — com expansão mensal
     function renderTabelaTipos(tipos) {
       var tbody=document.getElementById('tabelaTipos-body'); tbody.innerHTML='';
       if(!tipos||!tipos.length){
@@ -655,8 +778,6 @@
         var pctPago=t.percentualPago!==undefined?t.percentualPago
           :(dadosFolha.totalEmpenhado>0?(t.totalPago/dadosFolha.totalEmpenhado)*100:0);
         var grp='tipo'+i;
-
-        // Linha principal
         var tr=document.createElement('tr');
         tr.innerHTML=
           '<td><button class="btn-expand" onclick="toggleGrupo(\''+grp+'\',this)">+</button></td>'+
@@ -667,43 +788,29 @@
           '<td class="num"><span class="'+badgeClass(pctPago)+'">'+fmtPct(pctPago)+'</span></td>'+
           '<td class="num">'+fmtBRL(t.saldoAPagar)+'</td>';
         tbody.appendChild(tr);
-
-        // Linhas de mês
-        var mensal=t.mensal||[];
-        var sumV=0, sumP=0, sumL=0, n=mensal.length;
+        var mensal=t.mensal||[]; var sumV=0,sumP=0,sumL=0,n=mensal.length;
         mensal.forEach(function(m){
           sumV+=m.valor||0; sumP+=m.pago||0; sumL+=m.liquidado||0;
           var trM=document.createElement('tr');
           trM.className='detail-row detalhe-mes'; trM.dataset.group=grp;
-          trM.innerHTML=
-            '<td></td>'+
-            '<td style="padding-left:36px;font-style:italic;font-size:.78rem;color:#639aa5;">'+esc(m.mesAno)+'</td>'+
-            '<td class="num">'+fmtBRL(m.valor||0)+'</td>'+
-            '<td class="num">—</td>'+
-            '<td class="num">'+fmtBRL(m.pago||0)+'</td>'+
-            '<td class="num">—</td>'+
+          trM.innerHTML='<td></td><td style="padding-left:32px;font-style:italic;font-size:.78rem;color:#639aa5;">'+esc(m.mesAno)+'</td>'+
+            '<td class="num">'+fmtBRL(m.valor||0)+'</td><td class="num">—</td>'+
+            '<td class="num">'+fmtBRL(m.pago||0)+'</td><td class="num">—</td>'+
             '<td class="num">'+fmtBRL((m.valor||0)-(m.pago||0))+'</td>';
           tbody.appendChild(trM);
         });
-
-        // Linha de média
         if(n>0){
           var trAvg=document.createElement('tr');
           trAvg.className='detail-row detalhe-media'; trAvg.dataset.group=grp;
-          trAvg.innerHTML=
-            '<td></td>'+
-            '<td style="padding-left:36px;">Média mensal</td>'+
-            '<td class="num">'+fmtBRL(sumV/n)+'</td>'+
-            '<td class="num">—</td>'+
-            '<td class="num">'+fmtBRL(sumP/n)+'</td>'+
-            '<td class="num">—</td>'+
+          trAvg.innerHTML='<td></td><td style="padding-left:32px;">Média mensal</td>'+
+            '<td class="num">'+fmtBRL(sumV/n)+'</td><td class="num">—</td>'+
+            '<td class="num">'+fmtBRL(sumP/n)+'</td><td class="num">—</td>'+
             '<td class="num">'+fmtBRL((sumV-sumP)/n)+'</td>';
           tbody.appendChild(trAvg);
         }
       });
     }
 
-    // Filtro tipo fornecedor
     function popularFiltroTipo(fornecedores) {
       var sel=document.getElementById('filtroTipo'); var tipos={};
       fornecedores.forEach(function(f){ if(f.tipo) tipos[f.tipo]=true; });
@@ -714,11 +821,9 @@
       });
     }
 
-    // Sort — tabela fornecedores
     function setSortCol(col) {
       sortDir=(sortCol===col&&sortDir==='desc')?'asc':'desc';
-      sortCol=col;
-      renderTabelaFornecedores();
+      sortCol=col; renderTabelaFornecedores();
     }
     function atualizarIconesSort() {
       ['empenhado','liquidado','pago','saldo'].forEach(function(c){
@@ -728,11 +833,9 @@
       });
     }
 
-    // Sort — tabela comparativo fontes
     function setSortFontes(col) {
-      sortDirFontes = (sortColFontes===col && sortDirFontes==='desc') ? 'asc' : 'desc';
-      sortColFontes = col;
-      atualizarIconesSortFontes();
+      sortDirFontes=(sortColFontes===col&&sortDirFontes==='desc')?'asc':'desc';
+      sortColFontes=col; atualizarIconesSortFontes();
       renderTabelaComparativo(dadosFontes.rows||[]);
     }
     function atualizarIconesSortFontes() {
@@ -742,17 +845,15 @@
         if(sortColFontes===c) th.classList.add(sortDirFontes==='asc'?'sort-asc':'sort-desc');
       });
     }
+
     function renderTabelaComparativo(rows) {
       var fieldMap={c:'c',f:'f',dif:'difCF',rp:'restosP',rnp:'restosNP'};
-      var sorted = rows.slice();
-      if(sortColFontes) {
-        var field = fieldMap[sortColFontes]||'c';
-        sorted.sort(function(a,b){
-          var diff=(a[field]||0)-(b[field]||0);
-          return sortDirFontes==='desc'?-diff:diff;
-        });
+      var sorted=rows.slice();
+      if(sortColFontes){
+        var field=fieldMap[sortColFontes]||'c';
+        sorted.sort(function(a,b){ var diff=(a[field]||0)-(b[field]||0); return sortDirFontes==='desc'?-diff:diff; });
       }
-      var tbody1=document.getElementById('tabelaFontes-body'); tbody1.innerHTML='';
+      var tbody=document.getElementById('tabelaFontes-body'); tbody.innerHTML='';
       sorted.forEach(function(r){
         var tr=document.createElement('tr');
         tr.innerHTML=
@@ -763,14 +864,13 @@
           '<td class="num '+(r.difCF<0?'neg':'pos')+'">'+fmtBRL(r.difCF)+'</td>'+
           '<td class="num '+(r.restosP<0?'neg':'pos')+'">'+fmtBRL(r.restosP||0)+'</td>'+
           '<td class="num '+(r.restosNP<0?'neg':'pos')+'">'+fmtBRL(r.restosNP||0)+'</td>';
-        tbody1.appendChild(tr);
+        tbody.appendChild(tr);
       });
     }
 
-    // Tabela fornecedores
     function renderTabelaFornecedores() {
       if(!dadosFolha) return;
-      var fornecedores=dadosFolha.fornecedores||dadosFolha.topFornecedores||[];
+      var fornecedores=dadosFolha.fornecedores||[];
       var tipoFiltro=document.getElementById('filtroTipo').value.toLowerCase();
       var busca=(document.getElementById('buscaFornecedor').value||'').toLowerCase();
       var filtrados=fornecedores.filter(function(f){
@@ -794,29 +894,22 @@
           '<td class="num">'+fmtBRL(f.totalPago)+'</td>'+
           '<td class="num">'+fmtBRL(f.saldoAPagar)+'</td>';
         tbody.appendChild(tr);
-
         var mensal=f.mensal||[]; var sumE=0,sumL=0,sumP=0,n=mensal.length;
         mensal.forEach(function(m){
           sumE+=m.empenhado||0; sumL+=m.liquidado||0; sumP+=m.pago||0;
           var trM=document.createElement('tr');
           trM.className='detail-row detalhe-mes'; trM.dataset.group=grp;
-          trM.innerHTML=
-            '<td></td><td style="padding-left:42px;font-style:italic;font-size:.78rem;color:#639aa5;">'+esc(m.mesAno)+'</td>'+
-            '<td class="num">'+fmtBRL(m.empenhado||0)+'</td>'+
-            '<td class="num">'+fmtBRL(m.liquidado||0)+'</td>'+
-            '<td class="num">'+fmtBRL(m.pago||0)+'</td>'+
-            '<td class="num">'+fmtBRL((m.empenhado||0)-(m.pago||0))+'</td>';
+          trM.innerHTML='<td></td><td style="padding-left:38px;font-style:italic;font-size:.78rem;color:#639aa5;">'+esc(m.mesAno)+'</td>'+
+            '<td class="num">'+fmtBRL(m.empenhado||0)+'</td><td class="num">'+fmtBRL(m.liquidado||0)+'</td>'+
+            '<td class="num">'+fmtBRL(m.pago||0)+'</td><td class="num">'+fmtBRL((m.empenhado||0)-(m.pago||0))+'</td>';
           tbody.appendChild(trM);
         });
         if(n>0){
           var trAvg=document.createElement('tr');
           trAvg.className='detail-row detalhe-media'; trAvg.dataset.group=grp;
-          trAvg.innerHTML=
-            '<td></td><td style="padding-left:42px;">Média mensal</td>'+
-            '<td class="num">'+fmtBRL(sumE/n)+'</td>'+
-            '<td class="num">'+fmtBRL(sumL/n)+'</td>'+
-            '<td class="num">'+fmtBRL(sumP/n)+'</td>'+
-            '<td class="num">'+fmtBRL((sumE-sumP)/n)+'</td>';
+          trAvg.innerHTML='<td></td><td style="padding-left:38px;">Média mensal</td>'+
+            '<td class="num">'+fmtBRL(sumE/n)+'</td><td class="num">'+fmtBRL(sumL/n)+'</td>'+
+            '<td class="num">'+fmtBRL(sumP/n)+'</td><td class="num">'+fmtBRL((sumE-sumP)/n)+'</td>';
           tbody.appendChild(trAvg);
         }
         var hist=f.historicos||[];
@@ -824,9 +917,7 @@
           var trH=document.createElement('tr');
           trH.className='detail-row detalhe-hist'; trH.dataset.group=grp;
           var tags=hist.map(function(h){ return '<span class="hist-tag">'+esc(h)+'</span>'; }).join('');
-          trH.innerHTML='<td></td><td colspan="5"><div class="hist-bloco">'+
-            '<span class="hist-label">Histórico ('+esc(f.ultimoMes||'')+')</span>'+
-            '<div class="hist-tags">'+tags+'</div></div></td>';
+          trH.innerHTML='<td></td><td colspan="5"><div class="hist-bloco"><span class="hist-label">Histórico ('+esc(f.ultimoMes||'')+')</span><div class="hist-tags">'+tags+'</div></div></td>';
           tbody.appendChild(trH);
         }
       });
@@ -834,6 +925,323 @@
         tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:#639aa5;padding:16px;">Nenhum fornecedor encontrado</td></tr>';
     }
 
+    // ── ABA 2: RECEITA x DESPESA ─────────────────────────────────
+    function carregarFontes() {
+      fontesLoaded=true;
+      fetch(API_URL+'?page=fontes')
+        .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+        .then(function(data){
+          if(data.erro) throw new Error(data.erro);
+          dadosFontes=data; renderFontes(data);
+        })
+        .catch(function(err){ erroBox('loading-fontes','Erro: '+err.message); });
+    }
+
+    function renderFontes(data) {
+      document.getElementById('loading-fontes').style.display='none';
+      document.getElementById('content-fontes').style.display='block';
+      var h=data.headers||[];
+      var lblA=h[0]||'A',lblB=h[1]||'Conta',lblC=h[2]||'C',lblD=h[3]||'D',lblE=h[4]||'E',lblF=h[5]||'F';
+      document.getElementById('th-fa').textContent=lblA||'Código';
+      document.getElementById('th-fb').textContent=lblB||'Descrição';
+      document.getElementById('th-fc').textContent=lblC||'C';
+      document.getElementById('th-ff').textContent=lblF||'F';
+      document.getElementById('chart-fontes-1-title').textContent=lblC+' por Conta (maior → menor)';
+      document.getElementById('chart-fontes-2-title').textContent=lblF+' por Conta (maior → menor)';
+      var t=data.totais||{};
+      var kpiGrid=document.getElementById('fontes-kpi-grid'); kpiGrid.innerHTML='';
+      kpiGrid.appendChild(criarCardFonte(lblC,fmtBRL(t.c),'card-c'));
+      kpiGrid.appendChild(criarCardFonte(lblD,fmtBRL(t.d),'card-d'));
+      kpiGrid.appendChild(criarCardFonte(lblE,fmtBRL(t.e),'card-e'));
+      kpiGrid.appendChild(criarCardFonte(lblF,fmtBRL(t.f),'card-f'));
+      renderChartFonte('chartFontes1',chartF1,data.chart1||[],'conta','c','rgba(54,120,134,0.85)','#367886',function(c){chartF1=c;});
+      renderChartFonte('chartFontes2',chartF2,data.chart2||[],'conta','f','rgba(26,58,64,0.80)','#1a3a40',function(c){chartF2=c;});
+      atualizarIconesSortFontes();
+      renderTabelaComparativo(data.rows||[]);
+    }
+
+    function criarCardFonte(label,value,cls){
+      var d=document.createElement('div'); d.className='kpi-card '+(cls||'');
+      var l=document.createElement('span'); l.className='kpi-label'; l.textContent=label;
+      var v=document.createElement('span'); v.className='kpi-value'; v.textContent=value;
+      d.appendChild(l); d.appendChild(v); return d;
+    }
+
+    function renderChartFonte(canvasId,oldChart,data,labelKey,valueKey,bg,border,setRef){
+      if(oldChart) oldChart.destroy();
+      var labels=data.map(function(d){ return d[labelKey]; });
+      var values=data.map(function(d){ return d[valueKey]||0; });
+      var newChart=new Chart(document.getElementById(canvasId).getContext('2d'),{
+        type:'bar',
+        data:{labels:labels,datasets:[{data:values,backgroundColor:bg,borderColor:border,borderWidth:1,borderRadius:4}]},
+        options:{
+          indexAxis:'y',responsive:true,
+          plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){ return ' '+fmtBRL(c.parsed.x); }}}},
+          scales:{x:{ticks:{font:{size:10},callback:function(v){ return fmtBRL(v); }}},y:{ticks:{font:{size:10}}}}
+        }
+      });
+      setRef(newChart);
+    }
+
+    // ── ABA 3: ANÁLISE HISTÓRICA ─────────────────────────────────
+    function carregarHistorico() {
+      histLoaded=true;
+      fetch(API_URL+'?page=historico')
+        .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+        .then(function(data){
+          if(data.erro) throw new Error(data.erro);
+          dadosHistorico=data; renderHistorico(data);
+        })
+        .catch(function(err){ erroBox('loading-historico','Erro: '+err.message); });
+    }
+
+    function renderHistorico(data) {
+      document.getElementById('loading-historico').style.display='none';
+      document.getElementById('content-historico').style.display='block';
+
+      var pct = data.pct2026vs2025 || 0;
+
+      // Alert banner
+      if (pct > 85) {
+        var banner = document.getElementById('alert-banner');
+        banner.style.display='flex';
+        document.getElementById('alert-banner-msg').textContent =
+          'Atenção: o gasto de 2026 já atingiu ' + pct.toFixed(1) + '% do total pago em 2025!';
+      }
+
+      // KPI Cards
+      var grid = document.getElementById('hist-kpi-grid');
+      grid.innerHTML='';
+      grid.appendChild(criarCard('Total Pago 2025', fmtBRL(data.totalPago2025), null, 'highlight'));
+      grid.appendChild(criarCard('Total Pago 2026', fmtBRL(data.totalPago2026), null, 'highlight'));
+      var cardClass = pct < 50 ? 'card-green' : pct <= 85 ? 'card-yellow' : 'card-red';
+      var crescAbs = data.totalPago2026 - data.totalPago2025;
+      grid.appendChild(criarCard(
+        '2026 em % de 2025',
+        pct.toFixed(1) + '%',
+        (crescAbs >= 0 ? '+' : '') + fmtBRL(crescAbs) + ' em relação a 2025',
+        cardClass
+      ));
+      var fornSo25 = (data.fornecedores||[]).filter(function(f){ return f.somente2025; }).length;
+      var fornSo26 = (data.fornecedores||[]).filter(function(f){ return f.somente2026; }).length;
+      grid.appendChild(criarCard('Novos Fornecedores 2026', fornSo26, 'Presentes em 2026 mas não em 2025', 'card-c'));
+      grid.appendChild(criarCard('Fornecedores saíram', fornSo25, 'Pagos em 2025 mas não em 2026', 'card-d'));
+
+      // Tabela tipos
+      renderHistTipos();
+      // Tabela fornecedores
+      renderHistFornec();
+      // Análise avançada
+      renderAnaliseAvancada(data);
+    }
+
+    // Sort tipos histórico
+    function setSortHistTipo() {
+      sortDirHistT = (sortHistTipo === 'crescimento' && sortDirHistT === 'desc') ? 'asc' : 'desc';
+      sortHistTipo = 'crescimento';
+      var th = document.getElementById('hth-cresc-tipo');
+      if (th) { th.classList.remove('sort-asc','sort-desc'); th.classList.add(sortDirHistT==='asc'?'sort-asc':'sort-desc'); }
+      renderHistTipos();
+    }
+
+    function renderHistTipos() {
+      if (!dadosHistorico) return;
+      var tipos = (dadosHistorico.tipos||[]).slice();
+      tipos.sort(function(a,b){
+        var va = a[sortHistTipo] !== null && a[sortHistTipo] !== undefined ? a[sortHistTipo] : -Infinity;
+        var vb = b[sortHistTipo] !== null && b[sortHistTipo] !== undefined ? b[sortHistTipo] : -Infinity;
+        return sortDirHistT === 'desc' ? vb - va : va - vb;
+      });
+      var tbody = document.getElementById('hist-tipos-body'); tbody.innerHTML='';
+      tipos.forEach(function(t) {
+        var cr = t.crescimento;
+        var crClass = cr === null ? '' : (cr > 0 ? 'pos' : cr < 0 ? 'neg' : '');
+        var badge = cr === null ? '<span class="badge">Novo</span>' :
+          '<span class="'+(cr < 50 ? 'badge green' : cr <= 85 ? 'badge yellow' : 'badge red')+'">'+fmtCresc(cr)+'</span>';
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td>'+esc(t.tipo)+'</td>'+
+          '<td class="num">'+fmtBRL(t.pagoNM2025)+'</td>'+
+          '<td class="num">'+fmtBRL(t.pago2025)+'</td>'+
+          '<td class="num">'+fmtBRL(t.pagoNM2026)+'</td>'+
+          '<td class="num">'+fmtBRL(t.pago2026)+'</td>'+
+          '<td class="num">'+badge+'</td>';
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Sort fornecedores histórico
+    function setSortHistFornec(col) {
+      sortDirHistF = (sortHistFornec === col && sortDirHistF === 'desc') ? 'asc' : 'desc';
+      sortHistFornec = col;
+      ['hth-pnm25','hth-pam25','hth-pnm26','hth-pam26','hth-cresc'].forEach(function(id){
+        var th=document.getElementById(id); if(!th) return;
+        th.classList.remove('sort-asc','sort-desc');
+      });
+      var colMap = {pagoNM2025:'hth-pnm25',pago2025:'hth-pam25',pagoNM2026:'hth-pnm26',pago2026:'hth-pam26',crescimento:'hth-cresc'};
+      var thId = colMap[col];
+      if (thId) { var th=document.getElementById(thId); if(th) th.classList.add(sortDirHistF==='asc'?'sort-asc':'sort-desc'); }
+      renderHistFornec();
+    }
+
+    function renderHistFornec() {
+      if (!dadosHistorico) return;
+      var busca = (document.getElementById('hist-busca-fornec').value||'').toLowerCase();
+      var filtroAno = document.getElementById('hist-filtro-ano').value;
+      var fornec = (dadosHistorico.fornecedores||[]).slice();
+
+      if (busca) fornec = fornec.filter(function(f){ return (f.nome||'').toLowerCase().indexOf(busca) >= 0; });
+      if (filtroAno === '2025') fornec = fornec.filter(function(f){ return f.somente2025; });
+      else if (filtroAno === '2026') fornec = fornec.filter(function(f){ return f.somente2026; });
+      else if (filtroAno === 'ambos') fornec = fornec.filter(function(f){ return !f.somente2025 && !f.somente2026; });
+
+      fornec.sort(function(a,b){
+        var va = a[sortHistFornec] !== null && a[sortHistFornec] !== undefined ? a[sortHistFornec] : -Infinity;
+        var vb = b[sortHistFornec] !== null && b[sortHistFornec] !== undefined ? b[sortHistFornec] : -Infinity;
+        return sortDirHistF === 'desc' ? vb - va : va - vb;
+      });
+
+      var tbody = document.getElementById('hist-fornec-body'); tbody.innerHTML='';
+      if (!fornec.length) {
+        tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:#639aa5;padding:16px;">Nenhum fornecedor encontrado</td></tr>';
+        return;
+      }
+      fornec.slice(0,100).forEach(function(f,i){
+        var cr = f.crescimento;
+        var badge;
+        if (f.somente2026) badge='<span class="badge new">Novo 2026</span>';
+        else if (f.somente2025) badge='<span class="badge gone">Saiu 2025</span>';
+        else badge = cr === null ? '—' :
+          '<span class="'+(cr < 0 ? 'badge red' : cr < 50 ? 'badge green' : cr <= 85 ? 'badge yellow' : 'badge red')+'">'+fmtCresc(cr)+'</span>';
+        var tr = document.createElement('tr');
+        tr.innerHTML=
+          '<td><strong>'+(i+1)+'</strong></td>'+
+          '<td title="'+esc(f.nome)+'"><span class="cell-trunc">'+esc(f.nome)+'</span></td>'+
+          '<td class="num">'+fmtBRL(f.pagoNM2025)+'</td>'+
+          '<td class="num">'+fmtBRL(f.pago2025)+'</td>'+
+          '<td class="num">'+fmtBRL(f.pagoNM2026)+'</td>'+
+          '<td class="num">'+fmtBRL(f.pago2026)+'</td>'+
+          '<td class="num">'+badge+'</td>';
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Busca por histórico
+    function filtrarPorHistorico() {
+      var kw = (document.getElementById('hist-keyword').value||'').toLowerCase().trim();
+      var container = document.getElementById('hist-search-result');
+      if (!kw || !dadosHistorico) {
+        container.innerHTML='<p style="color:#639aa5;font-size:.85rem;">Digite uma palavra-chave para buscar fornecedores pelo histórico de empenho.</p>';
+        return;
+      }
+      var matches = (dadosHistorico.fornecedores||[]).filter(function(f){
+        return (f.historicos||[]).some(function(h){ return h.toLowerCase().indexOf(kw)>=0; });
+      });
+      if (!matches.length) {
+        container.innerHTML='<p style="color:#639aa5;font-size:.85rem;">Nenhum fornecedor encontrado com essa palavra-chave.</p>';
+        return;
+      }
+      matches.sort(function(a,b){ return (b.pago2025+b.pago2026)-(a.pago2025+a.pago2026); });
+
+      var html='<div class="table-wrapper"><table>'+
+        '<thead><tr><th>Fornecedor</th><th class="num">Pago AM 2025</th><th class="num">Pago AM 2026</th><th class="num">Crescimento</th><th>Históricos</th></tr></thead><tbody>';
+      matches.forEach(function(f){
+        var histsFiltrados = (f.historicos||[]).filter(function(h){ return h.toLowerCase().indexOf(kw)>=0; });
+        var tags = histsFiltrados.map(function(h){ return '<span class="hist-tag">'+esc(h)+'</span>'; }).join(' ');
+        var cr = f.crescimento;
+        var crText = f.somente2026?'<span class="badge new">Novo 2026</span>' :
+                     f.somente2025?'<span class="badge gone">Saiu</span>' :
+                     cr===null?'—':'<span class="'+(cr<0?'badge red':cr<50?'badge green':cr<=85?'badge yellow':'badge red')+'">'+fmtCresc(cr)+'</span>';
+        html+='<tr>'+
+          '<td><div>'+esc(f.nome)+'</div><div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:3px;">'+tags+'</div></td>'+
+          '<td class="num">'+fmtBRL(f.pago2025)+'</td>'+
+          '<td class="num">'+fmtBRL(f.pago2026)+'</td>'+
+          '<td class="num">'+crText+'</td>'+
+          '<td><span class="badge" style="background:#e9f7f8;color:#367886;">'+matches.length+' resultado'+(matches.length>1?'s':'')+'</span></td>'+
+          '</tr>';
+      });
+      html+='</tbody></table></div>';
+      container.innerHTML=html;
+    }
+
+    // Análise avançada
+    function renderAnaliseAvancada(data) {
+      var fornec = data.fornecedores || [];
+      var container = document.getElementById('hist-analise-cards');
+      container.innerHTML='';
+
+      // Só 2025
+      var so25 = fornec.filter(function(f){ return f.somente2025; })
+        .sort(function(a,b){ return b.pago2025-a.pago2025; }).slice(0,5);
+      // Só 2026
+      var so26 = fornec.filter(function(f){ return f.somente2026; })
+        .sort(function(a,b){ return b.pago2026-a.pago2026; }).slice(0,5);
+      // Maiores aumentos absolutos
+      var aumentos = fornec.filter(function(f){ return !f.somente2025 && !f.somente2026 && f.pago2026 > f.pago2025; })
+        .sort(function(a,b){ return (b.pago2026-b.pago2025)-(a.pago2026-a.pago2025); }).slice(0,5);
+      // Maiores quedas absolutas
+      var quedas = fornec.filter(function(f){ return !f.somente2025 && !f.somente2026 && f.pago2026 < f.pago2025; })
+        .sort(function(a,b){ return (a.pago2026-a.pago2025)-(b.pago2026-b.pago2025); }).slice(0,5);
+      // Maiores crescimentos %
+      var maioresPct = fornec.filter(function(f){ return f.crescimento !== null && f.crescimento > 0 && f.pago2025 > 0; })
+        .sort(function(a,b){ return b.crescimento-a.crescimento; }).slice(0,5);
+      // Maiores quedas %
+      var menoresPct = fornec.filter(function(f){ return f.crescimento !== null && f.crescimento < 0; })
+        .sort(function(a,b){ return a.crescimento-b.crescimento; }).slice(0,5);
+
+      function mkCard(title, items, renderItem, borderColor) {
+        var card = document.createElement('div');
+        card.className='analise-card';
+        card.style.borderLeftColor = borderColor || '#639aa5';
+        var h4 = document.createElement('h4'); h4.textContent=title;
+        card.appendChild(h4);
+        if (!items.length) {
+          var p=document.createElement('p'); p.style.fontSize='.8rem'; p.style.color='#639aa5'; p.textContent='Nenhum item';
+          card.appendChild(p);
+        } else {
+          items.forEach(function(item){
+            var div=document.createElement('div'); div.className='ac-item';
+            div.innerHTML=renderItem(item);
+            card.appendChild(div);
+          });
+        }
+        return card;
+      }
+
+      container.appendChild(mkCard('🚪 Saíram em 2026 (Top 5)', so25, function(f){
+        return '<span class="ac-name" title="'+esc(f.nome)+'">'+esc(f.nome.slice(0,28))+'</span>'+
+               '<span class="ac-val neg">'+fmtBRL(f.pago2025)+'</span>';
+      }, '#c0392b'));
+
+      container.appendChild(mkCard('🆕 Novos em 2026 (Top 5)', so26, function(f){
+        return '<span class="ac-name" title="'+esc(f.nome)+'">'+esc(f.nome.slice(0,28))+'</span>'+
+               '<span class="ac-val pos">'+fmtBRL(f.pago2026)+'</span>';
+      }, '#27ae60'));
+
+      container.appendChild(mkCard('📈 Maiores Aumentos R$ (Top 5)', aumentos, function(f){
+        var delta = f.pago2026 - f.pago2025;
+        return '<span class="ac-name" title="'+esc(f.nome)+'">'+esc(f.nome.slice(0,28))+'</span>'+
+               '<span class="ac-val pos">+'+fmtBRL(delta)+'</span>';
+      }, '#2ecc71'));
+
+      container.appendChild(mkCard('📉 Maiores Quedas R$ (Top 5)', quedas, function(f){
+        var delta = f.pago2026 - f.pago2025;
+        return '<span class="ac-name" title="'+esc(f.nome)+'">'+esc(f.nome.slice(0,28))+'</span>'+
+               '<span class="ac-val neg">'+fmtBRL(delta)+'</span>';
+      }, '#e74c3c'));
+
+      container.appendChild(mkCard('🚀 Maior Crescimento % (Top 5)', maioresPct, function(f){
+        return '<span class="ac-name" title="'+esc(f.nome)+'">'+esc(f.nome.slice(0,28))+'</span>'+
+               '<span class="ac-val pos">+'+f.crescimento.toFixed(1)+'%</span>';
+      }, '#3498db'));
+
+      container.appendChild(mkCard('🔻 Maior Queda % (Top 5)', menoresPct, function(f){
+        return '<span class="ac-name" title="'+esc(f.nome)+'">'+esc(f.nome.slice(0,28))+'</span>'+
+               '<span class="ac-val neg">'+f.crescimento.toFixed(1)+'%</span>';
+      }, '#9b59b6'));
+    }
+
+    // ── EXPAND ROWS ──────────────────────────────────────────────
     function toggleGrupo(grp,btn) {
       var rows=document.querySelectorAll('[data-group="'+grp+'"]');
       var abrindo=!rows[0].classList.contains('aberto');
@@ -841,91 +1249,8 @@
       btn.textContent=abrindo?'−':'+';
     }
 
-    // ── ABA 2: RECEITA x DESPESA ─────────────────────────────────
-    function carregarFontes() {
-      fontesLoaded = true;
-      fetch(API_URL + '?page=fontes')
-        .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
-        .then(function(data){
-          if(data.erro) throw new Error(data.erro);
-          dadosFontes = data;
-          renderFontes(data);
-        })
-        .catch(function(err){ erroBox('loading-fontes','Erro: '+err.message); });
-    }
-
-    function renderFontes(data) {
-      document.getElementById('loading-fontes').style.display = 'none';
-      document.getElementById('content-fontes').style.display = 'block';
-
-      var h = data.headers || [];
-      var lblA = h[0]||'A', lblB = h[1]||'Conta', lblC = h[2]||'C', lblD = h[3]||'D', lblE = h[4]||'E', lblF = h[5]||'F';
-
-      // Atualiza labels dinâmicos das tabelas
-      document.getElementById('th-fa').textContent  = lblA || 'Código';
-      document.getElementById('th-fb').textContent  = lblB || 'Descrição';
-      document.getElementById('th-fc').textContent  = lblC || 'C';
-      document.getElementById('th-ff').textContent  = lblF || 'F';
-      document.getElementById('chart-fontes-1-title').textContent = lblC + ' por Conta (maior → menor)';
-      document.getElementById('chart-fontes-2-title').textContent = lblF + ' por Conta (maior → menor)';
-
-      // KPI cards
-      var t = data.totais || {};
-      var kpiGrid = document.getElementById('fontes-kpi-grid');
-      kpiGrid.innerHTML = '';
-      kpiGrid.appendChild(criarCardFonte(lblC, fmtBRL(t.c), 'card-c'));
-      kpiGrid.appendChild(criarCardFonte(lblD, fmtBRL(t.d), 'card-d'));
-      kpiGrid.appendChild(criarCardFonte(lblE, fmtBRL(t.e), 'card-e'));
-      kpiGrid.appendChild(criarCardFonte(lblF, fmtBRL(t.f), 'card-f'));
-
-      // Gráficos
-      renderChartFonte('chartFontes1', chartF1, data.chart1||[], 'conta', 'c',
-        'rgba(54,120,134,0.85)', '#367886', function(c){ chartF1=c; });
-      renderChartFonte('chartFontes2', chartF2, data.chart2||[], 'conta', 'f',
-        'rgba(26,58,64,0.80)', '#1a3a40', function(c){ chartF2=c; });
-
-      // Tabela comparativo (com sort)
-      atualizarIconesSortFontes();
-      renderTabelaComparativo(data.rows||[]);
-
-    }
-
-    function criarCardFonte(label, value, cls) {
-      var d=document.createElement('div'); d.className='kpi-card '+(cls||'');
-      var l=document.createElement('span'); l.className='kpi-label'; l.textContent=label;
-      var v=document.createElement('span'); v.className='kpi-value'; v.textContent=value;
-      d.appendChild(l); d.appendChild(v);
-      return d;
-    }
-
-    function renderChartFonte(canvasId, oldChart, data, labelKey, valueKey, bg, border, setRef) {
-      if(oldChart) oldChart.destroy();
-      var labels = data.map(function(d){ return d[labelKey]; });
-      var values = data.map(function(d){ return d[valueKey]||0; });
-      var newChart = new Chart(document.getElementById(canvasId).getContext('2d'),{
-        type:'bar',
-        data:{ labels:labels, datasets:[{
-          data:values, backgroundColor:bg, borderColor:border,
-          borderWidth:1, borderRadius:4
-        }]},
-        options:{
-          indexAxis:'y',
-          responsive:true,
-          plugins:{
-            legend:{display:false},
-            tooltip:{callbacks:{label:function(c){ return ' '+fmtBRL(c.parsed.x); }}}
-          },
-          scales:{
-            x:{ticks:{font:{size:10},callback:function(v){ return fmtBRL(v); }}},
-            y:{ticks:{font:{size:10}}}
-          }
-        }
-      });
-      setRef(newChart);
-    }
-
     // ── HELPERS ──────────────────────────────────────────────────
-    function erroBox(id, msg) {
+    function erroBox(id,msg) {
       document.getElementById(id).innerHTML='<p style="color:#c0392b;max-width:500px;text-align:center;">'+msg+'</p>';
     }
 
