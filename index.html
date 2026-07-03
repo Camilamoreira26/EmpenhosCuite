@@ -1075,16 +1075,6 @@
         (crescAbs >= 0 ? '+' : '') + fmtBRL(crescAbs) + ' em relação a 2025',
         cardClass
       ));
-      // Usar contagens vindas direto da API (já filtradas por pago > 0)
-      var unicos25 = data.unicos2025 || (data.fornecedores||[]).filter(function(f){ return f.pago2025>0; }).length;
-      var unicos26 = data.unicos2026 || (data.fornecedores||[]).filter(function(f){ return f.pago2026>0; }).length;
-      var fornSo25 = data.somente2025 != null ? data.somente2025 : (data.fornecedores||[]).filter(function(f){ return f.somente2025; }).length;
-      var fornSo26 = data.somente2026 != null ? data.somente2026 : (data.fornecedores||[]).filter(function(f){ return f.somente2026; }).length;
-      grid.appendChild(criarCard('Fornecedores únicos 2025', unicos25.toLocaleString('pt-BR'), 'com pagamento registrado', ''));
-      grid.appendChild(criarCard('Fornecedores únicos 2026', unicos26.toLocaleString('pt-BR'), 'com pagamento registrado até o momento', ''));
-      grid.appendChild(criarCard('Novos Fornecedores 2026', fornSo26.toLocaleString('pt-BR'), 'Presentes em 2026 mas não em 2025', 'card-c'));
-      grid.appendChild(criarCard('Fornecedores saíram', fornSo25.toLocaleString('pt-BR'), 'Pagos em 2025 mas não em 2026', 'card-d'));
-
       // Tabela tipos
       renderHistTipos();
       // Tabela fornecedores
