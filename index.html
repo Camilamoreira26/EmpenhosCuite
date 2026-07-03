@@ -182,6 +182,19 @@
     .badge.new    { background:#c5e8ff; color:#003a6e; }
     .badge.gone   { background:#f0d0ff; color:#3a006e; }
 
+    /* ── MENSAL EXPAND ROW ── */
+    .expand-btn { background:none; border:none; cursor:pointer; font-size:.95rem; color:#367886; padding:2px 6px; border-radius:4px; transition:background .15s; }
+    .expand-btn:hover { background:rgba(54,120,134,.15); }
+    tr.mensal-row td { padding:0; background:#f5fbfc; }
+    .mensal-grid { display:flex; flex-wrap:wrap; gap:6px; padding:10px 14px 12px; }
+    .mensal-chip { display:flex; flex-direction:column; align-items:center; min-width:72px; background:#fff; border:1px solid #b8dde3; border-radius:8px; padding:5px 8px; font-size:.75rem; }
+    .mensal-chip .chip-mes { font-weight:700; color:#1a3a40; margin-bottom:2px; text-transform:uppercase; letter-spacing:.03em; }
+    .mensal-chip .chip-v25 { color:#367886; }
+    .mensal-chip .chip-v26 { color:#1a3a40; }
+    .mensal-chip.destaque { border-color:#e74c3c; background:#fff5f5; }
+    .mensal-chip.destaque .chip-v26 { color:#c0392b; font-weight:700; }
+    .mensal-chip.sem-dado { opacity:.45; }
+
     /* ── ANÁLISE HISTÓRICA ── */
     .hist-search-box { display:flex; align-items:center; gap:10px; padding:12px 0 18px; flex-wrap:wrap; }
     .hist-search-box input { flex:1; min-width:240px; max-width:400px; padding:8px 14px; border-radius:8px; border:1px solid #90bcc3; font-size:.88rem; color:#1a3a40; background:#fff; }
@@ -467,6 +480,7 @@
                   </div>
                   <table>
                     <thead><tr>
+                      <th style="width:28px"></th>
                       <th style="width:32px">#</th>
                       <th>Fornecedor</th>
                       <th class="num sortable" id="hth-pam25" onclick="setSortHistFornec('pago2025')">Pago 2025 <i class="sort-icon"></i></th>
@@ -1151,7 +1165,7 @@
 
       var tbody = document.getElementById('hist-fornec-body'); tbody.innerHTML='';
       if (!fornec.length) {
-        tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:#639aa5;padding:16px;">Nenhum fornecedor encontrado</td></tr>';
+        tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:#639aa5;padding:16px;">Nenhum fornecedor encontrado</td></tr>';
         return;
       }
       fornec.slice(0,50).forEach(function(f,i){
@@ -1161,15 +1175,80 @@
         else if (f.somente2025) badge='<span class="badge gone">Saiu 2025</span>';
         else badge = cr === null ? '—' :
           '<span class="'+(cr < 0 ? 'badge red' : cr < 50 ? 'badge green' : cr <= 85 ? 'badge yellow' : 'badge red')+'">'+fmtCresc(cr)+'</span>';
+
+        var rowId = 'frow-'+i;
         var tr = document.createElement('tr');
+        tr.style.cursor='pointer';
         tr.innerHTML=
+          '<td><button class="expand-btn" id="ebtn-'+i+'" title="Ver meses">▶</button></td>'+
           '<td><strong>'+(i+1)+'</strong></td>'+
           '<td title="'+esc(f.nome)+'"><span class="cell-trunc">'+esc(f.nome)+'</span></td>'+
           '<td class="num">'+fmtBRL(f.pago2025)+'</td>'+
           '<td class="num">'+fmtBRL(f.pago2026)+'</td>'+
           '<td class="num">'+badge+'</td>';
+
+        // Linha expansível com meses
+        var trMensal = document.createElement('tr');
+        trMensal.className = 'mensal-row';
+        trMensal.id = rowId;
+        trMensal.style.display = 'none';
+        var td = document.createElement('td');
+        td.colSpan = 6;
+
+        var mesesNome = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+        var m25 = f.mensal25 || {};
+        var m26 = f.mensal26 || {};
+        // Unificar todos os meses presentes
+        var todosMeses = {};
+        Object.keys(m25).forEach(function(k){ todosMeses[k]=true; });
+        Object.keys(m26).forEach(function(k){ todosMeses[k]=true; });
+        var mesesSorted = Object.keys(todosMeses).sort(function(a,b){ return parseMesAnoFront(a)-parseMesAnoFront(b); });
+
+        if (!mesesSorted.length) {
+          td.innerHTML = '<p style="color:#639aa5;padding:10px 14px;font-size:.82rem;">Sem dados mensais disponíveis.</p>';
+        } else {
+          var grid = document.createElement('div');
+          grid.className = 'mensal-grid';
+          mesesSorted.forEach(function(mes) {
+            var v25 = m25[mes]||0;
+            var v26 = m26[mes]||0;
+            var destaque = v26 > 0 && v26 > v25;
+            var chip = document.createElement('div');
+            chip.className = 'mensal-chip' + (destaque ? ' destaque' : '') + (!v25&&!v26?' sem-dado':'');
+            // Mostrar só o nome curto do mês
+            var nomeMes = mes.replace(/\./g,'').split('/')[0];
+            var anoMes  = mes.replace(/\./g,'').split('/')[1]||'';
+            chip.innerHTML =
+              '<span class="chip-mes">'+nomeMes+(anoMes?' /'+anoMes.slice(2):'')+'</span>'+
+              '<span class="chip-v25" title="2025">'+( v25 ? fmtBRL(v25) : '—')+'</span>'+
+              '<span class="chip-v26" title="2026">'+( v26 ? fmtBRL(v26) : '—')+'</span>';
+            grid.appendChild(chip);
+          });
+          td.appendChild(grid);
+        }
+        trMensal.appendChild(td);
+
+        // Toggle expand ao clicar na linha ou botão
+        (function(idx, mainRow, subRow) {
+          mainRow.addEventListener('click', function() {
+            var open = subRow.style.display !== 'none';
+            subRow.style.display = open ? 'none' : 'table-row';
+            var btn = document.getElementById('ebtn-'+idx);
+            if (btn) btn.textContent = open ? '▶' : '▼';
+          });
+        })(i, tr, trMensal);
+
         tbody.appendChild(tr);
+        tbody.appendChild(trMensal);
       });
+    }
+
+    function parseMesAnoFront(str) {
+      var m = {jan:0,fev:1,mar:2,abr:3,mai:4,jun:5,jul:6,ago:7,set:8,out:9,nov:10,dez:11};
+      var p = String(str||'').toLowerCase().replace(/\./g,'').split('/');
+      if (p.length!==2) return 0;
+      var mes = p[0].trim(), i = m[mes], a = parseInt(p[1].trim(),10);
+      return (i===undefined||isNaN(a)) ? 0 : a*100+i;
     }
 
     // Busca por histórico
