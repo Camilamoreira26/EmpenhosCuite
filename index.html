@@ -23,7 +23,7 @@
 
     /* ── SIDEBAR ── */
     .sidebar {
-      width:220px; flex-shrink:0; background:#367886;
+      width:220px; flex-shrink:0; background:#1a3a40;
       display:flex; flex-direction:column;
       overflow-y:auto; overflow-x:hidden;
     }
@@ -476,57 +476,72 @@
               </div>
             </section>
 
-            <!-- ANÁLISE AVANÇADA -->
+            <!-- ANÁLISE AVANÇADA DE MUDANÇAS -->
             <section style="margin-bottom:36px;">
               <p class="section-title">Análise Avançada de Mudanças</p>
               <div class="analise-cards" id="hist-analise-cards"></div>
             </section>
 
-            <!-- SUGESTÕES -->
+            <!-- SAZONALIDADE MENSAL -->
             <section style="margin-bottom:36px;">
-              <p class="section-title">💡 Sugestões de Análises Avançadas</p>
-              <div class="sugestoes-grid">
-                <div class="sugestao-card">
-                  <div class="sq-icon">📅</div>
-                  <h4>Sazonalidade Mensal</h4>
-                  <p>Compare mês a mês os pagamentos de 2025 e 2026 para identificar padrões sazonais e antecipar picos de gasto.</p>
-                </div>
-                <div class="sugestao-card">
-                  <div class="sq-icon">🏗️</div>
-                  <h4>Concentração de Fornecedores</h4>
-                  <p>Medir quantos fornecedores representam 80% do gasto total (análise de Pareto) nos dois anos para detectar dependência excessiva.</p>
-                </div>
-                <div class="sugestao-card">
-                  <div class="sq-icon">⚖️</div>
-                  <h4>Taxa de Execução Orçamentária</h4>
-                  <p>Comparar o empenho vs liquidado vs pago por mês para identificar restos a pagar acumulados e risco de suborçamento.</p>
-                </div>
-                <div class="sugestao-card">
-                  <div class="sq-icon">🔄</div>
-                  <h4>Fidelidade de Fornecedores</h4>
-                  <p>Quantificar fornecedores recorrentes (presentes nos dois anos), novos e descontinuados como indicador de estabilidade contratual.</p>
-                </div>
-                <div class="sugestao-card">
-                  <div class="sq-icon">📊</div>
-                  <h4>Projeção de Gastos Anual</h4>
-                  <p>Extrapolar o gasto de 2026 com base nos meses já executados para projetar o total ao final do ano e comparar com 2025.</p>
-                </div>
-                <div class="sugestao-card">
-                  <div class="sq-icon">🎯</div>
-                  <h4>Análise por Fonte de Receita</h4>
-                  <p>Cruzar as fontes de receita com as despesas por tipo/fornecedor para garantir que os gastos estão alinhados com as dotações.</p>
-                </div>
-                <div class="sugestao-card">
-                  <div class="sq-icon">⚠️</div>
-                  <h4>Alerta de Contratos Suspeitos</h4>
-                  <p>Destacar fornecedores com crescimento acima de 200% ou valores que ultrapassem limites de dispensa de licitação.</p>
-                </div>
-                <div class="sugestao-card">
-                  <div class="sq-icon">🏛️</div>
-                  <h4>Análise por Secretaria / Órgão</h4>
-                  <p>Se disponível no histórico, agrupar gastos por secretaria para um painel de controle gerencial por área de governo.</p>
-                </div>
+              <p class="section-title">📅 Sazonalidade Mensal — 2025 vs 2026</p>
+              <div class="chart-box">
+                <h3>Pagamentos mensais comparados (R$)</h3>
+                <canvas id="chartSazonalidade"></canvas>
               </div>
+            </section>
+
+            <!-- PROJEÇÃO ANUAL -->
+            <section style="margin-bottom:36px;">
+              <p class="section-title">📊 Projeção de Gastos 2026</p>
+              <div class="kpi-grid" id="hist-projecao-grid"></div>
+              <p style="font-size:.75rem;color:#639aa5;margin-top:-18px;">* Projeção baseada na média mensal dos meses já executados em 2026, extrapolada para 12 meses.</p>
+            </section>
+
+            <!-- FIDELIDADE DE FORNECEDORES -->
+            <section style="margin-bottom:36px;">
+              <p class="section-title">🔄 Fidelidade de Fornecedores</p>
+              <div class="kpi-grid" id="hist-fidelidade-grid"></div>
+              <div class="table-wrapper" id="hist-fidelidade-table-wrap" style="display:none;">
+                <table>
+                  <thead><tr>
+                    <th style="width:32px">#</th>
+                    <th>Fornecedor</th>
+                    <th class="num">Pago 2025</th>
+                    <th class="num">Pago 2026</th>
+                    <th class="num">Situação</th>
+                  </tr></thead>
+                  <tbody id="hist-fidelidade-body"></tbody>
+                </table>
+              </div>
+              <div style="text-align:center;margin-top:8px;">
+                <button class="btn-toggle" onclick="toggleFidelidadeTable()">▼ Ver detalhe por fornecedor</button>
+              </div>
+            </section>
+
+            <!-- CONCENTRAÇÃO / PARETO -->
+            <section style="margin-bottom:36px;">
+              <p class="section-title">🏗️ Concentração de Gastos (Pareto 80/20)</p>
+              <div class="kpi-grid" id="hist-pareto-kpis"></div>
+              <div class="table-wrapper">
+                <table>
+                  <thead><tr>
+                    <th style="width:32px">#</th>
+                    <th>Fornecedor</th>
+                    <th class="num">Pago 2025</th>
+                    <th class="num">% Acum. 2025</th>
+                    <th class="num">Pago 2026</th>
+                    <th class="num">% Acum. 2026</th>
+                  </tr></thead>
+                  <tbody id="hist-pareto-body"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <!-- ALERTAS DE CONTRATOS -->
+            <section style="margin-bottom:36px;">
+              <p class="section-title">⚠️ Alertas de Contratos — Variações Relevantes</p>
+              <div id="hist-alertas-container"></div>
             </section>
 
           </main>
@@ -1027,8 +1042,14 @@
       renderHistTipos();
       // Tabela fornecedores
       renderHistFornec();
-      // Análise avançada
+      // Análise avançada de mudanças
       renderAnaliseAvancada(data);
+      // Análises implementadas
+      renderSazonalidade(data.mensal || []);
+      renderProjecao(data);
+      renderFidelidade(data);
+      renderPareto(data);
+      renderAlertas(data);
     }
 
     // Sort tipos histórico
@@ -1235,6 +1256,205 @@
         return '<span class="ac-name" title="'+esc(f.nome)+'">'+esc(f.nome.slice(0,28))+'</span>'+
                '<span class="ac-val neg">'+f.crescimento.toFixed(1)+'%</span>';
       }, '#9b59b6'));
+    }
+
+    // ── ANÁLISES AVANÇADAS ───────────────────────────────────────
+    var chartSazon = null;
+    var fidelidadeTableAberta = false;
+
+    // 1. SAZONALIDADE
+    function renderSazonalidade(mensal) {
+      if (!mensal || !mensal.length) return;
+      var labels = mensal.map(function(m){ return m.mes; });
+      var v25    = mensal.map(function(m){ return m.pago2025||0; });
+      var v26    = mensal.map(function(m){ return m.pago2026||0; });
+      if (chartSazon) chartSazon.destroy();
+      chartSazon = new Chart(document.getElementById('chartSazonalidade').getContext('2d'),{
+        type:'bar',
+        data:{ labels:labels, datasets:[
+          { label:'Pago 2025', data:v25, backgroundColor:'rgba(54,120,134,0.80)', borderColor:'#367886', borderWidth:1, borderRadius:4 },
+          { label:'Pago 2026', data:v26, backgroundColor:'rgba(26,58,64,0.80)',  borderColor:'#1a3a40', borderWidth:1, borderRadius:4 }
+        ]},
+        options:{
+          responsive:true, interaction:{ mode:'index', intersect:false },
+          plugins:{
+            legend:{ display:true, position:'top', labels:{ font:{size:12}, color:'#1a3a40' }},
+            tooltip:{ callbacks:{ label:function(c){ return ' '+c.dataset.label+': '+fmtBRL(c.parsed.y); }}}
+          },
+          scales:{
+            x:{ ticks:{ maxRotation:45, font:{size:11} }},
+            y:{ ticks:{ font:{size:11}, callback:function(v){ return fmtBRL(v); }}}
+          }
+        }
+      });
+    }
+
+    // 2. PROJEÇÃO ANUAL
+    function renderProjecao(data) {
+      var mensal = data.mensal || [];
+      var meses26 = mensal.filter(function(m){ return m.pago2026 > 0; });
+      var grid = document.getElementById('hist-projecao-grid'); grid.innerHTML='';
+      if (!meses26.length) {
+        grid.innerHTML='<p style="color:#639aa5;font-size:.85rem;">Nenhum dado mensal de 2026 disponível.</p>';
+        return;
+      }
+      var totalExec = meses26.reduce(function(s,m){ return s+(m.pago2026||0); }, 0);
+      var mediaMensal = totalExec / meses26.length;
+      var projecao12  = mediaMensal * 12;
+      var varVs2025   = data.totalPago2025 > 0 ? ((projecao12 - data.totalPago2025) / data.totalPago2025) * 100 : 0;
+      var cardClass   = projecao12 < data.totalPago2025 ? 'card-green' : projecao12 < data.totalPago2025 * 1.1 ? 'card-yellow' : 'card-red';
+
+      grid.appendChild(criarCard('Meses executados 2026', meses26.length + ' mês' + (meses26.length>1?'es':''), null, ''));
+      grid.appendChild(criarCard('Média mensal 2026', fmtBRL(mediaMensal), null, ''));
+      grid.appendChild(criarCard('Projeção 12 meses 2026', fmtBRL(projecao12),
+        (varVs2025 >= 0 ? '+' : '') + varVs2025.toFixed(1) + '% vs total 2025', cardClass));
+      grid.appendChild(criarCard('Total real 2025 (base)', fmtBRL(data.totalPago2025), null, 'highlight'));
+    }
+
+    // 3. FIDELIDADE
+    function renderFidelidade(data) {
+      var fornec = data.fornecedores || [];
+      var recorrentes = fornec.filter(function(f){ return !f.somente2025 && !f.somente2026; });
+      var novos25to26 = fornec.filter(function(f){ return f.somente2026; });
+      var saidos      = fornec.filter(function(f){ return f.somente2025; });
+
+      var valRec  = recorrentes.reduce(function(s,f){ return s + Math.max(f.pago2025,f.pago2026); }, 0);
+      var valNov  = novos25to26.reduce(function(s,f){ return s + f.pago2026; }, 0);
+      var valSaiu = saidos.reduce(function(s,f){ return s + f.pago2025; }, 0);
+      var total   = valRec + valNov + valSaiu || 1;
+
+      var grid = document.getElementById('hist-fidelidade-grid'); grid.innerHTML='';
+      grid.appendChild(criarCard('🔄 Recorrentes',
+        recorrentes.length + ' fornecedores',
+        fmtBRL(valRec) + ' (' + (valRec/total*100).toFixed(1) + '% do volume)', 'card-green'));
+      grid.appendChild(criarCard('🆕 Novos em 2026',
+        novos25to26.length + ' fornecedores',
+        fmtBRL(valNov) + ' (' + (valNov/total*100).toFixed(1) + '% do volume)', 'card-c'));
+      grid.appendChild(criarCard('🚪 Saíram em 2026',
+        saidos.length + ' fornecedores',
+        fmtBRL(valSaiu) + ' (' + (valSaiu/total*100).toFixed(1) + '% do volume)', 'card-d'));
+
+      // Tabela fidelidade
+      var tbody = document.getElementById('hist-fidelidade-body'); tbody.innerHTML='';
+      var todos = recorrentes.concat(novos25to26).concat(saidos);
+      todos.sort(function(a,b){ return (b.pago2025+b.pago2026)-(a.pago2025+a.pago2026); });
+      todos.forEach(function(f,i){
+        var sit = f.somente2026 ? '<span class="badge new">Novo 2026</span>'
+                : f.somente2025 ? '<span class="badge gone">Saiu</span>'
+                : '<span class="badge green">Recorrente</span>';
+        var tr = document.createElement('tr');
+        tr.innerHTML=
+          '<td><strong>'+(i+1)+'</strong></td>'+
+          '<td title="'+esc(f.nome)+'"><span class="cell-trunc">'+esc(f.nome)+'</span></td>'+
+          '<td class="num">'+fmtBRL(f.pago2025)+'</td>'+
+          '<td class="num">'+fmtBRL(f.pago2026)+'</td>'+
+          '<td class="num">'+sit+'</td>';
+        tbody.appendChild(tr);
+      });
+    }
+
+    function toggleFidelidadeTable() {
+      fidelidadeTableAberta = !fidelidadeTableAberta;
+      var wrap = document.getElementById('hist-fidelidade-table-wrap');
+      wrap.style.display = fidelidadeTableAberta ? 'block' : 'none';
+    }
+
+    // 4. PARETO
+    function renderPareto(data) {
+      var fornec = (data.fornecedores||[]).slice()
+        .sort(function(a,b){ return b.pago2025-a.pago2025; });
+      var total25 = data.totalPago2025 || 1;
+      var total26 = data.totalPago2026 || 1;
+
+      var cum25=0, cum26=0, pareto80_25=0, pareto80_26=0, pareto80_26_count=0;
+      var tbody = document.getElementById('hist-pareto-body'); tbody.innerHTML='';
+      var sorted26 = (data.fornecedores||[]).slice().sort(function(a,b){ return b.pago2026-a.pago2026; });
+
+      fornec.slice(0,50).forEach(function(f,i){
+        cum25 += f.pago2025;
+        var pct25 = cum25/total25*100;
+        if (pct25 <= 80) pareto80_25++;
+        var tr = document.createElement('tr');
+        var over80 = pct25 > 80 && (cum25-f.pago2025)/total25*100 <= 80;
+        tr.style.borderTop = over80 ? '2px solid #27ae60' : '';
+        tr.innerHTML=
+          '<td><strong>'+(i+1)+'</strong></td>'+
+          '<td title="'+esc(f.nome)+'"><span class="cell-trunc">'+esc(f.nome)+'</span></td>'+
+          '<td class="num">'+fmtBRL(f.pago2025)+'</td>'+
+          '<td class="num"><span class="badge '+(pct25<=80?'green':'low')+'">'+pct25.toFixed(1)+'%</span></td>'+
+          '<td class="num">'+fmtBRL(f.pago2026)+'</td>'+
+          '<td class="num">—</td>';
+        tbody.appendChild(tr);
+      });
+
+      // Recalc 26
+      var cum26b=0;
+      sorted26.forEach(function(f){ cum26b+=f.pago2026; if(cum26b/total26<=0.8) pareto80_26_count++; });
+
+      var kpis = document.getElementById('hist-pareto-kpis'); kpis.innerHTML='';
+      kpis.appendChild(criarCard('Fornec. = 80% gasto 2025', (pareto80_25+1)+' de '+fornec.length, 'concentração dos pagamentos 2025','card-green'));
+      kpis.appendChild(criarCard('Fornec. = 80% gasto 2026', (pareto80_26_count+1)+' de '+sorted26.length, 'concentração dos pagamentos 2026','card-yellow'));
+      kpis.appendChild(criarCard('Total fornecedores', fornec.length, '2025 + 2026 combinados',''));
+    }
+
+    // 5. ALERTAS
+    function renderAlertas(data) {
+      var fornec = data.fornecedores || [];
+      var container = document.getElementById('hist-alertas-container');
+      container.innerHTML='';
+
+      // Crescimento > 200%
+      var explosivos = fornec.filter(function(f){ return f.crescimento !== null && f.crescimento > 200 && f.pago2026 > 50000; })
+        .sort(function(a,b){ return b.crescimento-a.crescimento; });
+      // Novos com valor alto
+      var novosAltos = fornec.filter(function(f){ return f.somente2026 && f.pago2026 > 100000; })
+        .sort(function(a,b){ return b.pago2026-a.pago2026; });
+      // Quedas totais (saíram mas eram relevantes)
+      var sairamAltos = fornec.filter(function(f){ return f.somente2025 && f.pago2025 > 100000; })
+        .sort(function(a,b){ return b.pago2025-a.pago2025; });
+
+      function mkAlertBlock(icon, title, color, items, renderRow) {
+        var wrap = document.createElement('div');
+        wrap.style.cssText='background:#fff;border-radius:10px;padding:18px;box-shadow:0 2px 8px rgba(54,120,134,.10);margin-bottom:16px;border-left:4px solid '+color+';';
+        var h = document.createElement('p');
+        h.style.cssText='font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:'+color+';margin-bottom:10px;';
+        h.textContent = icon + ' ' + title + ' (' + items.length + ')';
+        wrap.appendChild(h);
+        if (!items.length) {
+          var none = document.createElement('p');
+          none.style.cssText='font-size:.82rem;color:#639aa5;';
+          none.textContent='Nenhum item identificado.';
+          wrap.appendChild(none);
+        } else {
+          var tbl = document.createElement('table');
+          tbl.style.width='100%'; tbl.style.borderCollapse='collapse'; tbl.style.fontSize='.82rem';
+          items.slice(0,10).forEach(function(f,i){ tbl.appendChild(renderRow(f,i)); });
+          wrap.appendChild(tbl);
+        }
+        return wrap;
+      }
+
+      function trStyle(cells) {
+        var tr=document.createElement('tr'); tr.style.borderBottom='1px solid #e9f7f8';
+        cells.forEach(function(c){ tr.appendChild(c); }); return tr;
+      }
+      function td(txt,align,bold,color){
+        var el=document.createElement('td'); el.style.padding='6px 8px'; el.style.textAlign=align||'left';
+        if(bold) el.style.fontWeight='700'; if(color) el.style.color=color;
+        el.textContent=txt; return el;
+      }
+
+      container.appendChild(mkAlertBlock('🚀','Crescimento Explosivo > 200% (min R$50k)','#e67e22', explosivos, function(f){
+        return trStyle([td(f.nome.slice(0,40),'left'), td(fmtBRL(f.pago2025),'right'), td('→','center'), td(fmtBRL(f.pago2026),'right'), td('+'+f.crescimento.toFixed(0)+'%','right',true,'#e67e22')]);
+      }));
+
+      container.appendChild(mkAlertBlock('🆕','Novos Fornecedores com Alto Valor (> R$100k)','#2980b9', novosAltos, function(f){
+        return trStyle([td(f.nome.slice(0,40),'left'), td(fmtBRL(f.pago2026),'right',true,'#2980b9'), td('Novo em 2026','right')]);
+      }));
+
+      container.appendChild(mkAlertBlock('🚪','Saíram com Alto Valor (> R$100k)','#8e44ad', sairamAltos, function(f){
+        return trStyle([td(f.nome.slice(0,40),'left'), td(fmtBRL(f.pago2025),'right',true,'#8e44ad'), td('Não pagou em 2026','right')]);
+      }));
     }
 
     // ── EXPAND ROWS ──────────────────────────────────────────────
