@@ -454,26 +454,31 @@
             <!-- FORNECEDORES: PAGO NM e PAGO por ano -->
             <section class="tables-section">
               <p class="section-title">Fornecedores — Pago NM e Pago AM — 2025 vs 2026</p>
-              <div class="table-wrapper">
-                <div class="table-filters">
-                  <input type="text" id="hist-busca-fornec" placeholder="Buscar fornecedor..." oninput="renderHistFornec()" />
-                  <select id="hist-filtro-ano" onchange="renderHistFornec()">
-                    <option value="">Todos os anos</option>
-                    <option value="ambos">Presentes nos 2 anos</option>
-                    <option value="2025">Somente 2025</option>
-                    <option value="2026">Somente 2026</option>
-                  </select>
+              <div id="hist-fornec-table-wrap" style="display:none;">
+                <div class="table-wrapper">
+                  <div class="table-filters">
+                    <input type="text" id="hist-busca-fornec" placeholder="Buscar fornecedor..." oninput="renderHistFornec()" />
+                    <select id="hist-filtro-ano" onchange="renderHistFornec()">
+                      <option value="">Todos os anos</option>
+                      <option value="ambos">Presentes nos 2 anos</option>
+                      <option value="2025">Somente 2025</option>
+                      <option value="2026">Somente 2026</option>
+                    </select>
+                  </div>
+                  <table>
+                    <thead><tr>
+                      <th style="width:32px">#</th>
+                      <th>Fornecedor</th>
+                      <th class="num sortable" id="hth-pam25" onclick="setSortHistFornec('pago2025')">Pago 2025 <i class="sort-icon"></i></th>
+                      <th class="num sortable" id="hth-pam26" onclick="setSortHistFornec('pago2026')">Pago 2026 <i class="sort-icon"></i></th>
+                      <th class="num sortable" id="hth-cresc" onclick="setSortHistFornec('crescimento')">Crescimento <i class="sort-icon"></i></th>
+                    </tr></thead>
+                    <tbody id="hist-fornec-body"></tbody>
+                  </table>
                 </div>
-                <table>
-                  <thead><tr>
-                    <th style="width:32px">#</th>
-                    <th>Fornecedor</th>
-                    <th class="num sortable" id="hth-pam25" onclick="setSortHistFornec('pago2025')">Pago 2025 <i class="sort-icon"></i></th>
-                    <th class="num sortable" id="hth-pam26" onclick="setSortHistFornec('pago2026')">Pago 2026 <i class="sort-icon"></i></th>
-                    <th class="num sortable" id="hth-cresc" onclick="setSortHistFornec('crescimento')">Crescimento <i class="sort-icon"></i></th>
-                  </tr></thead>
-                  <tbody id="hist-fornec-body"></tbody>
-                </table>
+              </div>
+              <div style="text-align:center;margin-top:10px;">
+                <button class="btn-toggle" id="btn-fornec-toggle" onclick="toggleFornecTable()">▼ Ver detalhe por fornecedor</button>
               </div>
             </section>
 
@@ -541,18 +546,23 @@
                 </select>
               </div>
               <div class="kpi-grid" id="hist-pareto-kpis"></div>
-              <div class="table-wrapper">
-                <table>
-                  <thead><tr>
-                    <th style="width:32px">#</th>
-                    <th>Fornecedor</th>
-                    <th class="num">Pago 2025</th>
-                    <th class="num">% Acum. 2025</th>
-                    <th class="num">Pago 2026</th>
-                    <th class="num">% Acum. 2026</th>
-                  </tr></thead>
-                  <tbody id="hist-pareto-body"></tbody>
-                </table>
+              <div id="hist-pareto-table-wrap" style="display:none;">
+                <div class="table-wrapper">
+                  <table>
+                    <thead><tr>
+                      <th style="width:32px">#</th>
+                      <th>Fornecedor</th>
+                      <th class="num">Pago 2025</th>
+                      <th class="num">% Acum. 2025</th>
+                      <th class="num">Pago 2026</th>
+                      <th class="num">% Acum. 2026</th>
+                    </tr></thead>
+                    <tbody id="hist-pareto-body"></tbody>
+                  </table>
+                </div>
+              </div>
+              <div style="text-align:center;margin-top:10px;">
+                <button class="btn-toggle" id="btn-pareto-toggle" onclick="toggleParetoTable()">▼ Ver detalhe por fornecedor</button>
               </div>
             </section>
 
@@ -1264,19 +1274,45 @@
     // ── ANÁLISES AVANÇADAS ───────────────────────────────────────
     var chartSazon = null;
     var fidelidadeTableAberta = false;
+    var paretoTableAberta = false;
+    var fornecTableAberta = false;
 
     // 1. SAZONALIDADE
     function renderSazonalidade(mensal) {
       if (!mensal || !mensal.length) return;
-      var labels = mensal.map(function(m){ return m.mes; });
-      var v25    = mensal.map(function(m){ return m.pago2025||0; });
-      var v26    = mensal.map(function(m){ return m.pago2026||0; });
+
+      // Agrupar por nome do mês (jan, fev, ... dez) — lado a lado
+      var mesesNome = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+      var map25 = {}, map26 = {};
+      mensal.forEach(function(m) {
+        // m.mes = "jan./2025" ou "jan./2026"
+        var parts = m.mes.toLowerCase().replace(/\./g,'').split('/');
+        var nome = parts[0] ? parts[0].trim() : '';
+        var ano  = parts[1] ? parseInt(parts[1].trim(), 10) : 0;
+        if (!nome) return;
+        if (ano === 2025) map25[nome] = (map25[nome]||0) + (m.pago2025||0);
+        if (ano === 2026) map26[nome] = (map26[nome]||0) + (m.pago2026||0);
+      });
+
+      // Usar apenas meses que aparecem em pelo menos um dos anos
+      var labels = mesesNome.filter(function(n){ return map25[n]||map26[n]; });
+      var v25 = labels.map(function(n){ return map25[n]||0; });
+      var v26 = labels.map(function(n){ return map26[n]||0; });
+
+      // Cor por barra: vermelho se 2026 > 2025, senão azul-teal padrão
+      var cor26 = labels.map(function(n,i){
+        return v26[i] > v25[i] ? 'rgba(231,76,60,0.85)' : 'rgba(26,58,64,0.80)';
+      });
+      var bord26 = labels.map(function(n,i){
+        return v26[i] > v25[i] ? '#e74c3c' : '#1a3a40';
+      });
+
       if (chartSazon) chartSazon.destroy();
       chartSazon = new Chart(document.getElementById('chartSazonalidade').getContext('2d'),{
         type:'bar',
         data:{ labels:labels, datasets:[
           { label:'Pago 2025', data:v25, backgroundColor:'rgba(54,120,134,0.80)', borderColor:'#367886', borderWidth:1, borderRadius:4 },
-          { label:'Pago 2026', data:v26, backgroundColor:'rgba(26,58,64,0.80)',  borderColor:'#1a3a40', borderWidth:1, borderRadius:4 }
+          { label:'Pago 2026', data:v26, backgroundColor:cor26, borderColor:bord26, borderWidth:1, borderRadius:4 }
         ]},
         options:{
           responsive:true, interaction:{ mode:'index', intersect:false },
@@ -1285,7 +1321,7 @@
             tooltip:{ callbacks:{ label:function(c){ return ' '+c.dataset.label+': '+fmtBRL(c.parsed.y); }}}
           },
           scales:{
-            x:{ ticks:{ maxRotation:45, font:{size:11} }},
+            x:{ ticks:{ maxRotation:0, font:{size:11} }},
             y:{ ticks:{ font:{size:11}, callback:function(v){ return fmtBRL(v); }}}
           }
         }
@@ -1301,13 +1337,12 @@
         grid.innerHTML='<p style="color:#639aa5;font-size:.85rem;">Nenhum dado mensal de 2026 disponível.</p>';
         return;
       }
-      var totalExec = meses26.reduce(function(s,m){ return s+(m.pago2026||0); }, 0);
+      var qtdMeses    = Math.min(meses26.length, 12);
+      var totalExec   = meses26.reduce(function(s,m){ return s+(m.pago2026||0); }, 0);
       var mediaMensal = totalExec / qtdMeses;
       var projecao12  = mediaMensal * 12;
       var varVs2025   = data.totalPago2025 > 0 ? ((projecao12 - data.totalPago2025) / data.totalPago2025) * 100 : 0;
       var cardClass   = projecao12 < data.totalPago2025 ? 'card-green' : projecao12 < data.totalPago2025 * 1.1 ? 'card-yellow' : 'card-red';
-
-      var qtdMeses = Math.min(meses26.length, 12);
       grid.appendChild(criarCard('Meses executados 2026', qtdMeses + ' de 12 meses', null, ''));
       grid.appendChild(criarCard('Média mensal 2026', fmtBRL(mediaMensal), null, ''));
       grid.appendChild(criarCard('Projeção 12 meses 2026', fmtBRL(projecao12),
@@ -1374,6 +1409,22 @@
       var btn  = document.getElementById('btn-fidelidade-toggle');
       wrap.style.display = fidelidadeTableAberta ? 'block' : 'none';
       if (btn) btn.textContent = fidelidadeTableAberta ? '▲ Ocultar tabela' : '▼ Ver detalhe por fornecedor';
+    }
+
+    function toggleParetoTable() {
+      paretoTableAberta = !paretoTableAberta;
+      var wrap = document.getElementById('hist-pareto-table-wrap');
+      var btn  = document.getElementById('btn-pareto-toggle');
+      wrap.style.display = paretoTableAberta ? 'block' : 'none';
+      if (btn) btn.textContent = paretoTableAberta ? '▲ Ocultar tabela' : '▼ Ver detalhe por fornecedor';
+    }
+
+    function toggleFornecTable() {
+      fornecTableAberta = !fornecTableAberta;
+      var wrap = document.getElementById('hist-fornec-table-wrap');
+      var btn  = document.getElementById('btn-fornec-toggle');
+      wrap.style.display = fornecTableAberta ? 'block' : 'none';
+      if (btn) btn.textContent = fornecTableAberta ? '▲ Ocultar tabela' : '▼ Ver detalhe por fornecedor';
     }
 
     // 4. PARETO
