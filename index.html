@@ -185,15 +185,16 @@
     /* ── MENSAL EXPAND ROW ── */
     .expand-btn { background:none; border:none; cursor:pointer; font-size:.95rem; color:#367886; padding:2px 6px; border-radius:4px; transition:background .15s; }
     .expand-btn:hover { background:rgba(54,120,134,.15); }
-    tr.mensal-row td { padding:0; background:#f5fbfc; }
-    .mensal-grid { display:flex; flex-wrap:wrap; gap:6px; padding:10px 14px 12px; }
-    .mensal-chip { display:flex; flex-direction:column; align-items:center; min-width:72px; background:#fff; border:1px solid #b8dde3; border-radius:8px; padding:5px 8px; font-size:.75rem; }
-    .mensal-chip .chip-mes { font-weight:700; color:#1a3a40; margin-bottom:2px; text-transform:uppercase; letter-spacing:.03em; }
-    .mensal-chip .chip-v25 { color:#367886; }
-    .mensal-chip .chip-v26 { color:#1a3a40; }
-    .mensal-chip.destaque { border-color:#e74c3c; background:#fff5f5; }
-    .mensal-chip.destaque .chip-v26 { color:#c0392b; font-weight:700; }
-    .mensal-chip.sem-dado { opacity:.45; }
+    tr.mensal-row > td { padding:0 0 0 38px; background:#f0f9fb; border-bottom:2px solid #b8dde3; }
+    .mensal-inner { max-width:520px; padding:8px 0 10px; }
+    .mensal-inner table { width:100%; border-collapse:collapse; font-size:.8rem; }
+    .mensal-inner th { background:#d0edf2; color:#1a3a40; font-weight:700; padding:5px 10px; text-align:right; }
+    .mensal-inner th:first-child { text-align:left; }
+    .mensal-inner td { padding:4px 10px; text-align:right; color:#2a5060; border-bottom:1px solid #e0f0f4; }
+    .mensal-inner td:first-child { text-align:left; font-weight:600; color:#1a3a40; }
+    .mensal-inner tr.m-destaque td { background:#fff0f0; }
+    .mensal-inner tr.m-destaque td:last-child { color:#c0392b; font-weight:700; }
+    .mensal-inner tr.m-media td { background:#d0edf2; font-weight:700; color:#1a3a40; border-top:2px solid #90bcc3; }
 
     /* ── ANÁLISE HISTÓRICA ── */
     .hist-search-box { display:flex; align-items:center; gap:10px; padding:12px 0 18px; flex-wrap:wrap; }
@@ -1204,28 +1205,35 @@
         Object.keys(m26).forEach(function(k){ todosMeses[k]=true; });
         var mesesSorted = Object.keys(todosMeses).sort(function(a,b){ return parseMesAnoFront(a)-parseMesAnoFront(b); });
 
+        var inner = document.createElement('div');
+        inner.className = 'mensal-inner';
         if (!mesesSorted.length) {
-          td.innerHTML = '<p style="color:#639aa5;padding:10px 14px;font-size:.82rem;">Sem dados mensais disponíveis.</p>';
+          inner.innerHTML = '<p style="color:#639aa5;padding:6px 0;font-size:.82rem;">Sem dados mensais disponíveis.</p>';
         } else {
-          var grid = document.createElement('div');
-          grid.className = 'mensal-grid';
+          var tbl = '<table><thead><tr><th>Mês</th><th>Pago 2025</th><th>Pago 2026</th></tr></thead><tbody>';
+          var tot25 = 0, tot26 = 0;
           mesesSorted.forEach(function(mes) {
             var v25 = m25[mes]||0;
             var v26 = m26[mes]||0;
-            var destaque = v26 > 0 && v26 > v25;
-            var chip = document.createElement('div');
-            chip.className = 'mensal-chip' + (destaque ? ' destaque' : '') + (!v25&&!v26?' sem-dado':'');
-            // Mostrar só o nome curto do mês
-            var nomeMes = mes.replace(/\./g,'').split('/')[0];
-            var anoMes  = mes.replace(/\./g,'').split('/')[1]||'';
-            chip.innerHTML =
-              '<span class="chip-mes">'+nomeMes+(anoMes?' /'+anoMes.slice(2):'')+'</span>'+
-              '<span class="chip-v25" title="2025">'+( v25 ? fmtBRL(v25) : '—')+'</span>'+
-              '<span class="chip-v26" title="2026">'+( v26 ? fmtBRL(v26) : '—')+'</span>';
-            grid.appendChild(chip);
+            tot25 += v25; tot26 += v26;
+            // Vermelho apenas quando ambos têm valor e 2026 > 2025
+            var destaque = v25 > 0 && v26 > v25;
+            tbl += '<tr'+(destaque?' class="m-destaque"':'')+'>'+
+              '<td>'+esc(mes)+'</td>'+
+              '<td>'+(v25 ? fmtBRL(v25) : '—')+'</td>'+
+              '<td>'+(v26 ? fmtBRL(v26) : '—')+'</td>'+
+              '</tr>';
           });
-          td.appendChild(grid);
+          var cnt = mesesSorted.length || 1;
+          tbl += '<tr class="m-media">'+
+            '<td>Média mensal</td>'+
+            '<td>'+(tot25 ? fmtBRL(tot25/cnt) : '—')+'</td>'+
+            '<td>'+(tot26 ? fmtBRL(tot26/cnt) : '—')+'</td>'+
+            '</tr>';
+          tbl += '</tbody></table>';
+          inner.innerHTML = tbl;
         }
+        td.appendChild(inner);
         trMensal.appendChild(td);
 
         // Toggle expand ao clicar na linha ou botão
