@@ -23,7 +23,7 @@
 
     /* ── SIDEBAR ── */
     .sidebar {
-      width:220px; flex-shrink:0; background:#1a4a55;
+      width:220px; flex-shrink:0; background:#367886;
       display:flex; flex-direction:column;
       overflow-y:auto; overflow-x:hidden;
     }
@@ -1105,7 +1105,7 @@
         tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:#639aa5;padding:16px;">Nenhum fornecedor encontrado</td></tr>';
         return;
       }
-      fornec.slice(0,100).forEach(function(f,i){
+      fornec.slice(0,50).forEach(function(f,i){
         var cr = f.crescimento;
         var badge;
         if (f.somente2026) badge='<span class="badge new">Novo 2026</span>';
