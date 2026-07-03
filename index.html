@@ -190,7 +190,7 @@
     .hist-search-box button.sec { background:#fff; color:#367886; border:1px solid #367886; }
     .hist-search-box button.sec:hover { background:#e9ffff; }
 
-    .analise-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px; margin-bottom:28px; }
+    .analise-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-bottom:28px; }
     .analise-card { background:#fff; border-radius:10px; padding:18px 16px; box-shadow:0 2px 8px rgba(54,120,134,.10); border-left:4px solid #639aa5; }
     .analise-card h4 { font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#367886; margin-bottom:10px; }
     .analise-card .ac-item { display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid #e9f7f8; font-size:.82rem; gap:8px; }
@@ -1259,21 +1259,6 @@
                '<span class="ac-val pos">+'+fmtBRL(delta)+'</span>';
       }, '#2ecc71'));
 
-      container.appendChild(mkCard('📉 Maiores Quedas R$ (Top 5)', quedas, function(f){
-        var delta = f.pago2026 - f.pago2025;
-        return '<span class="ac-name" title="'+esc(f.nome)+'">'+esc(f.nome.slice(0,28))+'</span>'+
-               '<span class="ac-val neg">'+fmtBRL(delta)+'</span>';
-      }, '#e74c3c'));
-
-      container.appendChild(mkCard('🚀 Maior Crescimento % (Top 5)', maioresPct, function(f){
-        return '<span class="ac-name" title="'+esc(f.nome)+'">'+esc(f.nome.slice(0,28))+'</span>'+
-               '<span class="ac-val pos">+'+f.crescimento.toFixed(1)+'%</span>';
-      }, '#3498db'));
-
-      container.appendChild(mkCard('🔻 Maior Queda % (Top 5)', menoresPct, function(f){
-        return '<span class="ac-name" title="'+esc(f.nome)+'">'+esc(f.nome.slice(0,28))+'</span>'+
-               '<span class="ac-val neg">'+f.crescimento.toFixed(1)+'%</span>';
-      }, '#9b59b6'));
     }
 
     // ── ANÁLISES AVANÇADAS ───────────────────────────────────────
