@@ -183,18 +183,17 @@
     .badge.gone   { background:#f0d0ff; color:#3a006e; }
 
     /* ── MENSAL EXPAND ROW ── */
-    .expand-btn { background:none; border:none; cursor:pointer; font-size:.95rem; color:#367886; padding:2px 6px; border-radius:4px; transition:background .15s; }
+    .expand-btn { background:none; border:none; cursor:pointer; font-size:.9rem; color:#367886; padding:2px 5px; border-radius:4px; transition:background .15s; line-height:1; }
     .expand-btn:hover { background:rgba(54,120,134,.15); }
-    tr.mensal-row > td { padding:0 0 0 38px; background:#f0f9fb; border-bottom:2px solid #b8dde3; }
-    .mensal-inner { max-width:520px; padding:8px 0 10px; }
-    .mensal-inner table { width:100%; border-collapse:collapse; font-size:.8rem; }
-    .mensal-inner th { background:#d0edf2; color:#1a3a40; font-weight:700; padding:5px 10px; text-align:right; }
-    .mensal-inner th:first-child { text-align:left; }
-    .mensal-inner td { padding:4px 10px; text-align:right; color:#2a5060; border-bottom:1px solid #e0f0f4; }
-    .mensal-inner td:first-child { text-align:left; font-weight:600; color:#1a3a40; }
-    .mensal-inner tr.m-destaque td { background:#fff0f0; }
-    .mensal-inner tr.m-destaque td:last-child { color:#c0392b; font-weight:700; }
-    .mensal-inner tr.m-media td { background:#d0edf2; font-weight:700; color:#1a3a40; border-top:2px solid #90bcc3; }
+    tr.sub-mes td { background:#f5fbfc; padding:3px 10px; font-size:.82rem; color:#2a5060; border-bottom:1px solid #e8f5f8; }
+    tr.sub-mes td.mes-nome { padding-left:28px; color:#367886; font-style:italic; }
+    tr.sub-mes td.num { text-align:right; }
+    tr.sub-mes.destaque td { background:#fff5f5; }
+    tr.sub-mes.destaque td.val26 { color:#c0392b; font-weight:700; }
+    tr.sub-mes.destaque td.cresc-col { color:#c0392b; font-weight:700; }
+    tr.sub-media td { background:#d8eef2; font-weight:700; color:#1a3a40; font-size:.82rem; border-top:2px solid #90bcc3; border-bottom:2px solid #90bcc3; padding:4px 10px; }
+    tr.sub-media td.mes-nome { padding-left:28px; }
+    tr.sub-media td.num { text-align:right; }
 
     /* ── ANÁLISE HISTÓRICA ── */
     .hist-search-box { display:flex; align-items:center; gap:10px; padding:12px 0 18px; flex-wrap:wrap; }
@@ -1188,66 +1187,75 @@
           '<td class="num">'+fmtBRL(f.pago2026)+'</td>'+
           '<td class="num">'+badge+'</td>';
 
-        // Linha expansível com meses
-        var trMensal = document.createElement('tr');
-        trMensal.className = 'mensal-row';
-        trMensal.id = rowId;
-        trMensal.style.display = 'none';
-        var td = document.createElement('td');
-        td.colSpan = 6;
-
-        var mesesNome = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+        // Sub-linhas mensais alinhadas com colunas da tabela
         var m25 = f.mensal25 || {};
         var m26 = f.mensal26 || {};
-        // Unificar todos os meses presentes
         var todosMeses = {};
         Object.keys(m25).forEach(function(k){ todosMeses[k]=true; });
         Object.keys(m26).forEach(function(k){ todosMeses[k]=true; });
         var mesesSorted = Object.keys(todosMeses).sort(function(a,b){ return parseMesAnoFront(a)-parseMesAnoFront(b); });
 
-        var inner = document.createElement('div');
-        inner.className = 'mensal-inner';
+        var subRows = [];
+
         if (!mesesSorted.length) {
-          inner.innerHTML = '<p style="color:#639aa5;padding:6px 0;font-size:.82rem;">Sem dados mensais disponíveis.</p>';
+          var trVazio = document.createElement('tr');
+          trVazio.className = 'sub-mes';
+          trVazio.style.display = 'none';
+          trVazio.innerHTML = '<td></td><td></td><td class="mes-nome" colspan="4" style="color:#639aa5;">Sem dados mensais disponíveis.</td>';
+          subRows.push(trVazio);
         } else {
-          var tbl = '<table><thead><tr><th>Mês</th><th>Pago 2025</th><th>Pago 2026</th></tr></thead><tbody>';
-          var tot25 = 0, tot26 = 0;
+          var tot25 = 0, tot26 = 0, cnt = 0;
           mesesSorted.forEach(function(mes) {
             var v25 = m25[mes]||0;
             var v26 = m26[mes]||0;
-            tot25 += v25; tot26 += v26;
-            // Vermelho apenas quando ambos têm valor e 2026 > 2025
+            tot25 += v25; tot26 += v26; cnt++;
             var destaque = v25 > 0 && v26 > v25;
-            tbl += '<tr'+(destaque?' class="m-destaque"':'')+'>'+
-              '<td>'+esc(mes)+'</td>'+
-              '<td>'+(v25 ? fmtBRL(v25) : '—')+'</td>'+
-              '<td>'+(v26 ? fmtBRL(v26) : '—')+'</td>'+
-              '</tr>';
+            var crescMes = v25 > 0 && v26 > 0 ? ((v26-v25)/v25*100) : null;
+            var crescStr = crescMes !== null
+              ? (crescMes >= 0 ? '+' : '') + crescMes.toFixed(1) + '%'
+              : '—';
+            var trM = document.createElement('tr');
+            trM.className = 'sub-mes' + (destaque ? ' destaque' : '');
+            trM.style.display = 'none';
+            trM.innerHTML =
+              '<td></td>'+
+              '<td></td>'+
+              '<td class="mes-nome">'+esc(mes)+'</td>'+
+              '<td class="num">'+(v25 ? fmtBRL(v25) : '—')+'</td>'+
+              '<td class="num val26">'+(v26 ? fmtBRL(v26) : '—')+'</td>'+
+              '<td class="num cresc-col">'+crescStr+'</td>';
+            subRows.push(trM);
           });
-          var cnt = mesesSorted.length || 1;
-          tbl += '<tr class="m-media">'+
-            '<td>Média mensal</td>'+
-            '<td>'+(tot25 ? fmtBRL(tot25/cnt) : '—')+'</td>'+
-            '<td>'+(tot26 ? fmtBRL(tot26/cnt) : '—')+'</td>'+
-            '</tr>';
-          tbl += '</tbody></table>';
-          inner.innerHTML = tbl;
-        }
-        td.appendChild(inner);
-        trMensal.appendChild(td);
 
-        // Toggle expand ao clicar na linha ou botão
-        (function(idx, mainRow, subRow) {
+          // Linha de média mensal
+          var cntSafe = cnt || 1;
+          var trMedia = document.createElement('tr');
+          trMedia.className = 'sub-media';
+          trMedia.style.display = 'none';
+          var crescMedia = tot25 > 0 ? ((tot26/cntSafe - tot25/cntSafe)/(tot25/cntSafe)*100) : null;
+          var crescMediaStr = crescMedia !== null ? (crescMedia >= 0?'+':'')+crescMedia.toFixed(1)+'%' : '—';
+          trMedia.innerHTML =
+            '<td></td>'+
+            '<td></td>'+
+            '<td class="mes-nome">Média mensal</td>'+
+            '<td class="num">'+(tot25 ? fmtBRL(tot25/cntSafe) : '—')+'</td>'+
+            '<td class="num">'+(tot26 ? fmtBRL(tot26/cntSafe) : '—')+'</td>'+
+            '<td class="num">'+crescMediaStr+'</td>';
+          subRows.push(trMedia);
+        }
+
+        // Toggle expand
+        (function(idx, mainRow, rows) {
           mainRow.addEventListener('click', function() {
-            var open = subRow.style.display !== 'none';
-            subRow.style.display = open ? 'none' : 'table-row';
+            var open = rows[0].style.display !== 'none';
+            rows.forEach(function(r){ r.style.display = open ? 'none' : 'table-row'; });
             var btn = document.getElementById('ebtn-'+idx);
             if (btn) btn.textContent = open ? '▶' : '▼';
           });
-        })(i, tr, trMensal);
+        })(i, tr, subRows);
 
         tbody.appendChild(tr);
-        tbody.appendChild(trMensal);
+        subRows.forEach(function(r){ tbody.appendChild(r); });
       });
     }
 
