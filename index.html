@@ -1488,7 +1488,7 @@
       var busca   = ((document.getElementById('fid-busca')||{}).value||'').toLowerCase();
       var sitFilt = ((document.getElementById('fid-situacao')||{}).value||'');
 
-      var todos = recorrentes.concat(novos25to26).concat(saidos);
+      var todos = recLista.concat(novLista).concat(saiuLista);
       todos.sort(function(a,b){ return (b.pago2025+b.pago2026)-(a.pago2025+a.pago2026); });
 
       if (busca)   todos = todos.filter(function(f){ return (f.nome||'').toLowerCase().indexOf(busca)>=0; });
