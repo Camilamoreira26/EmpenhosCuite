@@ -1187,28 +1187,43 @@
           '<td class="num">'+fmtBRL(f.pago2026)+'</td>'+
           '<td class="num">'+badge+'</td>';
 
-        // Sub-linhas mensais alinhadas com colunas da tabela
-        var m25 = f.mensal25 || {};
-        var m26 = f.mensal26 || {};
-        var todosMeses = {};
-        Object.keys(m25).forEach(function(k){ todosMeses[k]=true; });
-        Object.keys(m26).forEach(function(k){ todosMeses[k]=true; });
-        var mesesSorted = Object.keys(todosMeses).sort(function(a,b){ return parseMesAnoFront(a)-parseMesAnoFront(b); });
+        // Sub-linhas mensais: uma linha por mês (jan–dez), valores 2025 e 2026 lado a lado
+        var m25raw = f.mensal25 || {};
+        var m26raw = f.mensal26 || {};
+
+        // Montar lookup: "jan" → soma de todos os registros desse mês em 2025/2026
+        var MESES_ORDEM = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+        var MESES_FULL  = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+        var lookup25 = {}, lookup26 = {};
+        MESES_ORDEM.forEach(function(nm){ lookup25[nm]=0; lookup26[nm]=0; });
+
+        // Chaves de m25raw são "jan./2025", "fev./2025" etc.
+        Object.keys(m25raw).forEach(function(k){
+          var nm = k.toLowerCase().replace(/\./g,'').split('/')[0];
+          if (lookup25[nm] !== undefined) lookup25[nm] += m25raw[k]||0;
+        });
+        Object.keys(m26raw).forEach(function(k){
+          var nm = k.toLowerCase().replace(/\./g,'').split('/')[0];
+          if (lookup26[nm] !== undefined) lookup26[nm] += m26raw[k]||0;
+        });
+
+        // Só incluir meses que têm pelo menos um valor
+        var mesesAtivos = MESES_ORDEM.filter(function(nm){ return lookup25[nm]||lookup26[nm]; });
 
         var subRows = [];
 
-        if (!mesesSorted.length) {
+        if (!mesesAtivos.length) {
           var trVazio = document.createElement('tr');
           trVazio.className = 'sub-mes';
           trVazio.style.display = 'none';
           trVazio.innerHTML = '<td></td><td></td><td class="mes-nome" colspan="4" style="color:#639aa5;">Sem dados mensais disponíveis.</td>';
           subRows.push(trVazio);
         } else {
-          var tot25 = 0, tot26 = 0, cnt = 0;
-          mesesSorted.forEach(function(mes) {
-            var v25 = m25[mes]||0;
-            var v26 = m26[mes]||0;
-            tot25 += v25; tot26 += v26; cnt++;
+          var tot25 = 0, tot26 = 0, cntM = 0;
+          mesesAtivos.forEach(function(nm, idx) {
+            var v25 = lookup25[nm];
+            var v26 = lookup26[nm];
+            tot25 += v25; tot26 += v26; cntM++;
             var destaque = v25 > 0 && v26 > v25;
             var crescMes = v25 > 0 && v26 > 0 ? ((v26-v25)/v25*100) : null;
             var crescStr = crescMes !== null
@@ -1220,7 +1235,7 @@
             trM.innerHTML =
               '<td></td>'+
               '<td></td>'+
-              '<td class="mes-nome">'+esc(mes)+'</td>'+
+              '<td class="mes-nome">'+MESES_FULL[MESES_ORDEM.indexOf(nm)]+'</td>'+
               '<td class="num">'+(v25 ? fmtBRL(v25) : '—')+'</td>'+
               '<td class="num val26">'+(v26 ? fmtBRL(v26) : '—')+'</td>'+
               '<td class="num cresc-col">'+crescStr+'</td>';
@@ -1228,7 +1243,7 @@
           });
 
           // Linha de média mensal
-          var cntSafe = cnt || 1;
+          var cntSafe = cntM || 1;
           var trMedia = document.createElement('tr');
           trMedia.className = 'sub-media';
           trMedia.style.display = 'none';
