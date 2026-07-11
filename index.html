@@ -283,7 +283,7 @@
           <span>🏥</span> Saúde <span class="sh-arrow">▾</span>
         </div>
         <div class="sidebar-subs hidden" id="subs-saude">
-          <button class="sidebar-sub active">🏥 Em breve</button>
+          <button class="sidebar-sub active">🏥 Produção Ambulatorial</button>
         </div>
       </div>
 
@@ -1792,9 +1792,10 @@
 
       var grid = document.getElementById('saude-kpi-grid'); grid.innerHTML='';
       grid.appendChild(criarCard('Total Procedimentos 2025', totalProc25.toLocaleString('pt-BR'), '12 meses completos', 'highlight'));
-      grid.appendChild(criarCard('Valor Aprovado 2025', fmtBRL(totalVl25), 'total produção ambulatorial', 'highlight'));
+      var mediaVl25 = totalVl25 / 12;
+      grid.appendChild(criarCard('Valor Apresentado 2025', fmtBRL(totalVl25), 'total produção ambulatorial', 'highlight'));
       grid.appendChild(criarCard('Média Mensal 2025', mediaProc25.toLocaleString('pt-BR'), 'procedimentos/mês', ''));
-      grid.appendChild(criarCard('Jan/2026', totalProc26.toLocaleString('pt-BR'), 'procedimentos produzidos', 'card-c'));
+      grid.appendChild(criarCard('Média de Valor Apresentado', fmtBRL(mediaVl25), 'média mensal 2025', 'card-c'));
     }
 
     function renderSaudeGrafico() {
