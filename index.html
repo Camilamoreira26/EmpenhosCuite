@@ -3,1675 +3,1862 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Prefeitura Municipal de Cuité</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <title>Emendas Impositivas – Painel</title>
+
+  <!--
+    FONTE ALEXANDRIA
+    Descomente e ajuste o caminho se tiver os arquivos locais:
+
+    @font-face {
+      font-family: 'Alexandria';
+      src: url('fonts/Alexandria-Bold.woff2') format('woff2');
+      font-weight: 700; font-style: normal; font-display: optional;
+    }
+    @font-face {
+      font-family: 'Alexandria';
+      src: url('fonts/Alexandria-Light.woff2') format('woff2');
+      font-weight: 300; font-style: normal; font-display: optional;
+    }
+  -->
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+
   <style>
+    /* ── TOKENS ─────────────────────────────────────────────── */
+    :root {
+      --red:      #C10e1a;
+      --red-dark: #8b0a13;
+      --green:    #86b452;
+      --orange:   #dd961b;
+      --danger:   #ce5f61;
+      --dark:     #1c2629;
+      --beige:    #f1d6bb;
+      --blue:     #2f4792;
+
+      --surface:  #ffffff;
+      --bg:       #f4f5f7;
+      --border:   #e2e5ea;
+      --text:     #1c2629;
+      --muted:    #6b7280;
+
+      --font: "Alexandria", system-ui, -apple-system, "Segoe UI", sans-serif;
+      --radius-sm: 6px;
+      --radius:    10px;
+      --radius-lg: 16px;
+      --shadow-sm: 0 1px 4px rgba(0,0,0,.08);
+      --shadow:    0 2px 12px rgba(0,0,0,.10);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,.14);
+      --header-h:  64px;
+      --ease:      cubic-bezier(.4,0,.2,1);
+    }
+
+    /* ── RESET ───────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: "Roboto","Helvetica","Arial",sans-serif; background:#e9ffff; color:#1a3a40; min-height:100vh; display:flex; flex-direction:column; }
-
-    /* ── HEADER ── */
-    header {
-      background:#367886; color:#fff; padding:14px 24px;
-      display:flex; align-items:center; justify-content:space-between;
-      box-shadow:0 2px 6px rgba(0,0,0,0.22); flex-shrink:0; z-index:10;
-    }
-    header h1 { font-size:1.25rem; font-weight:700; letter-spacing:.02em; }
-    header span.subtitle { font-size:.82rem; opacity:.85; }
-
-    /* ── LAYOUT: sidebar + content ── */
-    .app-layout { display:flex; flex:1; overflow:hidden; }
-
-    /* ── SIDEBAR ── */
-    .sidebar {
-      width:220px; flex-shrink:0; background:#bcdde1;
-      display:flex; flex-direction:column;
-      overflow-y:auto; overflow-x:hidden;
-      box-shadow:2px 0 8px rgba(26,58,64,.12);
-    }
-    .sidebar-group { border-bottom:1px solid rgba(54,120,134,.15); }
-    .sidebar-header {
-      display:flex; align-items:center; gap:10px;
-      padding:14px 18px; cursor:pointer;
-      color:#1a3a40; font-size:.88rem; font-weight:700;
-      text-transform:uppercase; letter-spacing:.06em;
-      transition:background .18s, color .18s;
-      user-select:none;
-    }
-    .sidebar-header:hover { background:rgba(54,120,134,.12); color:#1a3a40; }
-    .sidebar-header.active { color:#1a3a40; background:rgba(54,120,134,.18); border-left:3px solid #367886; }
-    .sidebar-header .sh-arrow { margin-left:auto; font-size:.65rem; opacity:.5; transition:transform .2s; color:#367886; }
-    .sidebar-header.active .sh-arrow { transform:rotate(180deg); opacity:1; }
-    .sidebar-subs { overflow:hidden; }
-    .sidebar-subs.hidden { display:none; }
-    .sidebar-sub {
-      display:flex; align-items:center; gap:9px;
-      width:100%; padding:10px 18px 10px 36px;
-      background:none; border:none; cursor:pointer;
-      color:#367886; font-size:.82rem; font-weight:500;
-      text-align:left; transition:background .15s, color .15s;
-      border-left:3px solid transparent;
-    }
-    .sidebar-sub:hover { background:rgba(54,120,134,.12); color:#1a3a40; }
-    .sidebar-sub.active { color:#1a3a40; font-weight:700; background:rgba(54,120,134,.16); border-left-color:#367886; }
-
-    /* ── CONTENT AREA ── */
-    .content-area { flex:1; overflow-y:auto; display:flex; flex-direction:column; }
-    .tab-content { display:none; flex:1; }
-    .tab-content.active { display:block; }
-
-    /* ── FILTRO ── */
-    .filter-bar {
-      background:#90bcc3; padding:10px 24px;
-      display:flex; align-items:center; gap:14px; flex-wrap:wrap; flex-shrink:0;
-    }
-    .filter-bar label { font-size:.82rem; font-weight:600; color:#1a3a40; }
-    .filter-bar select { padding:5px 10px; border-radius:6px; border:1px solid #367886; background:#fff; color:#1a3a40; font-size:.82rem; cursor:pointer; }
-    .filter-bar button { padding:5px 16px; border-radius:6px; border:none; background:#367886; color:#fff; font-size:.82rem; font-weight:600; cursor:pointer; transition:background .15s; }
-    .filter-bar button:hover { background:#2a5f6e; }
-    .filter-bar button.reset { background:#fff; color:#367886; border:1px solid #367886; }
-    .filter-bar button.reset:hover { background:#e9ffff; }
-
-    /* ── LOADING ── */
-    .loading-box { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:50vh; color:#367886; font-size:1.1rem; gap:16px; }
-    .spinner { width:40px; height:40px; border:4px solid #bcdde1; border-top-color:#367886; border-radius:50%; animation:spin .8s linear infinite; }
-    @keyframes spin { to { transform:rotate(360deg); } }
-
-    /* ── MAIN INNER ── */
-    main { padding:24px 28px; max-width:1400px; margin:0 auto; width:100%; }
-
-    /* ── SECTION TITLE ── */
-    .section-title {
-      font-size:.95rem; font-weight:700; color:#367886; text-transform:uppercase;
-      letter-spacing:.06em; margin-bottom:14px; padding-bottom:6px;
-      border-bottom:2px solid #90bcc3;
-      display:flex; align-items:center; justify-content:space-between;
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 300;
+      color: var(--text);
+      background: var(--bg);
+      min-height: 100dvh;
     }
 
-    /* ── KPI CARDS ── */
-    .kpi-grid { display:flex; flex-wrap:wrap; gap:14px; margin-bottom:32px; }
+    /* ── HEADER ──────────────────────────────────────────────── */
+    #app-header {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      height: var(--header-h);
+      background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      box-shadow: 0 2px 16px rgba(193,14,26,.35);
+    }
+
+    .header-brand { display: flex; flex-direction: column; gap: 2px; }
+
+    .header-brand h1 {
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: #fff;
+      letter-spacing: .3px;
+    }
+
+    .header-brand p {
+      font-size: .72rem;
+      color: rgba(255,255,255,.75);
+      font-weight: 300;
+    }
+
+    #last-update {
+      font-size: .7rem;
+      color: rgba(255,255,255,.7);
+      white-space: nowrap;
+      padding: 4px 10px;
+      background: rgba(255,255,255,.12);
+      border-radius: 20px;
+    }
+
+    /* ── MAIN ────────────────────────────────────────────────── */
+    main {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 28px 24px 56px;
+    }
+
+    /* ── SEÇÕES ──────────────────────────────────────────────── */
+    .section { margin-bottom: 40px; }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--red);
+      cursor: default;
+    }
+
+    /* Seções colapsáveis: header clicável */
+    .section-header.collapsible {
+      cursor: pointer;
+      user-select: none;
+      margin-bottom: 0;
+    }
+
+    .section-header.collapsible:hover h2 { color: var(--red); }
+
+    .section-header h2 {
+      font-weight: 700;
+      font-size: .95rem;
+      color: var(--dark);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      flex: 1;
+      transition: color .15s;
+    }
+
+    .section-badge {
+      font-size: .65rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: var(--red);
+      color: #fff;
+      letter-spacing: .4px;
+    }
+
+    /* Botão toggle das seções colapsáveis */
+    .toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: var(--red);
+      color: #fff;
+      font-size: .8rem;
+      font-weight: 700;
+      line-height: 1;
+      flex-shrink: 0;
+      transition: transform .25s var(--ease), background .15s;
+    }
+
+    .section-header.collapsible.open .toggle-btn {
+      transform: rotate(180deg);
+    }
+
+    .section-body {
+      overflow: hidden;
+      transition: max-height .35s var(--ease), opacity .3s var(--ease);
+      max-height: 4000px;
+      opacity: 1;
+      margin-top: 18px;
+    }
+
+    .section-body.collapsed {
+      max-height: 0;
+      opacity: 0;
+      margin-top: 0;
+    }
+
+    /* ── LOADING OVERLAY ─────────────────────────────────────── */
+    #loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(28,38,41,.85);
+      backdrop-filter: blur(4px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      z-index: 9999;
+      transition: opacity .3s var(--ease);
+    }
+
+    #loading-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .spinner {
+      width: 44px; height: 44px;
+      border: 3px solid rgba(255,255,255,.2);
+      border-top-color: var(--red);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-text { color: rgba(255,255,255,.8); font-size: .85rem; }
+
+    /* ── ERRO ────────────────────────────────────────────────── */
+    #error-banner {
+      display: none;
+      align-items: flex-start;
+      gap: 12px;
+      background: #fff3f3;
+      border: 1px solid #fca5a5;
+      border-left: 4px solid var(--red);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin-bottom: 24px;
+      font-size: .82rem;
+      color: var(--red);
+    }
+
+    #error-banner.visible { display: flex; }
+
+    /* ── KPI CARDS ───────────────────────────────────────────── */
+    #kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+
     .kpi-card {
-      background:#bcdde1; border-radius:10px; padding:16px 20px;
-      flex:1 1 190px; min-width:170px; max-width:280px;
-      box-shadow:0 2px 6px rgba(54,120,134,.10);
-      display:flex; flex-direction:column; gap:5px;
-      transition:transform .2s, box-shadow .2s; cursor:default;
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 28px 24px 22px;
+      box-shadow: var(--shadow);
+      border-top: 5px solid var(--red);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: transform .2s var(--ease), box-shadow .2s var(--ease);
+      cursor: default;
+      min-height: 160px;
     }
-    .kpi-card:hover { transform:translateY(-4px); box-shadow:0 8px 20px rgba(54,120,134,.22); }
-    .kpi-card.highlight { background:#367886; }
-    .kpi-card.highlight .kpi-label { color:#bcdde1; }
-    .kpi-card.highlight .kpi-value { color:#fff; }
-    .kpi-card.highlight .kpi-sub   { color:#bcdde1; }
-    .kpi-card.alert-card { background:#90bcc3; }
-    .kpi-card.card-c { background:#c8e8ec; border-left:4px solid #367886; }
-    .kpi-card.card-d { background:#d4edf0; border-left:4px solid #639aa5; }
-    .kpi-card.card-e { background:#bddde1; border-left:4px solid #1a5f6e; }
-    .kpi-card.card-f { background:#a8d4d9; border-left:4px solid #1a3a40; }
-    .kpi-card.card-green  { background:#c8f0d8; border-left:4px solid #27ae60; }
-    .kpi-card.card-yellow { background:#fff3cd; border-left:4px solid #f0ad00; }
-    .kpi-card.card-red    { background:#ffe0e0; border-left:4px solid #c0392b; }
-    .kpi-label { font-size:.72rem; font-weight:600; text-transform:uppercase; letter-spacing:.07em; color:#367886; }
-    .kpi-value { font-size:1.3rem; font-weight:700; color:#1a3a40; line-height:1.2; }
-    .kpi-sub   { font-size:.76rem; color:#4a7a85; margin-top:2px; }
 
-    /* ── BTN TOGGLE ── */
-    .btn-toggle { background:none; border:1px solid #639aa5; border-radius:6px; color:#367886; font-size:.75rem; font-weight:600; padding:3px 12px; cursor:pointer; transition:background .15s; white-space:nowrap; }
-    .btn-toggle:hover { background:#bcdde1; }
-
-    /* ── CHARTS ── */
-    .charts-section { margin-bottom:36px; }
-    .charts-row { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:18px; }
-    @media (max-width:900px) { .charts-row { grid-template-columns:1fr; } }
-    .chart-box { background:#fff; border-radius:10px; padding:18px 16px; box-shadow:0 2px 8px rgba(54,120,134,.10); }
-    .chart-box h3 { font-size:.8rem; font-weight:700; color:#367886; text-transform:uppercase; letter-spacing:.06em; margin-bottom:12px; }
-    .chart-box canvas { max-height:340px; }
-
-    /* ── TABELAS ── */
-    .tables-section { margin-bottom:36px; }
-    .table-wrapper { overflow-x:auto; background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(54,120,134,.10); margin-bottom:28px; }
-    table { width:100%; border-collapse:collapse; font-size:.875rem; }
-    thead tr { background:#367886; color:#fff; }
-    thead th { padding:11px 14px; text-align:left; font-weight:600; font-size:.76rem; text-transform:uppercase; letter-spacing:.05em; white-space:nowrap; }
-    thead th.num { text-align:right; }
-    thead th.sortable { cursor:pointer; user-select:none; }
-    thead th.sortable:hover { background:#2a5f6e; }
-    .sort-icon { margin-left:4px; font-style:normal; font-size:.7rem; opacity:.7; }
-    thead th.sort-asc  .sort-icon::after { content:'▲'; opacity:1; }
-    thead th.sort-desc .sort-icon::after { content:'▼'; opacity:1; }
-    thead th:not(.sort-asc):not(.sort-desc) .sort-icon::after { content:'⇅'; opacity:.4; }
-
-    tbody tr { border-bottom:1px solid #e0f2f4; }
-    tbody tr:last-child { border-bottom:none; }
-    tbody tr:nth-child(even) { background:#f0fafa; }
-    tbody tr:hover:not(.detail-row) { background:#d4eef1; }
-    tbody td { padding:9px 14px; color:#1a3a40; white-space:nowrap; }
-    tbody td.num { text-align:right; font-variant-numeric:tabular-nums; }
-    tbody td.neg { color:#c0392b; }
-    tbody td.pos { color:#27ae60; }
-
-    /* ── EXPAND BTN ── */
-    .btn-expand { display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:50%; border:1px solid #639aa5; background:none; color:#367886; font-size:.8rem; font-weight:700; cursor:pointer; margin-right:6px; flex-shrink:0; transition:background .15s, color .15s; vertical-align:middle; line-height:1; }
-    .btn-expand:hover { background:#367886; color:#fff; border-color:#367886; }
-
-    /* ── DETAIL ROWS ── */
-    tr.detail-row { display:none; }
-    tr.detail-row.aberto { display:table-row; }
-    tr.detalhe-mes td { padding:5px 14px; font-size:.78rem; color:#2a5f6e; background:#f7fdfd !important; border-bottom:1px solid #e9f7f8; }
-    tr.detalhe-media td { padding:7px 14px; font-size:.78rem; font-weight:700; background:#daf0f3 !important; border-top:2px solid #90bcc3; border-bottom:2px solid #90bcc3; }
-    tr.detalhe-hist td { padding:6px 14px 10px; background:#f7fdfd !important; border-bottom:none; }
-    .hist-bloco { display:flex; align-items:flex-start; gap:8px; flex-wrap:wrap; }
-    .hist-label { font-size:.72rem; font-weight:700; color:#367886; white-space:nowrap; text-transform:uppercase; padding-top:2px; }
-    .hist-tags  { display:flex; flex-wrap:wrap; gap:4px; }
-    .hist-tag   { background:#bcdde1; border-radius:4px; padding:2px 8px; font-size:.75rem; color:#1a3a40; white-space:normal; }
-
-    /* ── FILTROS TABELA ── */
-    .table-filters { display:flex; gap:10px; flex-wrap:wrap; padding:10px 14px; background:#f0fafa; border-bottom:1px solid #e0f2f4; border-radius:10px 10px 0 0; }
-    .table-filters select, .table-filters input { padding:5px 10px; border-radius:6px; border:1px solid #90bcc3; background:#fff; color:#1a3a40; font-size:.82rem; flex:1; min-width:150px; }
-
-    /* ── CELL TRUNCATE ── */
-    .cell-trunc    { display:block; max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:help; }
-    .cell-trunc-sm { display:block; max-width:140px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:help; }
-
-    /* ── BADGES ── */
-    .badge        { display:inline-block; padding:2px 8px; border-radius:12px; font-size:.78rem; font-weight:600; background:#bcdde1; color:#1a3a40; }
-    .badge.good   { background:#a8e6cf; color:#1a4a2e; }
-    .badge.mid    { background:#ffe0a0; color:#5a3a00; }
-    .badge.low    { background:#ffb3b3; color:#5a0000; }
-    .badge.green  { background:#a8e6cf; color:#1a4a2e; }
-    .badge.yellow { background:#ffe0a0; color:#5a3a00; }
-    .badge.red    { background:#ffb3b3; color:#5a0000; }
-    .badge.new    { background:#c5e8ff; color:#003a6e; }
-    .badge.gone   { background:#f0d0ff; color:#3a006e; }
-
-    /* ── MENSAL EXPAND ROW ── */
-    .expand-btn { background:none; border:none; cursor:pointer; font-size:.9rem; color:#367886; padding:2px 5px; border-radius:4px; transition:background .15s; line-height:1; }
-    .expand-btn:hover { background:rgba(54,120,134,.15); }
-    tr.sub-mes td { background:#f5fbfc; padding:3px 10px; font-size:.82rem; color:#2a5060; border-bottom:1px solid #e8f5f8; }
-    tr.sub-mes td.mes-nome { padding-left:28px; color:#367886; font-style:italic; }
-    tr.sub-mes td.num { text-align:right; }
-    tr.sub-mes.destaque td { background:#fff5f5; }
-    tr.sub-mes.destaque td.val26 { color:#c0392b; font-weight:700; }
-    tr.sub-mes.destaque td.cresc-col { color:#c0392b; font-weight:700; }
-    tr.sub-media td { background:#d8eef2; font-weight:700; color:#1a3a40; font-size:.82rem; border-top:2px solid #90bcc3; border-bottom:2px solid #90bcc3; padding:4px 10px; }
-    tr.sub-media td.mes-nome { padding-left:28px; }
-    tr.sub-media td.num { text-align:right; }
-
-    /* ── ANÁLISE HISTÓRICA ── */
-    .hist-search-box { display:flex; align-items:center; gap:10px; padding:12px 0 18px; flex-wrap:wrap; }
-    .hist-search-box input { flex:1; min-width:240px; max-width:400px; padding:8px 14px; border-radius:8px; border:1px solid #90bcc3; font-size:.88rem; color:#1a3a40; background:#fff; }
-    .hist-search-box button { padding:8px 20px; border-radius:8px; border:none; background:#367886; color:#fff; font-size:.85rem; font-weight:600; cursor:pointer; transition:background .15s; }
-    .hist-search-box button:hover { background:#2a5f6e; }
-    .hist-search-box button.sec { background:#fff; color:#367886; border:1px solid #367886; }
-    .hist-search-box button.sec:hover { background:#e9ffff; }
-
-    .analise-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-bottom:28px; }
-    .analise-card { background:#fff; border-radius:10px; padding:18px 16px; box-shadow:0 2px 8px rgba(54,120,134,.10); border-left:4px solid #639aa5; }
-    .analise-card h4 { font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#367886; margin-bottom:10px; }
-    .analise-card .ac-item { display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid #e9f7f8; font-size:.82rem; gap:8px; }
-    .analise-card .ac-item:last-child { border-bottom:none; }
-    .analise-card .ac-name { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#1a3a40; }
-    .analise-card .ac-val  { font-weight:700; white-space:nowrap; font-size:.8rem; }
-
-    .sugestoes-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:14px; margin-bottom:28px; }
-    .sugestao-card { background:#fff; border-radius:10px; padding:16px; box-shadow:0 2px 6px rgba(54,120,134,.08); border-top:3px solid #63d4e0; cursor:default; transition:transform .18s; }
-    .sugestao-card:hover { transform:translateY(-3px); }
-    .sugestao-card .sq-icon { font-size:1.5rem; margin-bottom:8px; }
-    .sugestao-card h4 { font-size:.82rem; font-weight:700; color:#367886; margin-bottom:6px; }
-    .sugestao-card p  { font-size:.78rem; color:#4a7a85; line-height:1.5; }
-
-    /* ── ALERT BANNER ── */
-    .alert-banner { display:flex; align-items:center; gap:12px; background:#ffe4e4; border:1px solid #e57373; border-radius:8px; padding:12px 18px; margin-bottom:20px; }
-    .alert-banner .ab-icon { font-size:1.4rem; }
-    .alert-banner p { font-size:.85rem; color:#7b1f1f; font-weight:600; }
-
-    /* ── PLACEHOLDER TABS ── */
-    .placeholder-tab { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60vh; gap:14px; color:#639aa5; }
-    .placeholder-tab .pt-icon { font-size:3rem; }
-    .placeholder-tab h2 { font-size:1.15rem; font-weight:700; color:#367886; }
-    .placeholder-tab p  { font-size:.88rem; }
-
-    @media (max-width:700px) {
-      .sidebar { width:180px; }
-      main { padding:14px; }
-      .charts-row { grid-template-columns:1fr; }
-      .kpi-card { max-width:100%; }
+    .kpi-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
     }
-    @media (max-width:500px) {
-      .app-layout { flex-direction:column; }
-      .sidebar { width:100%; flex-direction:row; overflow-x:auto; flex-shrink:0; }
-      .sidebar-group { border-bottom:none; border-right:1px solid rgba(255,255,255,.07); }
-      .sidebar-subs { display:none; }
+
+    .kpi-card.c-green  { border-top-color: var(--green); }
+    .kpi-card.c-orange { border-top-color: var(--orange); }
+    .kpi-card.c-blue   { border-top-color: var(--blue); }
+
+    .kpi-icon {
+      width: 44px; height: 44px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      background: rgba(193,14,26,.08);
+      margin-bottom: 2px;
+    }
+
+    .kpi-card.c-green  .kpi-icon { background: rgba(134,180,82,.12); }
+    .kpi-card.c-orange .kpi-icon { background: rgba(221,150,27,.12); }
+    .kpi-card.c-blue   .kpi-icon { background: rgba(47,71,146,.10); }
+
+    .kpi-label {
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--red);
+    }
+
+    .kpi-card.c-green  .kpi-label { color: var(--green); }
+    .kpi-card.c-orange .kpi-label { color: var(--orange); }
+    .kpi-card.c-blue   .kpi-label { color: var(--blue); }
+
+    .kpi-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--dark);
+      line-height: 1.15;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .kpi-pct {
+      font-size: .78rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .kpi-pct strong {
+      font-weight: 700;
+      color: var(--green);
+    }
+
+    /* ── CONTROLES DA TABELA ─────────────────────────────────── */
+    .table-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .control-group label {
+      font-size: .75rem;
+      font-weight: 700;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .ctrl-select, .ctrl-input {
+      height: 34px;
+      padding: 0 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: .8rem;
+      font-family: var(--font);
+      color: var(--text);
+      background: var(--surface);
+      outline: none;
+      transition: border-color .15s;
+      min-width: 140px;
+    }
+
+    .ctrl-select:focus, .ctrl-input:focus {
+      border-color: var(--red);
+      box-shadow: 0 0 0 3px rgba(193,14,26,.1);
+    }
+
+    /* ── TABELA ──────────────────────────────────────────────── */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+      font-size: .8rem;
+      white-space: nowrap;
+    }
+
+    thead th {
+      background: var(--dark);
+      color: #fff;
+      padding: 11px 16px;
+      text-align: left;
+      font-weight: 700;
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      cursor: pointer;
+      user-select: none;
+      transition: background .15s;
+    }
+
+    thead th:hover { background: #2c3e42; }
+
+    thead th .si {
+      margin-left: 4px;
+      opacity: .4;
+      font-size: .6rem;
+    }
+
+    thead th.sorted-asc  .si,
+    thead th.sorted-desc .si { opacity: 1; color: var(--beige); }
+
+    tbody tr { border-bottom: 1px solid var(--border); transition: background .12s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #f9fafb; }
+    tbody td { padding: 10px 16px; vertical-align: middle; }
+
+    /* Células da diferença */
+    .diff-pos {
+      background: rgba(134,180,82,.12);
+      color: #3d6b17;
+      font-weight: 700;
+      border-radius: var(--radius-sm);
+      padding: 3px 8px;
+    }
+
+    .diff-neg {
+      background: rgba(193,14,26,.08);
+      color: var(--red);
+      font-weight: 700;
+      border-radius: var(--radius-sm);
+      padding: 3px 8px;
+    }
+
+    .diff-zero { color: var(--muted); }
+
+    .no-match-badge {
+      font-size: .62rem;
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fcd34d;
+      border-radius: 10px;
+      padding: 2px 6px;
+      margin-left: 4px;
+      font-weight: 700;
+    }
+
+    .empty-row td {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+
+    /* ── GRÁFICOS ────────────────────────────────────────────── */
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .chart-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    .chart-card.full { grid-column: 1 / -1; }
+
+    .chart-card-title {
+      font-size: .78rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chart-card-title::before {
+      content: '';
+      display: inline-block;
+      width: 3px;
+      height: 14px;
+      background: var(--red);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .chart-wrap { position: relative; height: 260px; }
+
+    /* Gráficos com scroll — mostra ~10 barras, restante scrollável */
+    .chart-scroll-wrap {
+      overflow-y: auto;
+      overflow-x: hidden;
+      max-height: 380px;
+      position: relative;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    .chart-scroll-wrap::-webkit-scrollbar { width: 6px; }
+    .chart-scroll-wrap::-webkit-scrollbar-track { background: transparent; }
+    .chart-scroll-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── SKELETON ────────────────────────────────────────────── */
+    .skeleton {
+      background: linear-gradient(90deg, var(--border) 25%, #ebebeb 50%, var(--border) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.1s infinite;
+      border-radius: var(--radius);
+    }
+
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    .sk-card { height: 120px; }
+    .sk-table { height: 200px; }
+    .sk-chart { height: 300px; }
+
+    /* ── TABELA DETALHAMENTO (e2-table) ─────────────────────── */
+
+    /* cell-clip: exibe o texto completo com quebra de linha + tooltip nativo */
+    .cell-clip {
+      display: block;
+      white-space: normal;      /* texto completo, sem truncar */
+      word-break: break-word;
+      line-height: 1.45;
+      cursor: default;
+    }
+
+    /* Cabeçalhos com quebra de linha */
+    #e2-table thead th {
+      padding: 8px 12px;
+      font-size: .72rem;
+      white-space: normal;
+      word-break: break-word;
+      vertical-align: bottom;
+      line-height: 1.3;
+      min-width: 80px;
+    }
+
+    #e2-table tbody td {
+      padding: 7px 12px;
+      font-size: .78rem;
+      vertical-align: top;      /* alinha ao topo quando linhas têm alturas diferentes */
+    }
+
+    #e2-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+    #e2-table .ctr { text-align: center; }
+
+    /* Colunas Imp. (K) e Situação (L) — valores com badge de destaque */
+    .badge-imp,
+    .badge-sit {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: .72rem;
+      font-weight: 700;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      letter-spacing: .3px;
+    }
+
+    /* Imp. (K): azul */
+    .badge-imp {
+      background: rgba(47,71,146,.1);
+      color: var(--blue);
+      text-decoration-color: var(--blue);
+    }
+
+    /* Situação (L): verde se "Ativo/Sim/Aprovado", vermelho se "Encerrado/Não/Reprovado",
+       laranja para o restante */
+    .badge-sit.s-ok   { background: rgba(134,180,82,.15);  color: #3a6b12; text-decoration-color: var(--green); }
+    .badge-sit.s-off  { background: rgba(193,14,26,.08);   color: var(--red); text-decoration-color: var(--red); }
+    .badge-sit.s-warn { background: rgba(221,150,27,.12);  color: #7a4f00; text-decoration-color: var(--orange); }
+
+    /* % zerado: contorno vermelho */
+    .pct-zero {
+      display: inline-block;
+      padding: 2px 8px;
+      border: 2px solid var(--red);
+      border-radius: var(--radius-sm);
+      color: var(--red);
+      font-weight: 700;
+    }
+
+    /* % positivo: verde */
+    .pct-ok {
+      display: inline-block;
+      padding: 2px 8px;
+      font-weight: 700;
+      color: var(--green);
+    }
+
+    /* ── MODAL DETALHE DA EMENDA ────────────────────────────── */
+    #modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(28,38,41,.65);
+      backdrop-filter: blur(3px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    #modal-overlay.open { display: flex; }
+
+    .modal-box {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 16px 48px rgba(0,0,0,.28);
+      width: 100%;
+      max-width: 700px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .modal-head {
+      background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%);
+      padding: 16px 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .modal-head-info { flex: 1; }
+    .modal-head h3 { font-size: 1rem; font-weight: 700; color: #fff; }
+    .modal-head p  { font-size: .75rem; color: rgba(255,255,255,.75); margin-top: 2px; }
+
+    .modal-close {
+      background: rgba(255,255,255,.15);
+      border: none;
+      color: #fff;
+      border-radius: 50%;
+      width: 30px; height: 30px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: background .15s;
+    }
+    .modal-close:hover { background: rgba(255,255,255,.3); }
+
+    .modal-body {
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .modal-section { }
+    .modal-section-title {
+      font-size: .68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--blue);
+      border-bottom: 2px solid var(--blue);
+      padding-bottom: 5px;
+      margin-bottom: 12px;
+    }
+
+    .modal-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px 20px;
+    }
+    .modal-grid.col3 { grid-template-columns: repeat(3, 1fr); }
+    .modal-grid.col1 { grid-template-columns: 1fr; }
+
+    .modal-field { }
+    .modal-field-label {
+      font-size: .65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+    .modal-field-value {
+      font-size: .85rem;
+      color: var(--dark);
+      line-height: 1.45;
+      word-break: break-word;
+    }
+    .modal-field-value.mono {
+      font-family: monospace;
+      font-size: .8rem;
+    }
+
+    /* Rodapé do modal */
+    .modal-foot {
+      border-top: 1px solid var(--border);
+      padding: 12px 20px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-shrink: 0;
+      background: var(--surface);
+    }
+
+    .btn-print {
+      padding: 8px 18px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: .82rem;
+      font-weight: 700;
+      color: var(--dark);
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+    .btn-print:hover { background: #f0f2f5; border-color: #bbb; }
+
+    .btn-modal-fechar {
+      padding: 8px 18px;
+      background: var(--red);
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: .82rem;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-modal-fechar:hover { background: var(--red-dark); }
+
+    /* Impressão — mostra só o conteúdo do modal */
+    @media print {
+      body > *:not(#modal-overlay) { display: none !important; }
+      #modal-overlay { display: block !important; position: static !important; background: none !important; }
+      .modal-box { box-shadow: none !important; max-height: none !important; }
+      .modal-head { background: #fff !important; color: #000 !important; }
+      .modal-head h3, .modal-head p { color: #000 !important; }
+      .modal-close, .modal-foot { display: none !important; }
+      .modal-body { overflow: visible !important; }
+    }
+
+    /* Bloco de credor dentro do modal */
+    .modal-credor {
+      background: #f8f9fb;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--blue);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-bottom: 10px;
+    }
+    .modal-credor:last-child { margin-bottom: 0; }
+
+    .modal-credor-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .modal-credor-title {
+      font-size: .78rem;
+      font-weight: 700;
+      color: var(--dark);
+      flex: 1;
+    }
+
+    .modal-credor-pct { flex-shrink: 0; }
+
+    /* Barra de resumo financeiro */
+    .modal-resumo {
+      background: #f0f2f5;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      margin-bottom: 4px;
+    }
+
+    .modal-resumo-bar-wrap {
+      height: 8px;
+      background: #e0e4e8;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .modal-resumo-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--green), #5a9e28);
+      border-radius: 4px;
+      transition: width .4s ease;
+      min-width: 2px;
+    }
+
+    .modal-resumo-vals {
+      display: flex;
+      justify-content: space-between;
+      font-size: .78rem;
+      color: var(--muted);
+    }
+    .modal-resumo-vals strong { color: var(--dark); }
+
+    /* Botão de detalhe na tabela */
+    .btn-detalhe {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 4px;
+      padding: 4px 10px;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: .72rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background .15s;
+    }
+    .btn-detalhe:hover { background: #243578; }
+
+    /* ── FOOTER ──────────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: .7rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    /* ── RESPONSIVO ──────────────────────────────────────────── */
+    @media (max-width: 1024px) {
+      #kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+      main { padding: 20px 16px 48px; }
+      #kpi-grid { grid-template-columns: 1fr; }
+      .charts-row { grid-template-columns: 1fr; }
+      .chart-card.full { grid-column: 1; }
+      #app-header { padding: 0 16px; }
+      #app-header h1 { font-size: 1rem; }
+      .table-controls { gap: 8px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        transition-duration: .01ms !important;
+      }
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>Prefeitura Municipal de Cuité</h1>
-    <span class="subtitle">Sistema Elmar</span>
+  <!-- MODAL DETALHE DA EMENDA -->
+  <div id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-box">
+      <div class="modal-head">
+        <div class="modal-head-info">
+          <h3 id="modal-title">Detalhes da Emenda</h3>
+          <p id="modal-subtitle">—</p>
+        </div>
+        <button class="modal-close" id="modal-close-btn" aria-label="Fechar">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body">
+        <!-- conteúdo gerado via JS -->
+      </div>
+      <div class="modal-foot">
+        <button class="btn-print" onclick="printModal()">🖨 Imprimir</button>
+        <button class="btn-modal-fechar" onclick="closeModal()">✕ Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div id="loading-overlay">
+    <div class="spinner"></div>
+    <p class="loading-text">Carregando dados…</p>
+  </div>
+
+  <!-- HEADER -->
+  <header id="app-header">
+    <div class="header-brand">
+      <h1>Emendas Impositivas</h1>
+      <p>Câmara Municipal de João Pessoa — Painel de acompanhamento</p>
+    </div>
+    <span id="last-update">—</span>
   </header>
 
-  <div class="app-layout">
+  <!-- CONTEÚDO -->
+  <main>
 
-    <!-- ══ SIDEBAR ══ -->
-    <aside class="sidebar" id="sidebar">
+    <!-- Erro global -->
+    <div id="error-banner" role="alert">
+      <span>⚠</span>
+      <span id="error-text"></span>
+    </div>
 
-      <!-- FINANCEIRO -->
-      <div class="sidebar-group">
-        <div class="sidebar-header active" id="sh-financeiro" onclick="switchMain('financeiro')">
-          <span>💰</span> Financeiro <span class="sh-arrow">▾</span>
+    <!-- ══════════════════════════════════════════════════════
+         SEÇÃO 1 — KPIs
+         Cards baseados na aba Emenda2:
+           Card 1 → soma coluna G (Valor da Emenda Atual) — base
+           Card 2 → soma coluna H + percentual H/G × 100
+           Card 3 → soma coluna I + percentual I/G × 100
+           Card 4 → soma coluna J + percentual J/G × 100
+         Para trocar "soma" por "média": ajustar getEmendasData().
+         ══════════════════════════════════════════════════════ -->
+    <section class="section" id="s-kpis">
+      <div class="section-header">
+        <h2>Valores Totais</h2>
+      </div>
+      <div id="kpi-grid">
+        <div class="skeleton sk-card"></div>
+        <div class="skeleton sk-card"></div>
+        <div class="skeleton sk-card"></div>
+        <div class="skeleton sk-card"></div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════
+         SEÇÃO 2 — TABELA CRUZADA
+         LEFT JOIN Emenda2 × Emenda1 por codigoEmenda (col A).
+         Colunas:
+           Vereador        — col E Emenda2
+           Código          — col A
+           Valor Total E2  — col D Emenda2
+           Valor Planejado — col E Emenda1
+           Valor Executado — col F Emenda1
+           Diferença       — Executado − Planejado (F − E)
+         Cor diferença:
+           > 0 VERDE  (#86b452) — executado acima do planejado
+           < 0 VERMELHO (#C10e1a) — executado abaixo
+           = 0 neutro
+         ══════════════════════════════════════════════════════ -->
+    <!-- SEÇÃO 2 — TABELA CRUZADA (colapsável) -->
+    <section class="section" id="s-tabela">
+      <div class="section-header collapsible" data-target="body-tabela">
+        <h2>Valores Atualizados das Emendas – por Vereador</h2>
+        <span class="toggle-btn" aria-label="Expandir/Recolher">▼</span>
+      </div>
+      <div class="section-body collapsed" id="body-tabela">
+        <div class="table-controls">
+          <div class="control-group">
+            <label for="filt-situacao">Situação:</label>
+            <select id="filt-situacao" class="ctrl-select">
+              <option value="neg" selected>Valores Negativos</option>
+              <option value="zero">Sem Modificação</option>
+              <option value="pos">Valores a Maior</option>
+              <option value="">Todos</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label for="filt-vereador">Vereador:</label>
+            <select id="filt-vereador" class="ctrl-select"><option value="">Todos</option></select>
+          </div>
+          <div class="control-group">
+            <label for="filt-codigo">Código da Emenda:</label>
+            <input type="text" id="filt-codigo" class="ctrl-input" placeholder="Ex.: 392" />
+          </div>
         </div>
-        <div class="sidebar-subs" id="subs-financeiro">
-          <button class="sidebar-sub active" id="ssub-folha"     onclick="switchTab('folha')">👥 Folha de Pagamento</button>
-          <button class="sidebar-sub"        id="ssub-fontes"    onclick="switchTab('fontes')">⚖️ Receita x Despesa</button>
-          <button class="sidebar-sub"        id="ssub-historico" onclick="switchTab('historico')">📊 Análise Histórica</button>
+        <div class="table-wrap">
+          <div class="skeleton sk-table" id="tbl-skeleton"></div>
+          <table id="cross-table" style="display:none;">
+            <thead>
+              <tr>
+                <th data-col="codigoEmenda">Código da Emenda <span class="si">⇅</span></th>
+                <th data-col="vereador">Vereador <span class="si">⇅</span></th>
+                <th data-col="valorPlanejado">Valor da Dotação <span class="si">⇅</span></th>
+                <th data-col="valorExecutado">Valor Atualizado <span class="si">⇅</span></th>
+                <th data-col="diferenca">Diferença (F − E) <span class="si">⇅</span></th>
+              </tr>
+            </thead>
+            <tbody id="tbl-body"></tbody>
+          </table>
         </div>
       </div>
+    </section>
 
-      <!-- EDUCAÇÃO -->
-      <div class="sidebar-group">
-        <div class="sidebar-header" id="sh-educacao" onclick="switchMain('educacao')">
-          <span>📚</span> Educação <span class="sh-arrow">▾</span>
-        </div>
-        <div class="sidebar-subs hidden" id="subs-educacao">
-          <button class="sidebar-sub active">🏫 Em breve</button>
+    <!-- SEÇÃO 3 — GRÁFICO MENSAL (colapsável) -->
+    <section class="section" id="s-g1">
+      <div class="section-header collapsible" data-target="body-g1">
+        <h2>Evolução Mensal dos Valores Totais</h2>
+        <span class="toggle-btn" aria-label="Expandir/Recolher">▼</span>
+      </div>
+      <div class="section-body collapsed" id="body-g1">
+        <div class="charts-row">
+          <div class="chart-card full">
+            <p class="chart-card-title">Soma mensal — col E (principal) · col F como tooltip</p>
+            <div class="chart-wrap"><canvas id="ch-monthly"></canvas></div>
+          </div>
         </div>
       </div>
+    </section>
 
-      <!-- SAÚDE -->
-      <div class="sidebar-group">
-        <div class="sidebar-header" id="sh-saude" onclick="switchMain('saude')">
-          <span>🏥</span> Saúde <span class="sh-arrow">▾</span>
-        </div>
-        <div class="sidebar-subs hidden" id="subs-saude">
-          <button class="sidebar-sub active">🏥 Em breve</button>
-        </div>
+    <!-- SEÇÃO 4 — GRÁFICOS EMENDA2 (colapsável) -->
+    <section class="section" id="s-g2">
+      <div class="section-header collapsible" data-target="body-g2">
+        <h2>Análises Emendas</h2>
+        <span class="toggle-btn" aria-label="Expandir/Recolher">▼</span>
       </div>
-
-    </aside><!-- /sidebar -->
-
-    <!-- ══ CONTENT AREA ══ -->
-    <div class="content-area">
-
-      <!-- ── FILTRO PERÍODO (Folha) ── -->
-      <div class="filter-bar" id="filter-bar" style="display:none;">
-        <label>Período:</label>
-        <label>De</label>  <select id="filtroDE"></select>
-        <label>Até</label> <select id="filtroATE"></select>
-        <button onclick="aplicarFiltro()">Filtrar</button>
-        <button class="reset" onclick="limparFiltro()">Limpar</button>
-      </div>
-
-      <!-- ================================================================
-           ABA 1 — FOLHA DE PAGAMENTO
-      ================================================================ -->
-      <div id="tab-folha" class="tab-content active">
-        <div id="loading-folha" class="loading-box">
-          <div class="spinner"></div><span>Carregando dados...</span>
-        </div>
-        <div id="content-folha" style="display:none;">
-          <main>
-            <section style="margin-bottom:36px;">
-              <p class="section-title">Indicadores Principais</p>
-              <div class="kpi-grid" id="kpi-grid"></div>
-            </section>
-            <section class="charts-section">
-              <p class="section-title">
-                Evolução Mensal
-                <button class="btn-toggle" id="btnToggleChart" onclick="toggleGrafico()">▼ Ocultar gráfico</button>
-              </p>
-              <div id="chart-container">
-                <div class="chart-box">
-                  <h3>Empenhado × Liquidado AM × Pago AM por Mês</h3>
-                  <canvas id="chartMensal"></canvas>
-                </div>
-              </div>
-            </section>
-            <section class="tables-section" style="margin-top:36px;">
-              <p class="section-title">Por Tipo de Pessoa</p>
-              <div class="table-wrapper">
-                <table>
-                  <thead><tr>
-                    <th style="width:36px"></th>
-                    <th>Tipo de Pessoa</th>
-                    <th class="num">Empenhado (R$)</th>
-                    <th class="num">% do Total</th>
-                    <th class="num">Pago AM (R$)</th>
-                    <th class="num">% Pago</th>
-                    <th class="num">Saldo a Pagar (R$)</th>
-                  </tr></thead>
-                  <tbody id="tabelaTipos-body"></tbody>
-                </table>
-              </div>
-              <p class="section-title">Fornecedores por Valor Empenhado</p>
-              <div class="table-wrapper">
-                <div class="table-filters">
-                  <select id="filtroTipo" onchange="renderTabelaFornecedores()">
-                    <option value="">Todos os tipos</option>
-                  </select>
-                  <input type="text" id="buscaFornecedor" placeholder="Buscar fornecedor..." oninput="renderTabelaFornecedores()" />
-                </div>
-                <table>
-                  <thead><tr>
-                    <th style="width:36px">#</th>
-                    <th>Fornecedor</th>
-                    <th class="num sortable" id="th-empenhado" onclick="setSortCol('empenhado')">Empenhado (R$) <i class="sort-icon"></i></th>
-                    <th class="num sortable" id="th-liquidado" onclick="setSortCol('liquidado')">Liquidado AM (R$) <i class="sort-icon"></i></th>
-                    <th class="num sortable" id="th-pago"      onclick="setSortCol('pago')">Pago AM (R$) <i class="sort-icon"></i></th>
-                    <th class="num sortable" id="th-saldo"     onclick="setSortCol('saldo')">Saldo a Pagar (R$) <i class="sort-icon"></i></th>
-                  </tr></thead>
-                  <tbody id="tabelaFornecedores-body"></tbody>
-                </table>
-              </div>
-            </section>
-          </main>
-        </div>
-      </div><!-- /tab-folha -->
-
-      <!-- ================================================================
-           ABA 2 — RECEITA x DESPESA
-      ================================================================ -->
-      <div id="tab-fontes" class="tab-content">
-        <div id="loading-fontes" class="loading-box">
-          <div class="spinner"></div><span>Carregando dados...</span>
-        </div>
-        <div id="content-fontes" style="display:none;">
-          <main>
-            <section style="margin-bottom:36px;">
-              <p class="section-title">Totais por Coluna</p>
-              <div class="kpi-grid" id="fontes-kpi-grid"></div>
-            </section>
-            <section class="charts-section">
-              <p class="section-title">Análise por Conta</p>
-              <div class="charts-row">
-                <div class="chart-box">
-                  <h3 id="chart-fontes-1-title">Valores — Coluna C por Conta</h3>
-                  <canvas id="chartFontes1"></canvas>
-                </div>
-                <div class="chart-box">
-                  <h3 id="chart-fontes-2-title">Valores — Coluna F por Conta</h3>
-                  <canvas id="chartFontes2"></canvas>
-                </div>
-              </div>
-            </section>
-            <section class="tables-section">
-              <p class="section-title">Comparativo — Dotação × Realizado</p>
-              <div class="table-wrapper">
-                <table>
-                  <thead><tr>
-                    <th id="th-fa" style="white-space:normal;min-width:70px;">A</th>
-                    <th id="th-fb" style="white-space:normal;min-width:160px;">B — Conta</th>
-                    <th class="num sortable" id="fth-c"   onclick="setSortFontes('c')"   style="white-space:normal;min-width:100px;"><span id="th-fc">C</span> <i class="sort-icon"></i></th>
-                    <th class="num sortable" id="fth-f"   onclick="setSortFontes('f')"   style="white-space:normal;min-width:100px;"><span id="th-ff">F</span> <i class="sort-icon"></i></th>
-                    <th class="num sortable" id="fth-dif" onclick="setSortFontes('dif')" style="white-space:normal;min-width:100px;">Diferença<br>(C − F) <i class="sort-icon"></i></th>
-                    <th class="num sortable" id="fth-rp"  onclick="setSortFontes('rp')"  style="white-space:normal;min-width:110px;">Restos a Pagar<br>Processados<br>(L − P) <i class="sort-icon"></i></th>
-                    <th class="num sortable" id="fth-rnp" onclick="setSortFontes('rnp')" style="white-space:normal;min-width:110px;">Restos a Pagar<br>Não Processados<br>(E − L) <i class="sort-icon"></i></th>
-                  </tr></thead>
-                  <tbody id="tabelaFontes-body"></tbody>
-                </table>
-              </div>
-            </section>
-          </main>
-        </div>
-      </div><!-- /tab-fontes -->
-
-      <!-- ================================================================
-           ABA 3 — ANÁLISE HISTÓRICA (2025 x 2026)
-      ================================================================ -->
-      <div id="tab-historico" class="tab-content">
-        <div id="loading-historico" class="loading-box">
-          <div class="spinner"></div><span>Carregando análise histórica...</span>
-        </div>
-        <div id="content-historico" style="display:none;">
-          <main>
-
-            <!-- ALERT BANNER (aparece se pct > 85%) -->
-            <div id="alert-banner" class="alert-banner" style="display:none;">
-              <span class="ab-icon">🚨</span>
-              <p id="alert-banner-msg">Atenção: o gasto de 2026 já ultrapassou 85% do total pago em 2025!</p>
+      <div class="section-body collapsed" id="body-g2">
+        <div class="charts-row">
+          <div class="chart-card">
+            <p class="chart-card-title">Emendas por Unidade</p>
+            <div class="chart-scroll-wrap" id="wrap-cat">
+              <canvas id="ch-cat"></canvas>
             </div>
-
-            <!-- KPI CARDS COMPARATIVO -->
-            <section style="margin-bottom:36px;">
-              <p class="section-title">Comparativo Geral de Pagamentos</p>
-              <div class="kpi-grid" id="hist-kpi-grid"></div>
-            </section>
-
-            <!-- BUSCA POR HISTÓRICO -->
-            <section style="margin-bottom:36px;">
-              <p class="section-title">Busca por Palavra-Chave no Histórico</p>
-              <div class="hist-search-box">
-                <input type="text" id="hist-keyword" placeholder="Digite uma palavra-chave do histórico..." oninput="filtrarPorHistorico()" />
-                <button class="sec" onclick="document.getElementById('hist-keyword').value='';filtrarPorHistorico()">Limpar</button>
-              </div>
-              <div id="hist-search-result">
-                <p style="color:#639aa5;font-size:.85rem;">Digite uma palavra-chave para buscar fornecedores pelo histórico de empenho.</p>
-              </div>
-            </section>
-
-            <!-- TIPOS: PAGO NM e PAGO AM por ano -->
-            <section class="tables-section">
-              <p class="section-title">Pagamentos por Tipo de Pessoa — 2025 vs 2026</p>
-              <div class="table-wrapper">
-                <table>
-                  <thead><tr>
-                    <th>Tipo de Pessoa</th>
-                    <th class="num sortable" id="hth-p25-tipo" onclick="setSortHistTipo('pago2025')">Pago 2025 <i class="sort-icon"></i></th>
-                    <th class="num sortable" id="hth-p26-tipo" onclick="setSortHistTipo('pago2026')">Pago 2026 <i class="sort-icon"></i></th>
-                    <th class="num sortable" id="hth-cresc-tipo" onclick="setSortHistTipo('crescimento')">Crescimento <i class="sort-icon"></i></th>
-                  </tr></thead>
-                  <tbody id="hist-tipos-body"></tbody>
-                </table>
-              </div>
-            </section>
-
-            <!-- FORNECEDORES: PAGO NM e PAGO por ano -->
-            <section class="tables-section">
-              <p class="section-title">Fornecedores — Pago NM e Pago AM — 2025 vs 2026</p>
-              <div id="hist-fornec-table-wrap" style="display:none;">
-                <div class="table-wrapper">
-                  <div class="table-filters">
-                    <input type="text" id="hist-busca-fornec" placeholder="Buscar fornecedor..." oninput="renderHistFornec()" />
-                    <select id="hist-filtro-ano" onchange="renderHistFornec()">
-                      <option value="">Todos os anos</option>
-                      <option value="ambos">Presentes nos 2 anos</option>
-                      <option value="2025">Somente 2025</option>
-                      <option value="2026">Somente 2026</option>
-                    </select>
-                  </div>
-                  <table>
-                    <thead><tr>
-                      <th style="width:28px"></th>
-                      <th style="width:32px">#</th>
-                      <th>Fornecedor</th>
-                      <th class="num sortable" id="hth-pam25" onclick="setSortHistFornec('pago2025')">Pago 2025 <i class="sort-icon"></i></th>
-                      <th class="num sortable" id="hth-pam26" onclick="setSortHistFornec('pago2026')">Pago 2026 <i class="sort-icon"></i></th>
-                      <th class="num sortable" id="hth-cresc" onclick="setSortHistFornec('crescimento')">Crescimento <i class="sort-icon"></i></th>
-                    </tr></thead>
-                    <tbody id="hist-fornec-body"></tbody>
-                  </table>
-                </div>
-              </div>
-              <div style="text-align:center;margin-top:10px;">
-                <button class="btn-toggle" id="btn-fornec-toggle" onclick="toggleFornecTable()">▼ Ver detalhe por fornecedor</button>
-              </div>
-            </section>
-
-            <!-- ANÁLISE AVANÇADA DE MUDANÇAS -->
-            <section style="margin-bottom:36px;">
-              <p class="section-title">Análise Avançada de Mudanças</p>
-              <div class="analise-cards" id="hist-analise-cards"></div>
-            </section>
-
-            <!-- SAZONALIDADE MENSAL -->
-            <section style="margin-bottom:36px;">
-              <p class="section-title">📅 Sazonalidade Mensal — 2025 vs 2026</p>
-              <div class="chart-box">
-                <h3>Pagamentos mensais comparados (R$)</h3>
-                <canvas id="chartSazonalidade"></canvas>
-              </div>
-            </section>
-
-            <!-- PROJEÇÃO ANUAL -->
-            <section style="margin-bottom:36px;">
-              <p class="section-title">📊 Projeção de Gastos 2026</p>
-              <div class="kpi-grid" id="hist-projecao-grid"></div>
-              <p style="font-size:.75rem;color:#639aa5;margin-top:-18px;">* Projeção baseada na média mensal dos meses já executados em 2026, extrapolada para 12 meses.</p>
-            </section>
-
-            <!-- FIDELIDADE DE FORNECEDORES -->
-            <section style="margin-bottom:36px;">
-              <p class="section-title">🔄 Fidelidade de Fornecedores</p>
-              <div class="kpi-grid" id="hist-fidelidade-grid"></div>
-              <div id="hist-fidelidade-table-wrap" style="display:none;">
-                <div class="table-filters" style="border-radius:10px 10px 0 0;">
-                  <input type="text" id="fid-busca" placeholder="Buscar fornecedor..." oninput="renderFidelidade(dadosHistorico)" />
-                  <select id="fid-situacao" onchange="renderFidelidade(dadosHistorico)">
-                    <option value="">Todas as situações</option>
-                    <option value="recorrente">Recorrentes</option>
-                    <option value="novo">Novos 2026</option>
-                    <option value="saiu">Saíram</option>
-                  </select>
-                </div>
-                <div class="table-wrapper" style="border-radius:0 0 10px 10px;margin-bottom:0;">
-                  <table>
-                    <thead><tr>
-                      <th style="width:32px">#</th>
-                      <th>Fornecedor</th>
-                      <th class="num">Pago 2025</th>
-                      <th class="num">Pago 2026</th>
-                      <th class="num">Situação</th>
-                    </tr></thead>
-                    <tbody id="hist-fidelidade-body"></tbody>
-                  </table>
-                </div>
-              </div>
-              <div style="text-align:center;margin-top:10px;">
-                <button class="btn-toggle" id="btn-fidelidade-toggle" onclick="toggleFidelidadeTable()">▼ Ver detalhe por fornecedor</button>
-              </div>
-            </section>
-
-            <!-- CONCENTRAÇÃO / PARETO -->
-            <section style="margin-bottom:36px;">
-              <p class="section-title">🏗️ Concentração de Gastos (Pareto 80/20)</p>
-              <div class="table-filters" style="background:#f0fafa;padding:10px 14px;border-radius:10px;margin-bottom:12px;">
-                <label style="font-size:.82rem;font-weight:600;color:#1a3a40;white-space:nowrap;">Filtrar por Tipo de Pessoa:</label>
-                <select id="pareto-filtro-tipo" onchange="renderPareto(dadosHistorico)">
-                  <option value="">Todos os tipos</option>
-                </select>
-              </div>
-              <div class="kpi-grid" id="hist-pareto-kpis"></div>
-              <div id="hist-pareto-table-wrap" style="display:none;">
-                <div class="table-wrapper">
-                  <table>
-                    <thead><tr>
-                      <th style="width:32px">#</th>
-                      <th>Fornecedor</th>
-                      <th class="num">Pago 2025</th>
-                      <th class="num">% Acum. 2025</th>
-                      <th class="num">Pago 2026</th>
-                      <th class="num">% Acum. 2026</th>
-                    </tr></thead>
-                    <tbody id="hist-pareto-body"></tbody>
-                  </table>
-                </div>
-              </div>
-              <div style="text-align:center;margin-top:10px;">
-                <button class="btn-toggle" id="btn-pareto-toggle" onclick="toggleParetoTable()">▼ Ver detalhe por fornecedor</button>
-              </div>
-            </section>
-
-            <!-- ALERTAS DE CONTRATOS -->
-            <section style="margin-bottom:36px;">
-              <p class="section-title">⚠️ Alertas de Contratos — Variações Relevantes</p>
-              <div id="hist-alertas-container"></div>
-            </section>
-
-          </main>
+          </div>
+          <div class="chart-card">
+            <p class="chart-card-title">Emendas por Vereadores</p>
+            <div class="chart-scroll-wrap" id="wrap-vd">
+              <canvas id="ch-vd"></canvas>
+            </div>
+          </div>
         </div>
-      </div><!-- /tab-historico -->
+      </div>
+    </section>
 
-      <!-- ================================================================
-           ABA EDUCAÇÃO
-      ================================================================ -->
-      <div id="tab-educacao" class="tab-content">
-        <main>
-          <div class="placeholder-tab">
-            <span class="pt-icon">📚</span>
-            <h2>Educação</h2>
-            <p>Módulo em desenvolvimento</p>
-          </div>
-        </main>
+    <!-- ══════════════════════════════════════════════════════
+         SEÇÃO 5 — TABELA DETALHADA EMENDA2
+         Colunas: B, D, E, F, G, H, I, J
+         ══════════════════════════════════════════════════════ -->
+    <section class="section" id="s-e2-tabela">
+      <div class="section-header">
+        <h2>Detalhamento das Emendas</h2>
       </div>
 
-      <!-- ================================================================
-           ABA SAÚDE
-      ================================================================ -->
-      <div id="tab-saude" class="tab-content">
-        <main>
-          <div class="placeholder-tab">
-            <span class="pt-icon">🏥</span>
-            <h2>Saúde</h2>
-            <p>Módulo em desenvolvimento</p>
-          </div>
-        </main>
+      <div class="table-controls" id="e2t-controls">
+        <!-- Filtro Vereador -->
+        <div class="control-group">
+          <label for="e2t-vereador">Vereador:</label>
+          <select id="e2t-vereador" class="ctrl-select"><option value="">Todos</option></select>
+        </div>
+        <!-- Filtro Unidade Gestora -->
+        <div class="control-group">
+          <label for="e2t-unidade">Unidade Gestora:</label>
+          <select id="e2t-unidade" class="ctrl-select"><option value="">Todas</option></select>
+        </div>
+        <!-- Filtro Emenda Parlamentar -->
+        <div class="control-group">
+          <label for="e2t-emenda">Emenda Parlamentar:</label>
+          <select id="e2t-emenda" class="ctrl-select"><option value="">Todas</option></select>
+        </div>
+        <!-- Filtro Objeto (texto) -->
+        <div class="control-group">
+          <label for="e2t-objeto">Objeto:</label>
+          <input type="text" id="e2t-objeto" class="ctrl-input" placeholder="Palavra-chave…" />
+        </div>
+        <!-- Ordenação -->
+        <div class="control-group">
+          <label for="e2t-sort">Ordenar por valor:</label>
+          <select id="e2t-sort" class="ctrl-select">
+            <option value="desc">Maior primeiro</option>
+            <option value="asc">Menor primeiro</option>
+          </select>
+        </div>
       </div>
 
-    </div><!-- /content-area -->
-  </div><!-- /app-layout -->
+      <div class="table-wrap">
+        <div class="skeleton sk-table" id="e2tbl-skeleton"></div>
+        <!--
+          Colunas:  B=Unidade Gestora  D=Vereador  E=Emenda Parlamentar
+                    F=Objeto  G=Dotação  J=Pago  K=Col K  L=Col L
+                    %=J/G×100  Link=emendasimpositivas.ColH
+          Removidas: H (Empenhado) e I (Liquidado) conforme solicitado.
+        -->
+        <table id="e2-table" style="display:none;">
+          <colgroup>
+            <col style="min-width:140px"><!-- Unidade Gestora -->
+            <col style="min-width:140px"><!-- Vereador -->
+            <col style="min-width:80px"> <!-- Emenda Parl. -->
+            <col style="min-width:180px"><!-- Objeto -->
+            <col style="min-width:110px"><!-- Dotação -->
+            <col style="min-width:100px"><!-- Pago -->
+            <col style="min-width:90px"> <!-- Col K -->
+            <col style="min-width:90px"> <!-- Col L -->
+            <col style="min-width:70px"> <!-- % -->
+            <col style="min-width:60px"> <!-- Link -->
+            <col style="min-width:90px"> <!-- Detalhe -->
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Unidade<br>Gestora</th>
+              <th>Vereador</th>
+              <th>Emenda<br>Parlamentar</th>
+              <th>Objeto da Emenda</th>
+              <th data-sort="valorG" class="sortable">Valor<br>Dotação <span class="si">⇅</span></th>
+              <th data-sort="valorJ" class="sortable">Valor<br>Pago <span class="si">⇅</span></th>
+              <th>Imp.</th>
+              <th>Situação</th>
+              <th data-sort="pctJG" class="sortable">% <span class="si">⇅</span></th>
+              <th>Link</th>
+              <th>Detalhe</th>
+            </tr>
+          </thead>
+          <tbody id="e2tbl-body"></tbody>
+        </table>
+      </div>
+      <p id="e2tbl-info" style="font-size:.72rem;color:var(--muted);margin-top:8px;"></p>
+    </section>
 
+  </main>
+
+  <footer>
+    Emendas Impositivas &copy; 2026 — Câmara Municipal de João Pessoa
+  </footer>
+
+  <!-- ══════════════════════════════════════════════════════════
+       JAVASCRIPT
+       ══════════════════════════════════════════════════════════ -->
   <script>
-    var API_URL = 'https://script.google.com/macros/s/AKfycbxWaa3OuFdKH2K3Dcz6LBZCPL8qy4OfDUyn1AAyMfJoCRlaD7adQEsG_lDxMzHTgyEZ/exec';
+    /* ── URL do Web App (Apps Script) ──────────────────────── */
+    // Atualizar quando reimplantar uma nova versão.
+    const APPS_SCRIPT_URL =
+      'https://script.google.com/macros/s/AKfycbyy9oE4rMcoOmYXKJy0KtGusqoKg0FqolpNDOjrYPhQ0xpNTwhwOhloEx2hEW2O4F_9/exec';
 
-    var dadosFolha    = null;
-    var dadosFontes   = null;
-    var dadosHistorico= null;
-    var fontesLoaded  = false;
-    var histLoaded    = false;
-    var chartMensal   = null;
-    var chartF1       = null;
-    var chartF2       = null;
-    var graficoVisivel = true;
+    /* ── FORMATAÇÃO ─────────────────────────────────────────── */
+    const fmtBRL = v =>
+      (v == null || isNaN(v)) ? '—'
+      : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
 
-    // Sort states
-    var sortCol        = 'empenhado';
-    var sortDir        = 'desc';
-    var sortColFontes  = null;
-    var sortDirFontes  = 'desc';
-    var sortHistFornec = 'pago2025';
-    var sortDirHistF   = 'desc';
-    var sortHistTipo   = 'pago2025';
-    var sortDirHistT   = 'desc';
+    const fmtPct = v =>
+      (v == null || isNaN(v)) ? '—'
+      : new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(v) + '%';
 
-    // ── UTILITÁRIOS ──────────────────────────────────────────────
-    function fmtBRL(v) {
-      return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:2}).format(v||0);
+    const fmtDate = d => {
+      if (!d) return '—';
+      const p = d instanceof Date ? d : new Date(d);
+      return isNaN(p) ? String(d) : p.toLocaleDateString('pt-BR');
+    };
+
+    /* ── ESTADO DA TABELA ───────────────────────────────────── */
+    let _rows    = [];
+    let _sortCol = '';
+    let _sortAsc = true;
+
+    /* ── INSTÂNCIAS DOS GRÁFICOS ───────────────────────────── */
+    let chMonthly = null, chCat = null, chVD = null;
+
+    /* ── FETCH ──────────────────────────────────────────────── */
+    function fetchDashboardData() {
+      showLoading(true);
+      fetch(APPS_SCRIPT_URL + '?format=json')
+        .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(onDataLoaded)
+        .catch(onDataError);
     }
-    function fmtPct(v) {
-      return new Intl.NumberFormat('pt-BR',{style:'percent',minimumFractionDigits:1,maximumFractionDigits:1}).format((v||0)/100);
-    }
-    function fmtCresc(v) {
-      if (v === null || v === undefined) return '—';
-      return (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
-    }
-    function badgeClass(p){ return p>=75?'badge good':p>=40?'badge mid':'badge low'; }
-    function crescBadge(pct2026vs2025) {
-      if (pct2026vs2025 < 50)  return 'badge green';
-      if (pct2026vs2025 <= 85) return 'badge yellow';
-      return 'badge red';
-    }
-    function parseMesAno(s) {
-      var m={jan:0,fev:1,mar:2,abr:3,mai:4,jun:5,jul:6,ago:7,set:8,out:9,nov:10,dez:11};
-      var p=String(s||'').toLowerCase().split('/');
-      if(p.length!==2) return 0;
-      var mes=p[0].trim().replace(/\./g,'');
-      var i=m[mes],a=parseInt(p[1].trim(),10);
-      return (i===undefined||isNaN(a))?0:a*100+i;
-    }
-    function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-    // ── NAVEGAÇÃO PRINCIPAL ──────────────────────────────────────
-    var currentMain = 'financeiro';
-    var currentSub  = 'folha';
-
-    function switchMain(area) {
-      if (currentMain === area) return; // toggle off: não fecha, só re-foca
-      currentMain = area;
-
-      document.querySelectorAll('.sidebar-header').forEach(function(el){ el.classList.remove('active'); });
-      document.getElementById('sh-'+area).classList.add('active');
-
-      document.querySelectorAll('.sidebar-subs').forEach(function(el){ el.classList.add('hidden'); });
-      document.getElementById('subs-'+area).classList.remove('hidden');
-
-      document.querySelectorAll('.tab-content').forEach(function(el){ el.classList.remove('active'); });
-
-      if (area === 'financeiro') {
-        document.getElementById('tab-'+currentSub).classList.add('active');
-        document.getElementById('filter-bar').style.display = (currentSub === 'folha') ? 'flex' : 'none';
-      } else {
-        document.getElementById('tab-'+area).classList.add('active');
-        document.getElementById('filter-bar').style.display = 'none';
+    function onDataLoaded(data) {
+      showLoading(false);
+      hideError();
+      try {
+        document.getElementById('last-update').textContent =
+          'Atualizado: ' + fmtDate(new Date(data.ultimaAtualizacao));
+        renderKPIs(data);
+        renderCrossTable(data);
+        renderMonthlyChart(data);
+        renderEmenda2Charts(data);
+      } catch (err) {
+        console.error(err);
+        showError('Erro ao processar dados: ' + err.message);
       }
     }
 
-    function switchTab(tab) {
-      currentSub = tab;
-      document.querySelectorAll('.tab-content').forEach(function(el){ el.classList.remove('active'); });
-      document.querySelectorAll('.sidebar-sub').forEach(function(el){ el.classList.remove('active'); });
-      document.getElementById('tab-'+tab).classList.add('active');
-      var ssub = document.getElementById('ssub-'+tab);
-      if (ssub) ssub.classList.add('active');
-
-      document.getElementById('filter-bar').style.display = (tab === 'folha') ? 'flex' : 'none';
-
-      if (tab === 'fontes'    && !fontesLoaded) carregarFontes();
-      if (tab === 'historico' && !histLoaded)   carregarHistorico();
+    function onDataError(err) {
+      showLoading(false);
+      showError('Falha ao buscar dados: ' + (err.message || String(err)));
     }
 
-    // ── ABA 1: FOLHA ─────────────────────────────────────────────
-    function carregarFolha() {
-      fetch(API_URL)
-        .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
-        .then(function(data){
-          if(data.erro) throw new Error(data.erro);
-          dadosFolha = data;
-          inicializarFiltro(data.mensal);
-          popularFiltroTipo(data.fornecedores||[]);
-          renderFolha(data, data.mensal);
-        })
-        .catch(function(err){ erroBox('loading-folha','Erro: '+err.message); });
-    }
-
-    function renderFolha(data, mensal) {
-      document.getElementById('loading-folha').style.display = 'none';
-      document.getElementById('content-folha').style.display = 'block';
-      renderKPIs(data);
-      renderGrafico(mensal);
-      renderTabelaTipos(data.tipos);
-      renderTabelaFornecedores();
-    }
-
-    function inicializarFiltro(mensal) {
-      var de=document.getElementById('filtroDE'), ate=document.getElementById('filtroATE');
-      de.innerHTML=''; ate.innerHTML='';
-      mensal.forEach(function(m){
-        var a=document.createElement('option'); a.value=m.mesAno; a.textContent=m.mesAno;
-        var b=document.createElement('option'); b.value=m.mesAno; b.textContent=m.mesAno;
-        de.appendChild(a); ate.appendChild(b);
-      });
-      de.selectedIndex=0; ate.selectedIndex=mensal.length-1;
-      document.getElementById('filter-bar').style.display='flex';
-    }
-    function aplicarFiltro() {
-      var de=parseMesAno(document.getElementById('filtroDE').value);
-      var ate=parseMesAno(document.getElementById('filtroATE').value);
-      if(ate<de){ alert('"Até" deve ser ≥ "De".'); return; }
-      var filtrado=dadosFolha.mensal.filter(function(m){ var i=parseMesAno(m.mesAno); return i>=de&&i<=ate; });
-      renderGrafico(filtrado);
-      renderKPIsFiltrado(filtrado);
-    }
-    function limparFiltro() {
-      document.getElementById('filtroDE').selectedIndex=0;
-      document.getElementById('filtroATE').selectedIndex=document.getElementById('filtroATE').options.length-1;
-      renderGrafico(dadosFolha.mensal);
-      renderKPIs(dadosFolha);
-    }
-    function renderKPIsFiltrado(mensal) {
-      var totalEmp=mensal.reduce(function(s,m){ return s+(m.valor||0); },0);
-      var totalPago=mensal.reduce(function(s,m){ return s+(m.pagoAM||0); },0);
-      renderKPIs(Object.assign({},dadosFolha,{
-        totalEmpenhado:totalEmp,totalPagoAM:totalPago,
-        saldoAPagarGeral:totalEmp-totalPago,
-        percentualPagoGeral:totalEmp>0?(totalPago/totalEmp)*100:0
-      }));
-    }
-
-    function toggleGrafico() {
-      graficoVisivel=!graficoVisivel;
-      document.getElementById('chart-container').style.display=graficoVisivel?'block':'none';
-      document.getElementById('btnToggleChart').textContent=graficoVisivel?'▼ Ocultar gráfico':'▶ Exibir gráfico';
-    }
-
+    /* ── KPIs ───────────────────────────────────────────────────
+       Base: coluna G (Valor da Emenda Atual)
+       H, I, J como percentual de G.
+       ─────────────────────────────────────────────────────────── */
     function renderKPIs(data) {
-      var grid=document.getElementById('kpi-grid'); grid.innerHTML='';
-      var totalPago=data.totalPagoAM||0;
-      if(!totalPago && data.tipos && data.tipos.length)
-        totalPago=data.tipos.reduce(function(s,t){ return s+(t.totalPago||0); },0);
-      var pctPago=data.totalEmpenhado>0?(totalPago/data.totalEmpenhado)*100:0;
-      grid.appendChild(criarCard('Total Empenhado',fmtBRL(data.totalEmpenhado),null,'highlight'));
-      grid.appendChild(criarCard('Total Pago (AM)',fmtBRL(totalPago),fmtPct(pctPago)+' do total empenhado',''));
-      grid.appendChild(criarCard('Saldo a Pagar',fmtBRL(data.saldoAPagarGeral),'VALOR - PAGO_AM','alert-card'));
-      (data.tipos||[]).forEach(function(t){
-        grid.appendChild(criarCard(t.tipo,fmtBRL(t.totalValor),fmtPct(t.percentualDoTotal)+' do total empenhado',''));
-      });
-    }
-    function criarCard(label,value,sub,extra){
-      var d=document.createElement('div'); d.className='kpi-card '+(extra||'');
-      var l=document.createElement('span'); l.className='kpi-label'; l.textContent=label;
-      var v=document.createElement('span'); v.className='kpi-value'; v.textContent=value;
-      d.appendChild(l); d.appendChild(v);
-      if(sub){var s=document.createElement('span');s.className='kpi-sub';s.textContent=sub;d.appendChild(s);}
-      return d;
+      const k = data.kpis || {};
+      const G = k.totalG || 0;
+      const H = k.totalH || 0;
+      const I = k.totalI || 0;
+      const J = k.totalJ || 0;
+
+      const pctH = G ? (H / G) * 100 : 0;
+      const pctI = G ? (I / G) * 100 : 0;
+      const pctJ = G ? (J / G) * 100 : 0;
+
+      const cards = [
+        {
+          cls: '', icon: '💰',
+          label: 'Valor da Emenda Atual',
+          value: fmtBRL(G),
+          pct: null,
+          tip: 'Soma da coluna G — base de referência'
+        },
+        {
+          cls: 'c-green', icon: '📋',
+          label: 'Valores Empenhados',
+          value: fmtBRL(H),
+          pct: fmtPct(pctH),
+          tip: 'Soma col H / Soma col G × 100'
+        },
+        {
+          cls: 'c-orange', icon: '✅',
+          label: 'Valores Liquidados',
+          value: fmtBRL(I),
+          pct: fmtPct(pctI),
+          tip: 'Soma col I / Soma col G × 100'
+        },
+        {
+          cls: 'c-blue', icon: '💳',
+          label: 'Valores Pagos',
+          value: fmtBRL(J),
+          pct: fmtPct(pctJ),
+          tip: 'Soma col J / Soma col G × 100'
+        }
+      ];
+
+      document.getElementById('kpi-grid').innerHTML = cards.map(c => `
+        <div class="kpi-card ${c.cls}" title="${c.tip}">
+          <div class="kpi-icon">${c.icon}</div>
+          <p class="kpi-label">${c.label}</p>
+          <p class="kpi-value">${c.value}</p>
+          ${c.pct != null
+            ? `<p class="kpi-pct">representa <strong>${c.pct}</strong> do Valor da Emenda Atual</p>`
+            : '<p class="kpi-pct">valor base de referência (col G)</p>'}
+        </div>
+      `).join('');
     }
 
-    function renderGrafico(mensal) {
-      var labels=mensal.map(function(m){ return m.mesAno; });
-      var emp=mensal.map(function(m){ return m.valor||0; });
-      var liq=mensal.map(function(m){ return m.liquidadoAM||0; });
-      var pago=mensal.map(function(m){ return m.pagoAM||0; });
-      if(chartMensal) chartMensal.destroy();
-      chartMensal=new Chart(document.getElementById('chartMensal').getContext('2d'),{
-        type:'bar',
-        data:{labels:labels,datasets:[
-          {label:'Empenhado',    data:emp,  backgroundColor:'rgba(54,120,134,0.85)',borderColor:'#367886',borderWidth:1,borderRadius:4},
-          {label:'Liquidado AM', data:liq,  backgroundColor:'rgba(99,154,165,0.85)',borderColor:'#639aa5',borderWidth:1,borderRadius:4},
-          {label:'Pago AM',      data:pago, backgroundColor:'rgba(26,58,64,0.80)',  borderColor:'#1a3a40',borderWidth:1,borderRadius:4}
-        ]},
-        options:{
-          responsive:true,interaction:{mode:'index',intersect:false},
-          plugins:{
-            legend:{display:true,position:'top',labels:{font:{size:12},color:'#1a3a40'}},
-            tooltip:{callbacks:{label:function(c){ return ' '+c.dataset.label+': '+fmtBRL(c.parsed.y); }}}
+    /* ── TABELA CRUZADA ─────────────────────────────────────── */
+    function renderCrossTable(data) {
+      _rows = data.crossTable || [];
+
+      // Popula filtro de vereadores (Emenda2 Col D)
+      const vereadores = [...new Set(_rows.map(r => r.vereador).filter(Boolean))].sort();
+      const sel = document.getElementById('filt-vereador');
+      sel.innerHTML = '<option value="">Todos</option>' +
+        vereadores.map(v => `<option value="${v}">${v}</option>`).join('');
+
+      document.getElementById('tbl-skeleton').style.display = 'none';
+      document.getElementById('cross-table').style.display = 'table';
+
+      // Default: ordenar pela diferença mais negativa
+      _sortCol = 'diferenca';
+      _sortAsc = true;
+      const th = document.querySelector('#cross-table thead th[data-col="diferenca"]');
+      if (th) th.classList.add('sorted-asc');
+
+      drawTable();
+    }
+
+    function drawTable() {
+      const fSit = document.getElementById('filt-situacao').value;
+      const fv   = document.getElementById('filt-vereador').value;
+      const fc   = document.getElementById('filt-codigo').value.trim().toLowerCase();
+
+      let rows = _rows.filter(r => {
+        const d = r.diferenca;
+        // Filtro por situação
+        if (fSit === 'neg'  && d >= 0) return false;
+        if (fSit === 'zero' && d !== 0) return false;
+        if (fSit === 'pos'  && d <= 0) return false;
+        // Filtro por vereador
+        if (fv && r.vereador !== fv) return false;
+        // Filtro por código
+        if (fc && !String(r.codigoEmenda).toLowerCase().includes(fc)) return false;
+        return true;
+      });
+
+      // Ordenação
+      if (_sortCol) {
+        rows = [...rows].sort((a, b) => {
+          let va = a[_sortCol], vb = b[_sortCol];
+          if (typeof va === 'string') va = va.toLowerCase();
+          if (typeof vb === 'string') vb = vb.toLowerCase();
+          return va < vb ? (_sortAsc ? -1 : 1) : va > vb ? (_sortAsc ? 1 : -1) : 0;
+        });
+      }
+
+      // Limita a 10 linhas no modo "negativos" (salvo se há filtros adicionais ativos)
+      const limite = (fSit === 'neg' && !fv && !fc) ? 10 : Infinity;
+      const total  = rows.length;
+      if (limite < Infinity) rows = rows.slice(0, limite);
+
+      const tbody = document.getElementById('tbl-body');
+
+      if (!rows.length) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="5">Nenhum registro encontrado.</td></tr>';
+        return;
+      }
+
+      const extraInfo = (fSit === 'neg' && !fv && !fc && total > 10)
+        ? `<tr><td colspan="5" style="text-align:center;padding:8px 16px;font-size:.72rem;color:var(--muted);background:#f9fafb;">
+             Exibindo 10 de ${total} registros negativos. Use os filtros para ver todos.
+           </td></tr>`
+        : '';
+
+      tbody.innerHTML = rows.map(r => {
+        const d   = r.diferenca;
+        const cls = d > 0 ? 'diff-pos' : d < 0 ? 'diff-neg' : 'diff-zero';
+        const nm  = r.semMatch ? '<span class="no-match-badge">sem par E1</span>' : '';
+        return `
+          <tr>
+            <td>${r.codigoEmenda || '—'}${nm}</td>
+            <td>${r.vereador     || '—'}</td>
+            <td>${fmtBRL(r.valorPlanejado)}</td>
+            <td>${fmtBRL(r.valorExecutado)}</td>
+            <td><span class="${cls}">${fmtBRL(d)}</span></td>
+          </tr>`;
+      }).join('') + extraInfo;
+    }
+
+    /* ── GRÁFICO MENSAL ─────────────────────────────────────────
+       Tipo: colunas agrupadas (bar).
+       Eixo X: nome do mês abreviado (Jan, Fev, …).
+       Série principal: col E (Valor da Dotação).
+       Tooltip: col F (Valor Atualizado) exibido como linha extra.
+       ─────────────────────────────────────────────────────────── */
+    const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+    function mesLabel(iso) {
+      // iso = "AAAA-MM"
+      const parts = String(iso).split('-');
+      const m = parseInt(parts[1], 10) - 1;
+      return (MESES[m] || iso) + ' ' + (parts[0] || '');
+    }
+
+    function renderMonthlyChart(data) {
+      const s = (data.charts && data.charts.emenda1Monthly) || [];
+      const ctx = document.getElementById('ch-monthly').getContext('2d');
+      if (chMonthly) chMonthly.destroy();
+
+      chMonthly = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: s.map(r => mesLabel(r.data)),
+          datasets: [
+            {
+              label: 'Valor da Dotação (col E)',
+              data: s.map(r => r.valorPrincipal || 0),
+              backgroundColor: '#C10e1a',
+              borderRadius: 4,
+              borderSkipped: false,
+              order: 1
+            },
+            {
+              // Valor Atualizado aparece apenas no tooltip (linha invisível)
+              label: 'Valor Atualizado (col F)',
+              data: s.map(r => r.valorComparativo || 0),
+              type: 'line',
+              borderColor: '#2f4792',
+              backgroundColor: 'transparent',
+              borderWidth: 2,
+              pointRadius: 3,
+              borderDash: [4, 3],
+              tension: .3,
+              order: 0
+            }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'top', labels: { font: { size: 11 } } },
+            tooltip: {
+              callbacks: {
+                title: c => c[0].label,
+                label: c => `  ${c.dataset.label}: ${fmtBRL(c.parsed.y)}`
+              }
+            }
           },
-          scales:{
-            x:{ticks:{maxRotation:45,font:{size:11}}},
-            y:{ticks:{font:{size:11},callback:function(v){ return fmtBRL(v); }}}
+          scales: {
+            x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+            y: { ticks: { font: { size: 10 }, callback: v => fmtBRL(v) }, grid: { color: 'rgba(0,0,0,.04)' } }
           }
         }
       });
     }
 
-    function renderTabelaTipos(tipos) {
-      var tbody=document.getElementById('tabelaTipos-body'); tbody.innerHTML='';
-      if(!tipos||!tipos.length){
-        tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:#639aa5;">Nenhum dado</td></tr>';
-        return;
-      }
-      (tipos||[]).forEach(function(t, i){
-        var pctPago=t.percentualPago!==undefined?t.percentualPago
-          :(dadosFolha.totalEmpenhado>0?(t.totalPago/dadosFolha.totalEmpenhado)*100:0);
-        var grp='tipo'+i;
-        var tr=document.createElement('tr');
-        tr.innerHTML=
-          '<td><button class="btn-expand" onclick="toggleGrupo(\''+grp+'\',this)">+</button></td>'+
-          '<td>'+(t.tipo||'-')+'</td>'+
-          '<td class="num">'+fmtBRL(t.totalValor)+'</td>'+
-          '<td class="num"><span class="badge">'+fmtPct(t.percentualDoTotal)+'</span></td>'+
-          '<td class="num">'+fmtBRL(t.totalPago)+'</td>'+
-          '<td class="num"><span class="'+badgeClass(pctPago)+'">'+fmtPct(pctPago)+'</span></td>'+
-          '<td class="num">'+fmtBRL(t.saldoAPagar)+'</td>';
-        tbody.appendChild(tr);
-        var mensal=t.mensal||[]; var sumV=0,sumP=0,sumL=0,n=mensal.length;
-        mensal.forEach(function(m){
-          sumV+=m.valor||0; sumP+=m.pago||0; sumL+=m.liquidado||0;
-          var trM=document.createElement('tr');
-          trM.className='detail-row detalhe-mes'; trM.dataset.group=grp;
-          trM.innerHTML='<td></td><td style="padding-left:32px;font-style:italic;font-size:.78rem;color:#639aa5;">'+esc(m.mesAno)+'</td>'+
-            '<td class="num">'+fmtBRL(m.valor||0)+'</td><td class="num">—</td>'+
-            '<td class="num">'+fmtBRL(m.pago||0)+'</td><td class="num">—</td>'+
-            '<td class="num">'+fmtBRL((m.valor||0)-(m.pago||0))+'</td>';
-          tbody.appendChild(trM);
-        });
-        if(n>0){
-          var trAvg=document.createElement('tr');
-          trAvg.className='detail-row detalhe-media'; trAvg.dataset.group=grp;
-          trAvg.innerHTML='<td></td><td style="padding-left:32px;">Média mensal</td>'+
-            '<td class="num">'+fmtBRL(sumV/n)+'</td><td class="num">—</td>'+
-            '<td class="num">'+fmtBRL(sumP/n)+'</td><td class="num">—</td>'+
-            '<td class="num">'+fmtBRL((sumV-sumP)/n)+'</td>';
-          tbody.appendChild(trAvg);
-        }
-      });
+    /* ── GRÁFICOS EMENDA2 ───────────────────────────────────── */
+    const BAR_H   = 38; // altura por barra em px
+    const MAX_VIS = 10; // barras visíveis antes do scroll
+
+    function fmtAbrev(v) {
+      if (!v || isNaN(v)) return 'R$ 0';
+      if (Math.abs(v) >= 1e9) return 'R$ ' + (v/1e9).toFixed(1).replace('.',',') + 'B';
+      if (Math.abs(v) >= 1e6) return 'R$ ' + (v/1e6).toFixed(1).replace('.',',') + 'M';
+      if (Math.abs(v) >= 1e3) return 'R$ ' + (v/1e3).toFixed(1).replace('.',',') + 'K';
+      return fmtBRL(v);
     }
 
-    function popularFiltroTipo(fornecedores) {
-      var sel=document.getElementById('filtroTipo'); var tipos={};
-      fornecedores.forEach(function(f){ if(f.tipo) tipos[f.tipo]=true; });
-      Object.keys(tipos).sort().forEach(function(t){
-        var o=document.createElement('option'); o.value=t; o.textContent=t;
-        if(t==='Pessoa Jurídica') o.selected=true;
-        sel.appendChild(o);
-      });
+    /*
+     * setupScrollChart — cria div interno com a altura total do gráfico
+     * dentro de um wrapper com altura fixa (MAX_VIS barras visíveis).
+     * Retorna o novo elemento canvas criado.
+     *
+     * Por que div interno? Chart.js com responsive:true redimensiona o
+     * canvas para caber no contêiner visível, ignorando o height definido
+     * no canvas. Ao colocar um div interno com a altura total, o Chart.js
+     * preenche o div inteiro, e o wrapper externo aplica o scroll.
+     */
+    function setupScrollChart(wrapId, canvasId) {
+      const outer = document.getElementById(wrapId);
+      // Altura visível: exatamente MAX_VIS barras
+      outer.style.height    = (MAX_VIS * BAR_H) + 'px';
+      outer.style.overflowY = 'scroll';
+      outer.style.overflowX = 'hidden';
+      // Limpa conteúdo anterior (destroi chart velho antes de chamar isso)
+      outer.innerHTML = '';
+      // Div interno com altura total (será preenchida via JS após saber n)
+      const inner = document.createElement('div');
+      inner.id            = wrapId + '-inner';
+      inner.style.cssText = 'position:relative;width:100%;';
+      outer.appendChild(inner);
+      // Canvas
+      const canvas  = document.createElement('canvas');
+      canvas.id     = canvasId;
+      inner.appendChild(canvas);
+      return canvas;
     }
 
-    function setSortCol(col) {
-      sortDir=(sortCol===col&&sortDir==='desc')?'asc':'desc';
-      sortCol=col; renderTabelaFornecedores();
-    }
-    function atualizarIconesSort() {
-      ['empenhado','liquidado','pago','saldo'].forEach(function(c){
-        var th=document.getElementById('th-'+c); if(!th) return;
-        th.classList.remove('sort-asc','sort-desc');
-        if(sortCol===c) th.classList.add(sortDir==='asc'?'sort-asc':'sort-desc');
-      });
+    function setChartHeight(wrapId, n) {
+      const inner = document.getElementById(wrapId + '-inner');
+      if (inner) inner.style.height = Math.max(n * BAR_H, 80) + 'px';
     }
 
-    function setSortFontes(col) {
-      sortDirFontes=(sortColFontes===col&&sortDirFontes==='desc')?'asc':'desc';
-      sortColFontes=col; atualizarIconesSortFontes();
-      renderTabelaComparativo(dadosFontes.rows||[]);
-    }
-    function atualizarIconesSortFontes() {
-      ['c','f','dif','rp','rnp'].forEach(function(c){
-        var th=document.getElementById('fth-'+c); if(!th) return;
-        th.classList.remove('sort-asc','sort-desc');
-        if(sortColFontes===c) th.classList.add(sortDirFontes==='asc'?'sort-asc':'sort-desc');
-      });
-    }
+    function renderEmenda2Charts(data) {
+      const byB = (data.charts && data.charts.emenda2ByB) || [];
+      const byD = (data.charts && data.charts.emenda2ByD) || [];
 
-    function renderTabelaComparativo(rows) {
-      var fieldMap={c:'c',f:'f',dif:'difCF',rp:'restosP',rnp:'restosNP'};
-      var sorted=rows.slice();
-      if(sortColFontes){
-        var field=fieldMap[sortColFontes]||'c';
-        sorted.sort(function(a,b){ var diff=(a[field]||0)-(b[field]||0); return sortDirFontes==='desc'?-diff:diff; });
-      }
-      var tbody=document.getElementById('tabelaFontes-body'); tbody.innerHTML='';
-      sorted.forEach(function(r){
-        var tr=document.createElement('tr');
-        tr.innerHTML=
-          '<td><span class="cell-trunc-sm" title="'+esc(r.a)+'">'+esc(r.a)+'</span></td>'+
-          '<td><span class="cell-trunc" title="'+esc(r.b)+'">'+esc(r.b)+'</span></td>'+
-          '<td class="num">'+fmtBRL(r.c)+'</td>'+
-          '<td class="num">'+fmtBRL(r.f)+'</td>'+
-          '<td class="num '+(r.difCF<0?'neg':'pos')+'">'+fmtBRL(r.difCF)+'</td>'+
-          '<td class="num '+(r.restosP<0?'neg':'pos')+'">'+fmtBRL(r.restosP||0)+'</td>'+
-          '<td class="num '+(r.restosNP<0?'neg':'pos')+'">'+fmtBRL(r.restosNP||0)+'</td>';
-        tbody.appendChild(tr);
-      });
-    }
-
-    function renderTabelaFornecedores() {
-      if(!dadosFolha) return;
-      var fornecedores=dadosFolha.fornecedores||[];
-      var tipoFiltro=document.getElementById('filtroTipo').value.toLowerCase();
-      var busca=(document.getElementById('buscaFornecedor').value||'').toLowerCase();
-      var filtrados=fornecedores.filter(function(f){
-        return (!tipoFiltro||(f.tipo||'').toLowerCase()===tipoFiltro) &&
-               (!busca||(f.nomeFornecedor||'').toLowerCase().indexOf(busca)>=0);
-      });
-      var fieldMap={empenhado:'totalEmpenhado',liquidado:'totalLiquidado',pago:'totalPago',saldo:'saldoAPagar'};
-      var field=fieldMap[sortCol]||'totalEmpenhado';
-      filtrados.sort(function(a,b){ var d=(a[field]||0)-(b[field]||0); return sortDir==='desc'?-d:d; });
-      atualizarIconesSort();
-
-      var tbody=document.getElementById('tabelaFornecedores-body'); tbody.innerHTML='';
-      filtrados.slice(0,50).forEach(function(f,i){
-        var grp='grp'+i;
-        var tr=document.createElement('tr');
-        tr.innerHTML=
-          '<td><strong>'+(i+1)+'</strong></td>'+
-          '<td><button class="btn-expand" onclick="toggleGrupo(\''+grp+'\',this)">+</button>'+esc(f.nomeFornecedor||'-')+'</td>'+
-          '<td class="num">'+fmtBRL(f.totalEmpenhado)+'</td>'+
-          '<td class="num">'+fmtBRL(f.totalLiquidado||0)+'</td>'+
-          '<td class="num">'+fmtBRL(f.totalPago)+'</td>'+
-          '<td class="num">'+fmtBRL(f.saldoAPagar)+'</td>';
-        tbody.appendChild(tr);
-        var mensal=f.mensal||[]; var sumE=0,sumL=0,sumP=0,n=mensal.length;
-        mensal.forEach(function(m){
-          sumE+=m.empenhado||0; sumL+=m.liquidado||0; sumP+=m.pago||0;
-          var trM=document.createElement('tr');
-          trM.className='detail-row detalhe-mes'; trM.dataset.group=grp;
-          trM.innerHTML='<td></td><td style="padding-left:38px;font-style:italic;font-size:.78rem;color:#639aa5;">'+esc(m.mesAno)+'</td>'+
-            '<td class="num">'+fmtBRL(m.empenhado||0)+'</td><td class="num">'+fmtBRL(m.liquidado||0)+'</td>'+
-            '<td class="num">'+fmtBRL(m.pago||0)+'</td><td class="num">'+fmtBRL((m.empenhado||0)-(m.pago||0))+'</td>';
-          tbody.appendChild(trM);
-        });
-        if(n>0){
-          var trAvg=document.createElement('tr');
-          trAvg.className='detail-row detalhe-media'; trAvg.dataset.group=grp;
-          trAvg.innerHTML='<td></td><td style="padding-left:38px;">Média mensal</td>'+
-            '<td class="num">'+fmtBRL(sumE/n)+'</td><td class="num">'+fmtBRL(sumL/n)+'</td>'+
-            '<td class="num">'+fmtBRL(sumP/n)+'</td><td class="num">'+fmtBRL((sumE-sumP)/n)+'</td>';
-          tbody.appendChild(trAvg);
-        }
-        var hist=f.historicos||[];
-        if(hist.length){
-          var trH=document.createElement('tr');
-          trH.className='detail-row detalhe-hist'; trH.dataset.group=grp;
-          var tags=hist.map(function(h){ return '<span class="hist-tag">'+esc(h)+'</span>'; }).join('');
-          trH.innerHTML='<td></td><td colspan="5"><div class="hist-bloco"><span class="hist-label">Histórico ('+esc(f.ultimoMes||'')+')</span><div class="hist-tags">'+tags+'</div></div></td>';
-          tbody.appendChild(trH);
-        }
-      });
-      if(!filtrados.length)
-        tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:#639aa5;padding:16px;">Nenhum fornecedor encontrado</td></tr>';
-    }
-
-    // ── ABA 2: RECEITA x DESPESA ─────────────────────────────────
-    function carregarFontes() {
-      fontesLoaded=true;
-      fetch(API_URL+'?page=fontes')
-        .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
-        .then(function(data){
-          if(data.erro) throw new Error(data.erro);
-          dadosFontes=data; renderFontes(data);
+      // ── Gráfico 1: Emendas por Unidade ─────────────────────
+      // Cor neon VERMELHO · Base: col G · Tooltip: H, I, J com % de G
+      if (chCat) { chCat.destroy(); chCat = null; }
+      const cvB  = setupScrollChart('wrap-cat', 'ch-cat');
+      setChartHeight('wrap-cat', byB.length);
+      chCat = new Chart(cvB.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: byB.map(r => r.label || '—'),
+          datasets: [{
+            data:                byB.map(r => r.valorG || 0),
+            backgroundColor:     '#FF1744',         // neon vermelho
+            hoverBackgroundColor:'#FF4D6A',
+            borderRadius:        3,
+            borderSkipped:       false,
+            barThickness:        Math.max(16, BAR_H - 12)
+          }]
+        },
+        options: buildBarOpts(byB, {
+          baseLabel: 'Dotação (G)', t1: 'Empenhado (H)', k1: 'valorH', p1: 'pctH',
+          t2: 'Liquidado (I)', k2: 'valorI', p2: 'pctI',
+          t3: 'Pago (J)',      k3: 'valorJ', p3: 'pctJ', baseRef: 'G'
         })
-        .catch(function(err){ erroBox('loading-fontes','Erro: '+err.message); });
-    }
-
-    function renderFontes(data) {
-      document.getElementById('loading-fontes').style.display='none';
-      document.getElementById('content-fontes').style.display='block';
-      var h=data.headers||[];
-      var lblA=h[0]||'A',lblB=h[1]||'Conta',lblC=h[2]||'C',lblD=h[3]||'D',lblE=h[4]||'E',lblF=h[5]||'F';
-      document.getElementById('th-fa').textContent=lblA||'Código';
-      document.getElementById('th-fb').textContent=lblB||'Descrição';
-      document.getElementById('th-fc').textContent=lblC||'C';
-      document.getElementById('th-ff').textContent=lblF||'F';
-      document.getElementById('chart-fontes-1-title').textContent=lblC+' por Conta (maior → menor)';
-      document.getElementById('chart-fontes-2-title').textContent=lblF+' por Conta (maior → menor)';
-      var t=data.totais||{};
-      var kpiGrid=document.getElementById('fontes-kpi-grid'); kpiGrid.innerHTML='';
-      kpiGrid.appendChild(criarCardFonte(lblC,fmtBRL(t.c),'card-c'));
-      kpiGrid.appendChild(criarCardFonte(lblD,fmtBRL(t.d),'card-d'));
-      kpiGrid.appendChild(criarCardFonte(lblE,fmtBRL(t.e),'card-e'));
-      kpiGrid.appendChild(criarCardFonte(lblF,fmtBRL(t.f),'card-f'));
-      renderChartFonte('chartFontes1',chartF1,data.chart1||[],'conta','c','rgba(54,120,134,0.85)','#367886',function(c){chartF1=c;});
-      renderChartFonte('chartFontes2',chartF2,data.chart2||[],'conta','f','rgba(26,58,64,0.80)','#1a3a40',function(c){chartF2=c;});
-      atualizarIconesSortFontes();
-      renderTabelaComparativo(data.rows||[]);
-    }
-
-    function criarCardFonte(label,value,cls){
-      var d=document.createElement('div'); d.className='kpi-card '+(cls||'');
-      var l=document.createElement('span'); l.className='kpi-label'; l.textContent=label;
-      var v=document.createElement('span'); v.className='kpi-value'; v.textContent=value;
-      d.appendChild(l); d.appendChild(v); return d;
-    }
-
-    function renderChartFonte(canvasId,oldChart,data,labelKey,valueKey,bg,border,setRef){
-      if(oldChart) oldChart.destroy();
-      var labels=data.map(function(d){ return d[labelKey]; });
-      var values=data.map(function(d){ return d[valueKey]||0; });
-      var newChart=new Chart(document.getElementById(canvasId).getContext('2d'),{
-        type:'bar',
-        data:{labels:labels,datasets:[{data:values,backgroundColor:bg,borderColor:border,borderWidth:1,borderRadius:4}]},
-        options:{
-          indexAxis:'y',responsive:true,
-          plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){ return ' '+fmtBRL(c.parsed.x); }}}},
-          scales:{x:{ticks:{font:{size:10},callback:function(v){ return fmtBRL(v); }}},y:{ticks:{font:{size:10}}}}
-        }
       });
-      setRef(newChart);
-    }
 
-    // ── ABA 3: ANÁLISE HISTÓRICA ─────────────────────────────────
-    function carregarHistorico() {
-      histLoaded=true;
-      fetch(API_URL+'?page=historico')
-        .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
-        .then(function(data){
-          if(data.erro) throw new Error(data.erro);
-          dadosHistorico=data; renderHistorico(data);
+      // ── Gráfico 2: Emendas por Vereadores ──────────────────
+      // Cor neon AZUL · Base: col H · Tooltip: I, J com % de H
+      if (chVD) { chVD.destroy(); chVD = null; }
+      const cvD  = setupScrollChart('wrap-vd', 'ch-vd');
+      setChartHeight('wrap-vd', byD.length);
+      chVD = new Chart(cvD.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: byD.map(r => r.label || '—'),
+          datasets: [{
+            data:                byD.map(r => r.valorH || 0),
+            backgroundColor:     '#00B0FF',         // neon azul
+            hoverBackgroundColor:'#40C4FF',
+            borderRadius:        3,
+            borderSkipped:       false,
+            barThickness:        Math.max(16, BAR_H - 12)
+          }]
+        },
+        options: buildBarOpts(byD, {
+          baseLabel: 'Empenhado (H)', t1: 'Liquidado (I)', k1: 'valorI', p1: 'pctI',
+          t2: 'Pago (J)', k2: 'valorJ', p2: 'pctJ', t3: null, baseRef: 'H'
         })
-        .catch(function(err){ erroBox('loading-historico','Erro: '+err.message); });
+      });
+
+      if (data.emenda2) renderEmenda2Table(data.emenda2);
     }
 
-    function renderHistorico(data) {
-      document.getElementById('loading-historico').style.display='none';
-      document.getElementById('content-historico').style.display='block';
-
-      var pct = data.pct2026vs2025 || 0;
-
-      // Alert banner
-      if (pct > 85) {
-        var banner = document.getElementById('alert-banner');
-        banner.style.display='flex';
-        document.getElementById('alert-banner-msg').textContent =
-          'Atenção: o gasto de 2026 já atingiu ' + pct.toFixed(1) + '% do total pago em 2025!';
-      }
-
-      // KPI Cards
-      var grid = document.getElementById('hist-kpi-grid');
-      grid.innerHTML='';
-      grid.appendChild(criarCard('Total Pago 2025', fmtBRL(data.totalPago2025), null, 'highlight'));
-      grid.appendChild(criarCard('Total Pago 2026', fmtBRL(data.totalPago2026), null, 'highlight'));
-      var cardClass = pct < 50 ? 'card-green' : pct <= 85 ? 'card-yellow' : 'card-red';
-      var crescAbs = data.totalPago2026 - data.totalPago2025;
-      grid.appendChild(criarCard(
-        '2026 em % de 2025',
-        pct.toFixed(1) + '%',
-        (crescAbs >= 0 ? '+' : '') + fmtBRL(crescAbs) + ' em relação a 2025',
-        cardClass
-      ));
-      // Tabela tipos
-      renderHistTipos();
-      // Tabela fornecedores
-      renderHistFornec();
-      // Análise avançada de mudanças
-      renderAnaliseAvancada(data);
-      // Análises implementadas
-      renderSazonalidade(data.mensal || []);
-      renderProjecao(data);
-      renderFidelidade(data);
-      renderPareto(data);
-      renderAlertas(data);
-    }
-
-    // Sort tipos histórico
-    function setSortHistTipo(col) {
-      col = col || 'crescimento';
-      sortDirHistT = (sortHistTipo === col && sortDirHistT === 'desc') ? 'asc' : 'desc';
-      sortHistTipo = col;
-      ['hth-p25-tipo','hth-p26-tipo','hth-cresc-tipo'].forEach(function(id){
-        var th=document.getElementById(id); if(!th) return;
-        th.classList.remove('sort-asc','sort-desc');
-      });
-      var idMap = {pago2025:'hth-p25-tipo', pago2026:'hth-p26-tipo', crescimento:'hth-cresc-tipo'};
-      var thId = idMap[col];
-      if (thId) { var th=document.getElementById(thId); if(th) th.classList.add(sortDirHistT==='asc'?'sort-asc':'sort-desc'); }
-      renderHistTipos();
-    }
-
-    function renderHistTipos() {
-      if (!dadosHistorico) return;
-      var tipos = (dadosHistorico.tipos||[]).slice();
-      tipos.sort(function(a,b){
-        var va = a[sortHistTipo] !== null && a[sortHistTipo] !== undefined ? a[sortHistTipo] : -Infinity;
-        var vb = b[sortHistTipo] !== null && b[sortHistTipo] !== undefined ? b[sortHistTipo] : -Infinity;
-        return sortDirHistT === 'desc' ? vb - va : va - vb;
-      });
-      var tbody = document.getElementById('hist-tipos-body'); tbody.innerHTML='';
-      tipos.forEach(function(t) {
-        var cr = t.crescimento;
-        var badge = cr === null ? '<span class="badge new">Novo</span>' :
-          '<span class="'+(cr < 0 ? 'badge red' : cr < 50 ? 'badge green' : cr <= 85 ? 'badge yellow' : 'badge red')+'">'+fmtCresc(cr)+'</span>';
-        var tr = document.createElement('tr');
-        tr.innerHTML =
-          '<td>'+esc(t.tipo)+'</td>'+
-          '<td class="num">'+fmtBRL(t.pago2025)+'</td>'+
-          '<td class="num">'+fmtBRL(t.pago2026)+'</td>'+
-          '<td class="num">'+badge+'</td>';
-        tbody.appendChild(tr);
-      });
-    }
-
-    // Sort fornecedores histórico
-    function setSortHistFornec(col) {
-      sortDirHistF = (sortHistFornec === col && sortDirHistF === 'desc') ? 'asc' : 'desc';
-      sortHistFornec = col;
-      ['hth-pam25','hth-pam26','hth-cresc'].forEach(function(id){
-        var th=document.getElementById(id); if(!th) return;
-        th.classList.remove('sort-asc','sort-desc');
-      });
-      var colMap = {pago2025:'hth-pam25', pago2026:'hth-pam26', crescimento:'hth-cresc'};
-      var thId = colMap[col];
-      if (thId) { var th=document.getElementById(thId); if(th) th.classList.add(sortDirHistF==='asc'?'sort-asc':'sort-desc'); }
-      renderHistFornec();
-    }
-
-    function renderHistFornec() {
-      if (!dadosHistorico) return;
-      var busca = (document.getElementById('hist-busca-fornec').value||'').toLowerCase();
-      var filtroAno = document.getElementById('hist-filtro-ano').value;
-      var fornec = (dadosHistorico.fornecedores||[]).slice();
-
-      if (busca) fornec = fornec.filter(function(f){ return (f.nome||'').toLowerCase().indexOf(busca) >= 0; });
-      if (filtroAno === '2025') fornec = fornec.filter(function(f){ return f.somente2025; });
-      else if (filtroAno === '2026') fornec = fornec.filter(function(f){ return f.somente2026; });
-      else if (filtroAno === 'ambos') fornec = fornec.filter(function(f){ return !f.somente2025 && !f.somente2026; });
-
-      fornec.sort(function(a,b){
-        var va = a[sortHistFornec] !== null && a[sortHistFornec] !== undefined ? a[sortHistFornec] : -Infinity;
-        var vb = b[sortHistFornec] !== null && b[sortHistFornec] !== undefined ? b[sortHistFornec] : -Infinity;
-        return sortDirHistF === 'desc' ? vb - va : va - vb;
-      });
-
-      var tbody = document.getElementById('hist-fornec-body'); tbody.innerHTML='';
-      if (!fornec.length) {
-        tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:#639aa5;padding:16px;">Nenhum fornecedor encontrado</td></tr>';
-        return;
-      }
-      fornec.slice(0,50).forEach(function(f,i){
-        var cr = f.crescimento;
-        var badge;
-        if (f.somente2026) badge='<span class="badge new">Novo 2026</span>';
-        else if (f.somente2025) badge='<span class="badge gone">Saiu 2025</span>';
-        else badge = cr === null ? '—' :
-          '<span class="'+(cr < 0 ? 'badge red' : cr < 50 ? 'badge green' : cr <= 85 ? 'badge yellow' : 'badge red')+'">'+fmtCresc(cr)+'</span>';
-
-        var rowId = 'frow-'+i;
-        var tr = document.createElement('tr');
-        tr.style.cursor='pointer';
-        tr.innerHTML=
-          '<td><button class="expand-btn" id="ebtn-'+i+'" title="Ver meses">▶</button></td>'+
-          '<td><strong>'+(i+1)+'</strong></td>'+
-          '<td title="'+esc(f.nome)+'"><span class="cell-trunc">'+esc(f.nome)+'</span></td>'+
-          '<td class="num">'+fmtBRL(f.pago2025)+'</td>'+
-          '<td class="num">'+fmtBRL(f.pago2026)+'</td>'+
-          '<td class="num">'+badge+'</td>';
-
-        // Sub-linhas mensais: uma linha por mês (jan–dez), valores 2025 e 2026 lado a lado
-        var m25raw = f.mensal25 || {};
-        var m26raw = f.mensal26 || {};
-
-        // Montar lookup: "jan" → soma de todos os registros desse mês em 2025/2026
-        var MESES_ORDEM = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-        var MESES_FULL  = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-        var lookup25 = {}, lookup26 = {};
-        MESES_ORDEM.forEach(function(nm){ lookup25[nm]=0; lookup26[nm]=0; });
-
-        // Chaves de m25raw são "jan./2025", "fev./2025" etc.
-        Object.keys(m25raw).forEach(function(k){
-          var nm = k.toLowerCase().replace(/\./g,'').split('/')[0];
-          if (lookup25[nm] !== undefined) lookup25[nm] += m25raw[k]||0;
-        });
-        Object.keys(m26raw).forEach(function(k){
-          var nm = k.toLowerCase().replace(/\./g,'').split('/')[0];
-          if (lookup26[nm] !== undefined) lookup26[nm] += m26raw[k]||0;
-        });
-
-        // Só incluir meses que têm pelo menos um valor
-        var mesesAtivos = MESES_ORDEM.filter(function(nm){ return lookup25[nm]||lookup26[nm]; });
-
-        var subRows = [];
-
-        if (!mesesAtivos.length) {
-          var trVazio = document.createElement('tr');
-          trVazio.className = 'sub-mes';
-          trVazio.style.display = 'none';
-          trVazio.innerHTML = '<td></td><td></td><td class="mes-nome" colspan="4" style="color:#639aa5;">Sem dados mensais disponíveis.</td>';
-          subRows.push(trVazio);
-        } else {
-          var tot25 = 0, tot26 = 0, cntM = 0;
-          mesesAtivos.forEach(function(nm, idx) {
-            var v25 = lookup25[nm];
-            var v26 = lookup26[nm];
-            tot25 += v25; tot26 += v26; cntM++;
-            var destaque = v25 > 0 && v26 > v25;
-            var crescMes = v25 > 0 && v26 > 0 ? ((v26-v25)/v25*100) : null;
-            var crescStr = crescMes !== null
-              ? (crescMes >= 0 ? '+' : '') + crescMes.toFixed(1) + '%'
-              : '—';
-            var trM = document.createElement('tr');
-            trM.className = 'sub-mes' + (destaque ? ' destaque' : '');
-            trM.style.display = 'none';
-            trM.innerHTML =
-              '<td></td>'+
-              '<td></td>'+
-              '<td class="mes-nome">'+MESES_FULL[MESES_ORDEM.indexOf(nm)]+'</td>'+
-              '<td class="num">'+(v25 ? fmtBRL(v25) : '—')+'</td>'+
-              '<td class="num val26">'+(v26 ? fmtBRL(v26) : '—')+'</td>'+
-              '<td class="num cresc-col">'+crescStr+'</td>';
-            subRows.push(trM);
-          });
-
-          // Linha de média mensal
-          var cntSafe = cntM || 1;
-          var trMedia = document.createElement('tr');
-          trMedia.className = 'sub-media';
-          trMedia.style.display = 'none';
-          var crescMedia = tot25 > 0 ? ((tot26/cntSafe - tot25/cntSafe)/(tot25/cntSafe)*100) : null;
-          var crescMediaStr = crescMedia !== null ? (crescMedia >= 0?'+':'')+crescMedia.toFixed(1)+'%' : '—';
-          trMedia.innerHTML =
-            '<td></td>'+
-            '<td></td>'+
-            '<td class="mes-nome">Média mensal</td>'+
-            '<td class="num">'+(tot25 ? fmtBRL(tot25/cntSafe) : '—')+'</td>'+
-            '<td class="num">'+(tot26 ? fmtBRL(tot26/cntSafe) : '—')+'</td>'+
-            '<td class="num">'+crescMediaStr+'</td>';
-          subRows.push(trMedia);
-        }
-
-        // Toggle expand
-        (function(idx, mainRow, rows) {
-          mainRow.addEventListener('click', function() {
-            var open = rows[0].style.display !== 'none';
-            rows.forEach(function(r){ r.style.display = open ? 'none' : 'table-row'; });
-            var btn = document.getElementById('ebtn-'+idx);
-            if (btn) btn.textContent = open ? '▶' : '▼';
-          });
-        })(i, tr, subRows);
-
-        tbody.appendChild(tr);
-        subRows.forEach(function(r){ tbody.appendChild(r); });
-      });
-    }
-
-    function parseMesAnoFront(str) {
-      var m = {jan:0,fev:1,mar:2,abr:3,mai:4,jun:5,jul:6,ago:7,set:8,out:9,nov:10,dez:11};
-      var p = String(str||'').toLowerCase().replace(/\./g,'').split('/');
-      if (p.length!==2) return 0;
-      var mes = p[0].trim(), i = m[mes], a = parseInt(p[1].trim(),10);
-      return (i===undefined||isNaN(a)) ? 0 : a*100+i;
-    }
-
-    // Busca por histórico
-    function filtrarPorHistorico() {
-      var kw = (document.getElementById('hist-keyword').value||'').toLowerCase().trim();
-      var container = document.getElementById('hist-search-result');
-      if (!kw || !dadosHistorico) {
-        container.innerHTML='<p style="color:#639aa5;font-size:.85rem;">Digite uma palavra-chave para buscar fornecedores pelo histórico de empenho.</p>';
-        return;
-      }
-      var matches = (dadosHistorico.fornecedores||[]).filter(function(f){
-        return (f.historicos||[]).some(function(h){ return h.toLowerCase().indexOf(kw)>=0; });
-      });
-      if (!matches.length) {
-        container.innerHTML='<p style="color:#639aa5;font-size:.85rem;">Nenhum fornecedor encontrado com essa palavra-chave.</p>';
-        return;
-      }
-      matches.sort(function(a,b){ return (b.pago2025+b.pago2026)-(a.pago2025+a.pago2026); });
-
-      var html='<div class="table-wrapper"><table>'+
-        '<thead><tr><th>Fornecedor / Histórico</th><th class="num">Pago 2025</th><th class="num">Pago 2026</th><th class="num">Crescimento</th></tr></thead><tbody>';
-      matches.forEach(function(f){
-        var histsFiltrados = (f.historicos||[]).filter(function(h){ return h.toLowerCase().indexOf(kw)>=0; });
-        var tags = histsFiltrados.map(function(h){ return '<span class="hist-tag">'+esc(h)+'</span>'; }).join(' ');
-        var cr = f.crescimento;
-        var crText = f.somente2026?'<span class="badge new">Novo 2026</span>' :
-                     f.somente2025?'<span class="badge gone">Saiu</span>' :
-                     cr===null?'—':'<span class="'+(cr<0?'badge red':cr<50?'badge green':cr<=85?'badge yellow':'badge red')+'">'+fmtCresc(cr)+'</span>';
-        html+='<tr>'+
-          '<td><div>'+esc(f.nome)+'</div><div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:3px;">'+tags+'</div></td>'+
-          '<td class="num">'+fmtBRL(f.pago2025)+'</td>'+
-          '<td class="num">'+fmtBRL(f.pago2026)+'</td>'+
-          '<td class="num">'+crText+'</td>'+
-          '</tr>';
-      });
-      html+='</tbody></table></div>';
-      container.innerHTML=html;
-    }
-
-    // Análise avançada
-    function renderAnaliseAvancada(data) {
-      var fornec = data.fornecedores || [];
-      var container = document.getElementById('hist-analise-cards');
-      container.innerHTML='';
-
-      // Só 2025
-      var so25 = fornec.filter(function(f){ return f.somente2025; })
-        .sort(function(a,b){ return b.pago2025-a.pago2025; }).slice(0,5);
-      // Só 2026
-      var so26 = fornec.filter(function(f){ return f.somente2026; })
-        .sort(function(a,b){ return b.pago2026-a.pago2026; }).slice(0,5);
-      // Maiores aumentos absolutos
-      var aumentos = fornec.filter(function(f){ return !f.somente2025 && !f.somente2026 && f.pago2026 > f.pago2025; })
-        .sort(function(a,b){ return (b.pago2026-b.pago2025)-(a.pago2026-a.pago2025); }).slice(0,5);
-      // Maiores quedas absolutas
-      var quedas = fornec.filter(function(f){ return !f.somente2025 && !f.somente2026 && f.pago2026 < f.pago2025; })
-        .sort(function(a,b){ return (a.pago2026-a.pago2025)-(b.pago2026-b.pago2025); }).slice(0,5);
-      // Maiores crescimentos %
-      var maioresPct = fornec.filter(function(f){ return f.crescimento !== null && f.crescimento > 0 && f.pago2025 > 0; })
-        .sort(function(a,b){ return b.crescimento-a.crescimento; }).slice(0,5);
-      // Maiores quedas %
-      var menoresPct = fornec.filter(function(f){ return f.crescimento !== null && f.crescimento < 0; })
-        .sort(function(a,b){ return a.crescimento-b.crescimento; }).slice(0,5);
-
-      function mkCard(title, items, renderItem, borderColor) {
-        var card = document.createElement('div');
-        card.className='analise-card';
-        card.style.borderLeftColor = borderColor || '#639aa5';
-        var h4 = document.createElement('h4'); h4.textContent=title;
-        card.appendChild(h4);
-        if (!items.length) {
-          var p=document.createElement('p'); p.style.fontSize='.8rem'; p.style.color='#639aa5'; p.textContent='Nenhum item';
-          card.appendChild(p);
-        } else {
-          items.forEach(function(item){
-            var div=document.createElement('div'); div.className='ac-item';
-            div.innerHTML=renderItem(item);
-            card.appendChild(div);
-          });
-        }
-        return card;
-      }
-
-      container.appendChild(mkCard('🚪 Saíram em 2026 (Top 5)', so25, function(f){
-        return '<span class="ac-name" title="'+esc(f.nome)+'">'+esc(f.nome.slice(0,28))+'</span>'+
-               '<span class="ac-val neg">'+fmtBRL(f.pago2025)+'</span>';
-      }, '#c0392b'));
-
-      container.appendChild(mkCard('🆕 Novos em 2026 (Top 5)', so26, function(f){
-        return '<span class="ac-name" title="'+esc(f.nome)+'">'+esc(f.nome.slice(0,28))+'</span>'+
-               '<span class="ac-val pos">'+fmtBRL(f.pago2026)+'</span>';
-      }, '#27ae60'));
-
-      container.appendChild(mkCard('📈 Maiores Aumentos R$ (Top 5)', aumentos, function(f){
-        var delta = f.pago2026 - f.pago2025;
-        return '<span class="ac-name" title="'+esc(f.nome)+'">'+esc(f.nome.slice(0,28))+'</span>'+
-               '<span class="ac-val pos">+'+fmtBRL(delta)+'</span>';
-      }, '#2ecc71'));
-
-    }
-
-    // ── ANÁLISES AVANÇADAS ───────────────────────────────────────
-    var chartSazon = null;
-    var fidelidadeTableAberta = false;
-    var paretoTableAberta = false;
-    var fornecTableAberta = false;
-
-    // 1. SAZONALIDADE
-    function renderSazonalidade(mensal) {
-      if (!mensal || !mensal.length) return;
-
-      // Agrupar por nome do mês (jan, fev, ... dez) — lado a lado
-      var mesesNome = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-      var map25 = {}, map26 = {};
-      mensal.forEach(function(m) {
-        // m.mes = "jan./2025" ou "jan./2026"
-        var parts = m.mes.toLowerCase().replace(/\./g,'').split('/');
-        var nome = parts[0] ? parts[0].trim() : '';
-        var ano  = parts[1] ? parseInt(parts[1].trim(), 10) : 0;
-        if (!nome) return;
-        if (ano === 2025) map25[nome] = (map25[nome]||0) + (m.pago2025||0);
-        if (ano === 2026) map26[nome] = (map26[nome]||0) + (m.pago2026||0);
-      });
-
-      // Usar apenas meses que aparecem em pelo menos um dos anos
-      var labels = mesesNome.filter(function(n){ return map25[n]||map26[n]; });
-      var v25 = labels.map(function(n){ return map25[n]||0; });
-      var v26 = labels.map(function(n){ return map26[n]||0; });
-
-      // Cor por barra: vermelho se 2026 > 2025, senão azul-teal padrão
-      var cor26 = labels.map(function(n,i){
-        return v26[i] > v25[i] ? 'rgba(231,76,60,0.85)' : 'rgba(26,58,64,0.80)';
-      });
-      var bord26 = labels.map(function(n,i){
-        return v26[i] > v25[i] ? '#e74c3c' : '#1a3a40';
-      });
-
-      if (chartSazon) chartSazon.destroy();
-      chartSazon = new Chart(document.getElementById('chartSazonalidade').getContext('2d'),{
-        type:'bar',
-        data:{ labels:labels, datasets:[
-          { label:'Pago 2025', data:v25, backgroundColor:'rgba(54,120,134,0.80)', borderColor:'#367886', borderWidth:1, borderRadius:4 },
-          { label:'Pago 2026', data:v26, backgroundColor:cor26, borderColor:bord26, borderWidth:1, borderRadius:4 }
-        ]},
-        options:{
-          responsive:true, interaction:{ mode:'index', intersect:false },
-          plugins:{
-            legend:{ display:true, position:'top', labels:{ font:{size:12}, color:'#1a3a40' }},
-            tooltip:{ callbacks:{ label:function(c){ return ' '+c.dataset.label+': '+fmtBRL(c.parsed.y); }}}
+    /*
+     * buildBarOpts — barras horizontais, estilo referência.
+     * responsive:true + maintainAspectRatio:false preenchem o div interno.
+     */
+    function buildBarOpts(series, cfg) {
+      return {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: { right: 64 } },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(28,38,41,.93)',
+            titleColor: '#fff', bodyColor: 'rgba(255,255,255,.85)',
+            borderColor: 'rgba(255,255,255,.1)', borderWidth: 1,
+            padding: 10,
+            callbacks: {
+              label: c => `  ${cfg.baseLabel}: ${fmtBRL(c.parsed.x)}`,
+              afterBody: c => {
+                const r   = series[c[0].dataIndex] || {};
+                const out = [
+                  `  ${cfg.t1}: ${fmtBRL(r[cfg.k1])}  (${fmtPct(r[cfg.p1])} de ${cfg.baseRef})`,
+                  `  ${cfg.t2}: ${fmtBRL(r[cfg.k2])}  (${fmtPct(r[cfg.p2])} de ${cfg.baseRef})`
+                ];
+                if (cfg.t3) out.push(`  ${cfg.t3}: ${fmtBRL(r[cfg.k3])}  (${fmtPct(r[cfg.p3])} de ${cfg.baseRef})`);
+                return out;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            display: false,          // sem eixo X → visual mais limpo (como referência)
+            grid: { display: false }
           },
-          scales:{
-            x:{ ticks:{ maxRotation:0, font:{size:11} }},
-            y:{ ticks:{ font:{size:11}, callback:function(v){ return fmtBRL(v); }}}
+          y: {
+            grid:   { display: false },
+            border: { display: false },
+            ticks: {
+              font:         { size: 11, weight: '500' },
+              color:        '#374151',
+              padding:      8,
+              crossAlign:   'far',
+              callback: function(val) {
+                const lbl = this.getLabelForValue(val);
+                if (!lbl) return '—';
+                return lbl.length > 30 ? lbl.slice(0, 28) + '…' : lbl;
+              }
+            }
+          }
+        },
+        // Valor abreviado ao lado direito de cada barra (como na imagem de ref.)
+        animation: {
+          onComplete: function() {
+            const c = this.ctx;
+            c.save();
+            c.font         = '600 11px system-ui,sans-serif';
+            c.fillStyle    = '#1c2629';
+            c.textBaseline = 'middle';
+            this.data.datasets.forEach((ds, di) => {
+              this.getDatasetMeta(di).data.forEach((bar, i) => {
+                const v = ds.data[i];
+                if (!v) return;
+                c.fillText(fmtAbrev(v), bar.x + 6, bar.y);
+              });
+            });
+            c.restore();
           }
         }
-      });
+      };
     }
 
-    // 2. PROJEÇÃO ANUAL
-    function renderProjecao(data) {
-      var mensal = data.mensal || [];
-      var meses26 = mensal.filter(function(m){ return m.pago2026 > 0; });
-      var grid = document.getElementById('hist-projecao-grid'); grid.innerHTML='';
-      if (!meses26.length) {
-        grid.innerHTML='<p style="color:#639aa5;font-size:.85rem;">Nenhum dado mensal de 2026 disponível.</p>';
+    /* ── HELPERS UI ─────────────────────────────────────────── */
+    function showLoading(v) {
+      document.getElementById('loading-overlay').classList.toggle('hidden', !v);
+    }
+
+    function showError(msg) {
+      document.getElementById('error-text').textContent = msg;
+      document.getElementById('error-banner').classList.add('visible');
+    }
+
+    function hideError() {
+      document.getElementById('error-banner').classList.remove('visible');
+    }
+
+    /* ── ORDENAÇÃO DA TABELA ────────────────────────────────── */
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('#cross-table thead th[data-col]').forEach(th => {
+        th.addEventListener('click', () => {
+          const col = th.dataset.col;
+          document.querySelectorAll('#cross-table thead th')
+            .forEach(h => h.classList.remove('sorted-asc', 'sorted-desc'));
+          _sortAsc = _sortCol === col ? !_sortAsc : true;
+          _sortCol = col;
+          th.classList.add(_sortAsc ? 'sorted-asc' : 'sorted-desc');
+          drawTable();
+        });
+      });
+
+      document.getElementById('filt-situacao').addEventListener('change', drawTable);
+      document.getElementById('filt-vereador').addEventListener('change', drawTable);
+      document.getElementById('filt-codigo').addEventListener('input', drawTable);
+
+      // Listeners da tabela detalhada Emenda2
+      ['e2t-vereador','e2t-unidade','e2t-emenda','e2t-sort'].forEach(id =>
+        document.getElementById(id).addEventListener('change', drawE2Table));
+      document.getElementById('e2t-objeto').addEventListener('input', drawE2Table);
+
+      // Ordenação por clique no cabeçalho da tabela E2
+      document.querySelectorAll('#e2-table thead th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => {
+          const col = th.dataset.sort;
+          if (_e2SortCol === col) {
+            _e2SortAsc = !_e2SortAsc;
+          } else {
+            _e2SortCol = col;
+            _e2SortAsc = false; // padrão: maior primeiro
+          }
+          document.querySelectorAll('#e2-table thead th')
+            .forEach(h => h.classList.remove('sorted-asc','sorted-desc'));
+          th.classList.add(_e2SortAsc ? 'sorted-asc' : 'sorted-desc');
+          // Sincroniza o select de ordenação
+          document.getElementById('e2t-sort').value = _e2SortAsc ? 'asc' : 'desc';
+          drawE2Table();
+        });
+      });
+
+      fetchDashboardData();
+    });
+
+    /* ── TABELA DETALHADA EMENDA2 ─────────────────────────────
+       Dados: data.emenda2 (array de objetos com os campos
+       unidadeGestora, vereador, emendaParlamentar, objetoEmenda,
+       valorG, valorH, valorI, valorJ)
+    ─────────────────────────────────────────────────────────── */
+    let _e2Rows    = [];
+    let _e2SortCol = 'valorG';
+    let _e2SortAsc = false;
+
+    function renderEmenda2Table(rows) {
+      _e2Rows = rows || [];
+
+      // Popula selects de filtro com valores únicos
+      function fillSelect(id, key, placeholder) {
+        const vals = [...new Set(_e2Rows.map(r => r[key]).filter(Boolean))].sort();
+        const el   = document.getElementById(id);
+        el.innerHTML = `<option value="">${placeholder}</option>` +
+          vals.map(v => `<option value="${v}">${v}</option>`).join('');
+      }
+      fillSelect('e2t-vereador', 'vereador',          'Todos');
+      fillSelect('e2t-unidade',  'unidadeGestora',    'Todas');
+      fillSelect('e2t-emenda',   'emendaParlamentar', 'Todas');
+
+      document.getElementById('e2tbl-skeleton').style.display = 'none';
+      document.getElementById('e2-table').style.display = 'table';
+      drawE2Table();
+    }
+
+    function drawE2Table() {
+      const fV  = document.getElementById('e2t-vereador').value;
+      const fU  = document.getElementById('e2t-unidade').value;
+      const fE  = document.getElementById('e2t-emenda').value;
+      const fO  = document.getElementById('e2t-objeto').value.trim().toLowerCase();
+      const dir = document.getElementById('e2t-sort').value;
+
+      // Usa _e2SortCol definido pelo select ou pelo clique no cabeçalho
+      const sortKey = _e2SortCol || 'valorG';
+      const sortAsc = dir === 'asc';
+
+      let rows = _e2Rows.filter(r => {
+        if (fV && r.vereador          !== fV) return false;
+        if (fU && r.unidadeGestora    !== fU) return false;
+        if (fE && r.emendaParlamentar !== fE) return false;
+        if (fO && !String(r.objetoEmenda || '').toLowerCase().includes(fO)) return false;
+        return true;
+      });
+
+      rows = [...rows].sort((a, b) => {
+        const va = a[sortKey], vb = b[sortKey];
+        return sortAsc ? va - vb : vb - va;
+      });
+
+      const tbody = document.getElementById('e2tbl-body');
+      const info  = document.getElementById('e2tbl-info');
+
+      info.textContent = rows.length
+        ? `${rows.length} registro${rows.length > 1 ? 's' : ''} encontrado${rows.length > 1 ? 's' : ''}`
+        : '';
+
+      if (!rows.length) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="11">Nenhum registro encontrado.</td></tr>';
         return;
       }
-      var qtdMeses    = Math.min(meses26.length, 12);
-      var totalExec   = meses26.reduce(function(s,m){ return s+(m.pago2026||0); }, 0);
-      var mediaMensal = totalExec / qtdMeses;
-      var projecao12  = mediaMensal * 12;
-      var varVs2025   = data.totalPago2025 > 0 ? ((projecao12 - data.totalPago2025) / data.totalPago2025) * 100 : 0;
-      var cardClass   = projecao12 < data.totalPago2025 ? 'card-green' : projecao12 < data.totalPago2025 * 1.1 ? 'card-yellow' : 'card-red';
-      grid.appendChild(criarCard('Meses executados 2026', qtdMeses + ' de 12 meses', null, ''));
-      grid.appendChild(criarCard('Média mensal 2026', fmtBRL(mediaMensal), null, ''));
-      grid.appendChild(criarCard('Projeção 12 meses 2026', fmtBRL(projecao12),
-        (varVs2025 >= 0 ? '+' : '') + varVs2025.toFixed(1) + '% vs total 2025', cardClass));
-      grid.appendChild(criarCard('Total real 2025 (base)', fmtBRL(data.totalPago2025), null, 'highlight'));
+
+      // clip(v) — trunca com ellipsis e mostra texto completo no title (tooltip nativo)
+      const clip = v => `<span class="cell-clip" title="${String(v||'').replace(/"/g,'&quot;')}">${v||'—'}</span>`;
+
+      tbody.innerHTML = rows.map(r => {
+        const pct = r.pctJG || 0;
+
+        // Coluna Imp. (K) — badge azul sublinhado
+        const impVal   = r.colK || '';
+        const impBadge = impVal
+          ? `<span class="badge-imp">${impVal}</span>`
+          : '<span style="color:var(--muted)">—</span>';
+
+        // Coluna Situação (L) — badge colorido por palavra-chave
+        const sitVal   = r.colL || '';
+        let sitClass = 's-warn';
+        if (/ativ|sim|aprov|conclu|execut/i.test(sitVal))      sitClass = 's-ok';
+        else if (/encerr|n[aã]o|cancel|reprov|inativ/i.test(sitVal)) sitClass = 's-off';
+        const sitBadge = sitVal
+          ? `<span class="badge-sit ${sitClass}">${sitVal}</span>`
+          : '<span style="color:var(--muted)">—</span>';
+
+        // Coluna % — contorno vermelho se 0, verde se > 0
+        const pctHtml = pct === 0
+          ? `<span class="pct-zero">${fmtPct(pct)}</span>`
+          : `<span class="pct-ok">${fmtPct(pct)}</span>`;
+
+        // Link
+        const link = r.link
+          ? `<a href="${r.link}" target="_blank" rel="noopener" title="${r.link}"
+               style="display:inline-flex;align-items:center;justify-content:center;
+               width:26px;height:26px;border-radius:50%;background:var(--blue);
+               color:#fff;font-size:.75rem;text-decoration:none;flex-shrink:0;">↗</a>`
+          : '—';
+
+        const idx = _e2Rows.indexOf(r);
+        return `
+        <tr>
+          <td>${clip(r.unidadeGestora)}</td>
+          <td>${clip(r.vereador)}</td>
+          <td class="ctr">${r.emendaParlamentar || '—'}</td>
+          <td>${clip(r.objetoEmenda)}</td>
+          <td class="num">${fmtBRL(r.valorG)}</td>
+          <td class="num">${fmtBRL(r.valorJ)}</td>
+          <td class="ctr">${impBadge}</td>
+          <td class="ctr">${sitBadge}</td>
+          <td class="ctr">${pctHtml}</td>
+          <td class="ctr">${link}</td>
+          <td class="ctr"><button class="btn-detalhe" onclick="openModal(${idx})">🔍 Ver</button></td>
+        </tr>`;
+      }).join('');
     }
 
-    // 3. FIDELIDADE
-    function renderFidelidade(data) {
-      var fornec = data.fornecedores || [];
-      // Usar contagens da API quando disponíveis (já filtradas por pago > 0)
-      var cntRec  = data.recorrentes  != null ? data.recorrentes  : fornec.filter(function(f){ return !f.somente2025 && !f.somente2026 && f.pago2025>0 && f.pago2026>0; }).length;
-      var cntNov  = data.somente2026  != null ? data.somente2026  : fornec.filter(function(f){ return f.somente2026; }).length;
-      var cntSaiu = data.somente2025  != null ? data.somente2025  : fornec.filter(function(f){ return f.somente2025; }).length;
+    /* ── MODAL DETALHE DA EMENDA ────────────────────────────── */
+    function openModal(idx) {
+      const r = _e2Rows[idx];
+      if (!r) return;
 
-      // Valores financeiros calculados da lista (corretos pois já filtrada)
-      var recLista  = fornec.filter(function(f){ return !f.somente2025 && !f.somente2026 && f.pago2025>0 && f.pago2026>0; });
-      var novLista  = fornec.filter(function(f){ return f.somente2026; });
-      var saiuLista = fornec.filter(function(f){ return f.somente2025; });
+      // Usa o primeiro empenho para Função / Ação / Objeto (campos únicos por emenda)
+      const emp0 = (r.empenhos && r.empenhos[0]) || {};
 
-      var valRec  = recLista.reduce(function(s,f){ return s + Math.max(f.pago2025,f.pago2026); }, 0);
-      var valNov  = novLista.reduce(function(s,f){ return s + f.pago2026; }, 0);
-      var valSaiu = saiuLista.reduce(function(s,f){ return s + f.pago2025; }, 0);
-      var total   = valRec + valNov + valSaiu || 1;
+      document.getElementById('modal-title').textContent =
+        'Detalhes da Emenda nº ' + (r.emendaParlamentar || '—');
+      document.getElementById('modal-subtitle').textContent =
+        r.vereador || '—';
 
-      var grid = document.getElementById('hist-fidelidade-grid'); grid.innerHTML='';
-      grid.appendChild(criarCard('🔄 Recorrentes',
-        cntRec.toLocaleString('pt-BR') + ' fornecedores',
-        fmtBRL(valRec) + ' (' + (valRec/total*100).toFixed(1) + '% do volume)', 'card-green'));
-      grid.appendChild(criarCard('🆕 Novos em 2026',
-        cntNov.toLocaleString('pt-BR') + ' fornecedores',
-        fmtBRL(valNov) + ' (' + (valNov/total*100).toFixed(1) + '% do volume)', 'card-c'));
-      grid.appendChild(criarCard('🚪 Saíram em 2026',
-        cntSaiu.toLocaleString('pt-BR') + ' fornecedores',
-        fmtBRL(valSaiu) + ' (' + (valSaiu/total*100).toFixed(1) + '% do volume)', 'card-d'));
+      const field = (label, value, mono) => `
+        <div class="modal-field">
+          <div class="modal-field-label">${label}</div>
+          <div class="modal-field-value${mono ? ' mono' : ''}">${value || '—'}</div>
+        </div>`;
 
-      // Tabela fidelidade com busca e filtro situação
-      var busca   = ((document.getElementById('fid-busca')||{}).value||'').toLowerCase();
-      var sitFilt = ((document.getElementById('fid-situacao')||{}).value||'');
+      // Blocos de credores — cruzamento Empenho × Pagamento pelo índice
+      const empenhos   = r.empenhos   || [];
+      const pagamentos = r.pagamentos || [];
+      const totalEmp   = r.valorH || 0; // total empenhado da emenda
 
-      var todos = recLista.concat(novLista).concat(saiuLista);
-      todos.sort(function(a,b){ return (b.pago2025+b.pago2026)-(a.pago2025+a.pago2026); });
+      // Soma total dos valorBruto dos pagamentos
+      const totalPagoBruto = pagamentos.reduce((s, p) => s + (p.valorBruto || 0), 0);
+      const totalPagoE2    = r.valorJ || 0;   // col J Emenda2 — base da barra
+      const faltaPagar     = totalEmp - totalPagoE2;
 
-      if (busca)   todos = todos.filter(function(f){ return (f.nome||'').toLowerCase().indexOf(busca)>=0; });
-      if (sitFilt === 'recorrente') todos = todos.filter(function(f){ return !f.somente2025&&!f.somente2026; });
-      else if (sitFilt === 'novo')  todos = todos.filter(function(f){ return f.somente2026; });
-      else if (sitFilt === 'saiu')  todos = todos.filter(function(f){ return f.somente2025; });
+      // Número de linhas = maior entre empenhos e pagamentos
+      const nLinhas = Math.max(empenhos.length, pagamentos.length);
 
-      var tbody = document.getElementById('hist-fidelidade-body'); tbody.innerHTML='';
-      todos.slice(0,50).forEach(function(f,i){
-        var sit = f.somente2026 ? '<span class="badge new">Novo 2026</span>'
-                : f.somente2025 ? '<span class="badge gone">Saiu</span>'
-                : '<span class="badge green">Recorrente</span>';
-        var tr = document.createElement('tr');
-        tr.innerHTML=
-          '<td><strong>'+(i+1)+'</strong></td>'+
-          '<td title="'+esc(f.nome)+'"><span class="cell-trunc">'+esc(f.nome)+'</span></td>'+
-          '<td class="num">'+fmtBRL(f.pago2025)+'</td>'+
-          '<td class="num">'+fmtBRL(f.pago2026)+'</td>'+
-          '<td class="num">'+sit+'</td>';
-        tbody.appendChild(tr);
+      const credoresHtml = nLinhas > 0
+        ? Array.from({ length: nLinhas }, (_, i) => {
+            const emp = empenhos[i]  || {};
+            const pag = pagamentos[i] || {};
+            const vb  = pag.valorBruto || 0;
+            const pct = totalPagoBruto > 0 ? (vb / totalPagoBruto) * 100 : 0;
+            const pctHtml = pct === 0
+              ? `<span style="display:inline-block;padding:2px 8px;border:2px solid var(--red);border-radius:4px;color:var(--red);font-weight:700;font-size:.82rem;">${fmtPct(pct)}</span>`
+              : pct >= 100
+                ? `<span style="display:inline-block;padding:2px 8px;background:rgba(134,180,82,.15);border-radius:4px;color:#3a6b12;font-weight:700;font-size:.82rem;">${fmtPct(pct)} ✓</span>`
+                : `<span style="display:inline-block;padding:2px 8px;background:rgba(221,150,27,.12);border-radius:4px;color:#7a4f00;font-weight:700;font-size:.82rem;">${fmtPct(pct)}</span>`;
+
+            return `
+              <div class="modal-credor">
+                <div class="modal-credor-header">
+                  <span class="modal-credor-title">${emp.nmCredor || ('Credor ' + (nLinhas > 1 ? (i+1) : ''))}</span>
+                  <span class="modal-credor-pct">${pctHtml}</span>
+                </div>
+                <div class="modal-grid" style="margin-bottom:6px;">
+                  ${field('CNPJ', emp.cdCredor, true)}
+                  ${field('Valor Bruto Pago', fmtBRL(vb))}
+                  ${field('Código do Banco', pag.cdBanco, true)}
+                  ${field('Agência', pag.cdAgencia, true)}
+                  ${field('Conta Bancária', pag.nuConta, true)}
+                  ${field('Fonte', emp.cdFonte, true)}
+                  ${field('Modalidade', emp.nmModalidade)}
+                </div>
+                ${emp.deHistorico ? `<div class="modal-grid col1">${field('Histórico', emp.deHistorico)}</div>` : ''}
+              </div>`;
+          }).join('')
+        : '<p style="font-size:.8rem;color:var(--muted);padding:8px 0;">Nenhum empenho/pagamento encontrado para esta emenda.</p>';
+
+      // Barra de resumo financeiro
+      const pctTotal = totalEmp > 0 ? (totalPagoE2 / totalEmp) * 100 : 0;
+      const resumoHtml = `
+        <div class="modal-resumo">
+          <div class="modal-resumo-bar-wrap">
+            <div class="modal-resumo-bar" style="width:${Math.min(pctTotal,100).toFixed(1)}%"></div>
+          </div>
+          <div class="modal-resumo-vals">
+            <span><strong>${fmtPct(pctTotal)}</strong> do total empenhado pago</span>
+            <span style="color:var(--red)">Falta: <strong>${fmtBRL(faltaPagar > 0 ? faltaPagar : 0)}</strong></span>
+          </div>
+        </div>`;
+
+      document.getElementById('modal-body').innerHTML = `
+        <!-- IDENTIFICAÇÃO -->
+        <div class="modal-section">
+          <div class="modal-section-title">Identificação</div>
+          <div class="modal-grid">
+            ${field('Beneficiário', r.unidadeGestora)}
+            ${field('Parlamentar', r.vereador)}
+            ${field('Tipo', 'Municipal')}
+            ${field('Função', emp0.nmFuncao)}
+          </div>
+          <div class="modal-grid col1" style="margin-top:10px;">
+            ${field('Ação', emp0.nmAcao)}
+            ${field('Objeto', emp0.deObjetivo)}
+          </div>
+        </div>
+
+        <!-- VALORES -->
+        <div class="modal-section">
+          <div class="modal-section-title">Valores</div>
+          <div class="modal-grid col3" style="margin-bottom:12px;">
+            ${field('Total Empenhado', fmtBRL(r.valorH))}
+            ${field('Total Liquidado', fmtBRL(r.valorI))}
+            ${field('Total Pago (E2)', fmtBRL(r.valorJ))}
+          </div>
+          ${resumoHtml}
+        </div>
+
+        <!-- CREDORES -->
+        <div class="modal-section">
+          <div class="modal-section-title">Pagamentos por Credor</div>
+          ${credoresHtml}
+        </div>
+      `;
+
+      document.getElementById('modal-overlay').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      document.getElementById('modal-overlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    function printModal() {
+      window.print();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+      document.getElementById('modal-overlay').addEventListener('click', e => {
+        if (e.target === document.getElementById('modal-overlay')) closeModal();
       });
-      if (!todos.length)
-        tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:#639aa5;padding:14px;">Nenhum resultado</td></tr>';
-    }
-
-    function toggleFidelidadeTable() {
-      fidelidadeTableAberta = !fidelidadeTableAberta;
-      var wrap = document.getElementById('hist-fidelidade-table-wrap');
-      var btn  = document.getElementById('btn-fidelidade-toggle');
-      wrap.style.display = fidelidadeTableAberta ? 'block' : 'none';
-      if (btn) btn.textContent = fidelidadeTableAberta ? '▲ Ocultar tabela' : '▼ Ver detalhe por fornecedor';
-    }
-
-    function toggleParetoTable() {
-      paretoTableAberta = !paretoTableAberta;
-      var wrap = document.getElementById('hist-pareto-table-wrap');
-      var btn  = document.getElementById('btn-pareto-toggle');
-      wrap.style.display = paretoTableAberta ? 'block' : 'none';
-      if (btn) btn.textContent = paretoTableAberta ? '▲ Ocultar tabela' : '▼ Ver detalhe por fornecedor';
-    }
-
-    function toggleFornecTable() {
-      fornecTableAberta = !fornecTableAberta;
-      var wrap = document.getElementById('hist-fornec-table-wrap');
-      var btn  = document.getElementById('btn-fornec-toggle');
-      wrap.style.display = fornecTableAberta ? 'block' : 'none';
-      if (btn) btn.textContent = fornecTableAberta ? '▲ Ocultar tabela' : '▼ Ver detalhe por fornecedor';
-    }
-
-    // 4. PARETO
-    function renderPareto(data) {
-      if (!data) return;
-
-      // Popular dropdown de tipos na primeira chamada
-      var sel = document.getElementById('pareto-filtro-tipo');
-      if (sel && sel.options.length <= 1) {
-        (data.tipos||[]).forEach(function(t){
-          var o = document.createElement('option'); o.value=t.tipo; o.textContent=t.tipo;
-          sel.appendChild(o);
-        });
-      }
-      var tipoFiltro = sel ? sel.value : '';
-
-      var todos = (data.fornecedores||[]).slice();
-      if (tipoFiltro) todos = todos.filter(function(f){ return (f.tipo||'') === tipoFiltro; });
-
-      var sorted25 = todos.slice().sort(function(a,b){ return b.pago2025-a.pago2025; });
-      var sorted26 = todos.slice().sort(function(a,b){ return b.pago2026-a.pago2026; });
-
-      var total25 = sorted25.reduce(function(s,f){ return s+f.pago2025; },0) || 1;
-      var total26 = sorted26.reduce(function(s,f){ return s+f.pago2026; },0) || 1;
-
-      // Calcula % acum 26 por fornecedor (ordenado por 2025 para a tabela)
-      var cum26map = {};
-      var c26=0;
-      sorted26.forEach(function(f){ c26+=f.pago2026; cum26map[f.nome]=c26/total26*100; });
-
-      // Contar pareto 80%
-      var pareto80_25=0, pareto80_26=0, c25=0, c26b=0;
-      sorted25.forEach(function(f){ c25+=f.pago2025; if(c25/total25<=0.8) pareto80_25++; });
-      sorted26.forEach(function(f){ c26b+=f.pago2026; if(c26b/total26<=0.8) pareto80_26++; });
-
-      var kpis = document.getElementById('hist-pareto-kpis'); kpis.innerHTML='';
-      kpis.appendChild(criarCard('Fornec. = 80% gasto 2025', pareto80_25+' de '+todos.length, 'concentração dos pagamentos 2025', 'card-green'));
-      kpis.appendChild(criarCard('Fornec. = 80% gasto 2026', pareto80_26+' de '+todos.length, 'concentração dos pagamentos 2026', 'card-yellow'));
-      kpis.appendChild(criarCard('Total fornecedores'+(tipoFiltro?' ('+tipoFiltro+')':''), todos.length, tipoFiltro?tipoFiltro:'2025 + 2026 combinados', ''));
-
-      var tbody = document.getElementById('hist-pareto-body'); tbody.innerHTML='';
-      var cum25=0;
-      sorted25.slice(0,50).forEach(function(f,i){
-        cum25 += f.pago2025;
-        var pct25 = cum25/total25*100;
-        var pct26 = cum26map[f.nome] || 0;
-        var over80 = pct25 > 80 && (cum25-f.pago2025)/total25*100 <= 80;
-        var tr = document.createElement('tr');
-        if (over80) tr.style.borderTop='2px solid #27ae60';
-        tr.innerHTML=
-          '<td><strong>'+(i+1)+'</strong></td>'+
-          '<td title="'+esc(f.nome)+'"><span class="cell-trunc">'+esc(f.nome)+'</span></td>'+
-          '<td class="num">'+fmtBRL(f.pago2025)+'</td>'+
-          '<td class="num"><span class="badge '+(pct25<=80?'green':'low')+'">'+pct25.toFixed(1)+'%</span></td>'+
-          '<td class="num">'+fmtBRL(f.pago2026)+'</td>'+
-          '<td class="num"><span class="badge '+(pct26<=80?'green':'low')+'">'+pct26.toFixed(1)+'%</span></td>';
-        tbody.appendChild(tr);
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeModal();
       });
-    }
+    });
 
-    // 5. ALERTAS
-    function renderAlertas(data) {
-      var fornec = data.fornecedores || [];
-      var container = document.getElementById('hist-alertas-container');
-      container.innerHTML='';
-
-      // Crescimento > 200%
-      var explosivos = fornec.filter(function(f){ return f.crescimento !== null && f.crescimento > 200 && f.pago2026 > 50000; })
-        .sort(function(a,b){ return b.crescimento-a.crescimento; });
-      // Novos com valor alto
-      var novosAltos = fornec.filter(function(f){ return f.somente2026 && f.pago2026 > 100000; })
-        .sort(function(a,b){ return b.pago2026-a.pago2026; });
-      // Quedas totais (saíram mas eram relevantes)
-      var sairamAltos = fornec.filter(function(f){ return f.somente2025 && f.pago2025 > 100000; })
-        .sort(function(a,b){ return b.pago2025-a.pago2025; });
-
-      function mkAlertBlock(icon, title, color, items, renderRow) {
-        var wrap = document.createElement('div');
-        wrap.style.cssText='background:#fff;border-radius:10px;padding:18px;box-shadow:0 2px 8px rgba(54,120,134,.10);margin-bottom:16px;border-left:4px solid '+color+';';
-        var h = document.createElement('p');
-        h.style.cssText='font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:'+color+';margin-bottom:10px;';
-        h.textContent = icon + ' ' + title + ' (' + items.length + ')';
-        wrap.appendChild(h);
-        if (!items.length) {
-          var none = document.createElement('p');
-          none.style.cssText='font-size:.82rem;color:#639aa5;';
-          none.textContent='Nenhum item identificado.';
-          wrap.appendChild(none);
-        } else {
-          var tbl = document.createElement('table');
-          tbl.style.width='100%'; tbl.style.borderCollapse='collapse'; tbl.style.fontSize='.82rem';
-          items.slice(0,10).forEach(function(f,i){ tbl.appendChild(renderRow(f,i)); });
-          wrap.appendChild(tbl);
-        }
-        return wrap;
-      }
-
-      function trStyle(cells) {
-        var tr=document.createElement('tr'); tr.style.borderBottom='1px solid #e9f7f8';
-        cells.forEach(function(c){ tr.appendChild(c); }); return tr;
-      }
-      function td(txt,align,bold,color){
-        var el=document.createElement('td'); el.style.padding='6px 8px'; el.style.textAlign=align||'left';
-        if(bold) el.style.fontWeight='700'; if(color) el.style.color=color;
-        el.textContent=txt; return el;
-      }
-
-      container.appendChild(mkAlertBlock('🚀','Crescimento Explosivo > 200% (min R$50k)','#e67e22', explosivos, function(f){
-        return trStyle([td(f.nome.slice(0,40),'left'), td(fmtBRL(f.pago2025),'right'), td('→','center'), td(fmtBRL(f.pago2026),'right'), td('+'+f.crescimento.toFixed(0)+'%','right',true,'#e67e22')]);
-      }));
-
-      container.appendChild(mkAlertBlock('🆕','Novos Fornecedores com Alto Valor (> R$100k)','#2980b9', novosAltos, function(f){
-        return trStyle([td(f.nome.slice(0,40),'left'), td(fmtBRL(f.pago2026),'right',true,'#2980b9'), td('Novo em 2026','right')]);
-      }));
-
-      container.appendChild(mkAlertBlock('🚪','Saíram com Alto Valor (> R$100k)','#8e44ad', sairamAltos, function(f){
-        return trStyle([td(f.nome.slice(0,40),'left'), td(fmtBRL(f.pago2025),'right',true,'#8e44ad'), td('Não pagou em 2026','right')]);
-      }));
-    }
-
-    // ── EXPAND ROWS ──────────────────────────────────────────────
-    function toggleGrupo(grp,btn) {
-      var rows=document.querySelectorAll('[data-group="'+grp+'"]');
-      var abrindo=!rows[0].classList.contains('aberto');
-      rows.forEach(function(r){ r.classList.toggle('aberto',abrindo); });
-      btn.textContent=abrindo?'−':'+';
-    }
-
-    // ── HELPERS ──────────────────────────────────────────────────
-    function erroBox(id,msg) {
-      document.getElementById(id).innerHTML='<p style="color:#c0392b;max-width:500px;text-align:center;">'+msg+'</p>';
-    }
-
-    // ── INIT ─────────────────────────────────────────────────────
-    atualizarIconesSort();
-    carregarFolha();
+    /* ── TOGGLE DAS SEÇÕES COLAPSÁVEIS ──────────────────────── */
+    document.querySelectorAll('.section-header.collapsible').forEach(hdr => {
+      hdr.addEventListener('click', () => {
+        const bodyId = hdr.dataset.target;
+        const body   = document.getElementById(bodyId);
+        if (!body) return;
+        const isOpen = !body.classList.contains('collapsed');
+        body.classList.toggle('collapsed', isOpen);
+        hdr.classList.toggle('open', !isOpen);
+      });
+    });
   </script>
+
 </body>
 </html>
