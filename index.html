@@ -634,16 +634,31 @@
             </div>
           </section>
 
-          <!-- Tabela resumo mensal -->
+          <!-- Gráficos: Financiamento + Pirâmide Etária -->
           <section style="margin-bottom:36px;">
-            <p class="section-title">📋 Resumo Mensal</p>
-            <div class="table-wrapper">
+            <p class="section-title">💰 Financiamento da Saúde por Tipo</p>
+            <div class="chart-box">
+              <canvas id="chartFinanciamento" height="120"></canvas>
+            </div>
+          </section>
+
+          <section style="margin-bottom:36px;">
+            <p class="section-title">👤 Pirâmide Etária — Procedimentos por Sexo e Faixa de Idade</p>
+            <div class="chart-box">
+              <canvas id="chartPiramide" height="130"></canvas>
+            </div>
+          </section>
+
+          <!-- Tabela produção por estabelecimento -->
+          <section style="margin-bottom:36px;">
+            <p class="section-title">🏢 Produção por Estabelecimento</p>
+            <div class="table-wrapper" style="max-height:320px;overflow-y:auto;">
               <table>
                 <thead><tr>
-                  <th>Mês</th>
-                  <th class="num">Procedimentos</th>
-                  <th class="num">Valor Aprovado (R$)</th>
-                  <th class="num">Média/Dia</th>
+                  <th style="text-align:left;">Estabelecimento</th>
+                  <th class="num">Qtd. Produzida</th>
+                  <th class="num">Qtd. Aprovada</th>
+                  <th class="num">Diferença</th>
                 </tr></thead>
                 <tbody id="saude-tabela-body"></tbody>
               </table>
@@ -1755,11 +1770,72 @@
       ]
     };
 
+    // Dados de financiamento por tipo (tb_financiamento × Producao)
+    var SAUDE_FINANC = {
+      "2024": [
+        {cod:'06',nome:'Média e Alta Complexidade (MAC)', qt_pro:493593,qt_apr:124126,vl_pro:1548568.97,vl_apr:1206254.92},
+        {cod:'01',nome:'Atenção Básica (PAB)',            qt_pro:2795,  qt_apr:2795,  vl_pro:0,         vl_apr:0},
+        {cod:'07',nome:'Vigilância em Saúde',            qt_pro:2027,  qt_apr:2027,  vl_pro:0,         vl_apr:0},
+        {cod:'05',nome:'Incentivo - MAC',                qt_pro:965,   qt_apr:965,   vl_pro:0,         vl_apr:0}
+      ],
+      "2025": [
+        {cod:'06',nome:'Média e Alta Complexidade (MAC)', qt_pro:257649,qt_apr:224092,vl_pro:2795223.54,vl_apr:2524743.32},
+        {cod:'07',nome:'Vigilância em Saúde',            qt_pro:2215,  qt_apr:2215,  vl_pro:0,         vl_apr:0},
+        {cod:'01',nome:'Atenção Básica (PAB)',            qt_pro:1592,  qt_apr:1592,  vl_pro:0,         vl_apr:0},
+        {cod:'05',nome:'Incentivo - MAC',                qt_pro:1058,  qt_apr:1058,  vl_pro:0,         vl_apr:0}
+      ]
+    };
+
+    // Pirâmide etária (faixas de 5 anos, sexo F/M, PA_QTDPRO)
+    // faixa_inicio → qt_pro para F e M
+    var SAUDE_PIRAMIDE = {
+      "2024": {
+        faixas:[0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95],
+        F:[202,649,417,614,726,1059,1236,1193,1455,1746,1707,1200,1261,647,634,388,213,59,22,2],
+        M:[460,1513,1014,747,574,809,1121,711,597,361,1056,719,608,693,219,312,205,266,77,0]
+      },
+      "2025": {
+        faixas:[0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95],
+        F:[272,621,419,727,669,855,1401,978,1839,1183,1287,1225,1051,533,650,462,258,51,99,3],
+        M:[273,1432,975,800,535,654,1434,716,695,584,856,755,474,887,279,151,285,282,223,11]
+      }
+    };
+
+    // Estabelecimentos 2024
+    var SAUDE_ESTAB_2024 = [
+      {nome:'CAPS I',                                          qt:290537,qa:8911 },
+      {nome:'Hospital Municipal de Cuité',                     qt:94388, qa:66578},
+      {nome:'Laboratório Municipal de Análises Clínicas',      qt:69616, qa:12905},
+      {nome:'Consórcio Intermunicipal de Saúde Polo Cuité',    qt:19383, qa:18781},
+      {nome:'CAPS Infantil de Cuité',                          qt:9144,  qa:6465 },
+      {nome:'Centro Especializado em Reabilitação',            qt:4500,  qa:4500 },
+      {nome:'Centro de Especialidade Odontológica Tipo I',     qt:4493,  qa:4466 },
+      {nome:'Centro de Diag. e Trat. Câncer Colo/Mama',        qt:2638,  qa:2638 },
+      {nome:'Dept. de Vigilância Sanitária',                   qt:1471,  qa:1471 },
+      {nome:'SAMU 192 Base Desc. Cuité USB',                   qt:717,   qa:717  },
+      {nome:'UBSF Diomedes Lucas Carvalho',                    qt:509,   qa:509  },
+      {nome:'UBSF Ezequias Venâncio dos Santos',               qt:450,   qa:450  },
+      {nome:'UBSF Luiza Dantas de Medeiros',                   qt:380,   qa:368  },
+      {nome:'UBSF Raimunda Domingos de Moura',                 qt:287,   qa:287  },
+      {nome:'SAMU 192 Base Desc. Cuité USA',                   qt:248,   qa:248  },
+      {nome:'UBSF Abílio Chacon Filho',                        qt:203,   qa:203  },
+      {nome:'UBSF Francisca Freire Dias Lins Liene',           qt:147,   qa:147  },
+      {nome:'UBSF Catole',                                     qt:81,    qa:81   },
+      {nome:'UBSF Serra do Bombocadinho',                      qt:71,    qa:71   },
+      {nome:'UBSF Assentamento Retiro e Batentes',             qt:60,    qa:60   },
+      {nome:'UBSF Melo',                                       qt:47,    qa:47   },
+      {nome:'Secretaria Municipal de Saúde',                   qt:10,    qa:10   }
+    ];
+    // Mesclar no objeto SAUDE_ESTAB abaixo após sua declaração
+    // (inserido aqui antes das funções)
+
     var MESES_ABREV = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
     var DIAS_MES    = [31,28,31,30,31,30,31,31,30,31,30,31];
 
     var saudeAnoAtivo = '2025';
     var chartSaudeProd = null;
+    var chartFinanciamento = null;
+    var chartPiramide = null;
 
     var COR_ANOS = {
       '2024': { line:'rgba(54,120,134,0.9)',  fill:'rgba(54,120,134,0.12)' },
@@ -1778,7 +1854,7 @@
         btn.textContent = ano;
         btn.id = 'saude-btn-' + ano;
         btn.style.cssText = 'padding:5px 18px;border-radius:20px;border:2px solid #367886;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .15s;';
-        btn.onclick = function() { saudeAnoAtivo = ano; atualizarBtnsSaude(); renderSaudeGrafico(); renderSaudeTabela(); };
+        btn.onclick = function() { saudeAnoAtivo = ano; atualizarBtnsSaude(); renderSaudeGrafico(); renderFinanciamento(); renderPiramide(); renderSaudeTabela(); };
         btnWrap.appendChild(btn);
       });
 
@@ -1790,9 +1866,14 @@
         sel.appendChild(o);
       });
 
+      // Injeta 2024 no SAUDE_ESTAB caso ainda não esteja
+      if (!SAUDE_ESTAB['2024']) SAUDE_ESTAB['2024'] = SAUDE_ESTAB_2024;
+
       atualizarBtnsSaude();
       renderSaudeKPIs();
       renderSaudeGrafico();
+      renderFinanciamento();
+      renderPiramide();
       renderSaudeTabela();
     }
 
@@ -1936,6 +2017,148 @@
               },
               grid: { color:'rgba(54,120,134,.08)' }
             }
+          }
+        }
+      });
+    }
+
+    function renderFinanciamento() {
+      var anoRef = saudeAnoAtivo;
+      var lista  = SAUDE_FINANC[anoRef];
+      if (!lista || !lista.length) {
+        if (chartFinanciamento) { chartFinanciamento.destroy(); chartFinanciamento = null; }
+        return;
+      }
+
+      var totalPro = lista.reduce(function(s,d){ return s + d.qt_pro; }, 0);
+      var labels   = lista.map(function(d){ return d.nome; });
+      var valPro   = lista.map(function(d){ return d.qt_pro; });
+      var valApr   = lista.map(function(d){ return d.qt_apr; });
+      var pctPro   = lista.map(function(d){ return totalPro ? +(d.qt_pro / totalPro * 100).toFixed(1) : 0; });
+
+      var bgPro = ['rgba(26,58,64,.85)','rgba(54,120,134,.8)','rgba(22,160,133,.8)','rgba(39,174,96,.8)'];
+      var bgApr = ['rgba(26,58,64,.45)','rgba(54,120,134,.4)','rgba(22,160,133,.4)','rgba(39,174,96,.4)'];
+
+      if (chartFinanciamento) chartFinanciamento.destroy();
+      chartFinanciamento = new Chart(document.getElementById('chartFinanciamento').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Qtd. Produzida',
+              data: valPro,
+              backgroundColor: bgPro,
+              borderRadius: 5,
+              borderSkipped: false
+            },
+            {
+              label: 'Qtd. Aprovada',
+              data: valApr,
+              backgroundColor: bgApr,
+              borderRadius: 5,
+              borderSkipped: false
+            }
+          ]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: true, position: 'top', labels: { font:{size:12}, color:'#1a3a40' }},
+            tooltip: {
+              callbacks: {
+                afterBody: function(items) {
+                  var idx = items[0].dataIndex;
+                  var d = lista[idx];
+                  var pct = pctPro[idx];
+                  var lines = ['% do total: ' + pct + '%'];
+                  if (d.vl_pro > 0) lines.push('Valor Produzido: ' + fmtBRL(d.vl_pro));
+                  if (d.vl_apr > 0) lines.push('Valor Aprovado: '  + fmtBRL(d.vl_apr));
+                  return lines;
+                },
+                label: function(c) {
+                  return ' ' + c.dataset.label + ': ' + c.parsed.x.toLocaleString('pt-BR');
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { font:{size:11}, color:'#367886', callback: function(v){ return v.toLocaleString('pt-BR'); }},
+              grid: { color:'rgba(54,120,134,.08)' }
+            },
+            y: { ticks: { font:{size:11}, color:'#1a3a40' }, grid: { display:false }}
+          }
+        }
+      });
+    }
+
+    function renderPiramide() {
+      var anoRef = saudeAnoAtivo;
+      var dados  = SAUDE_PIRAMIDE[anoRef];
+      if (!dados) {
+        if (chartPiramide) { chartPiramide.destroy(); chartPiramide = null; }
+        return;
+      }
+
+      var faixas = dados.faixas;
+      var labels = faixas.map(function(f, i) {
+        var prox = faixas[i+1];
+        return prox ? f + '–' + (prox - 1) + ' anos' : f + '+ anos';
+      });
+
+      // M fica negativo (esquerda), F positivo (direita)
+      var valM = dados.M.map(function(v){ return -v; });
+      var valF = dados.F;
+
+      if (chartPiramide) chartPiramide.destroy();
+      chartPiramide = new Chart(document.getElementById('chartPiramide').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Masculino',
+              data: valM,
+              backgroundColor: 'rgba(54,120,134,.75)',
+              borderRadius: 3,
+              borderSkipped: false
+            },
+            {
+              label: 'Feminino',
+              data: valF,
+              backgroundColor: 'rgba(231,76,60,.7)',
+              borderRadius: 3,
+              borderSkipped: false
+            }
+          ]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: true, position: 'top', labels: { font:{size:12}, color:'#1a3a40' }},
+            tooltip: {
+              callbacks: {
+                label: function(c) {
+                  var v = Math.abs(c.parsed.x);
+                  return ' ' + c.dataset.label + ': ' + v.toLocaleString('pt-BR');
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: {
+                font:{size:11}, color:'#367886',
+                callback: function(v){ return Math.abs(v).toLocaleString('pt-BR'); }
+              },
+              grid: { color:'rgba(54,120,134,.08)' }
+            },
+            y: { ticks: { font:{size:10}, color:'#1a3a40' }, grid: { display:false }}
           }
         }
       });
