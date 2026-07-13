@@ -658,17 +658,26 @@
           <section style="margin-bottom:36px;">
             <p class="section-title">🏢 Produção por Estabelecimento</p>
             <p style="font-size:.78rem;color:#6c8a8e;margin:-10px 0 10px;">Clique em um estabelecimento para ver os procedimentos realizados.</p>
-            <div class="table-wrapper" style="max-height:380px;overflow-y:auto;border-radius:10px;border:1px solid #c5dfe4;">
-              <table id="estab-table" style="border-collapse:collapse;width:100%;">
+            <div id="estab-scroll-wrapper" style="max-height:400px;overflow-y:auto;overflow-x:hidden;border-radius:10px;border:1px solid #c5dfe4;">
+              <table id="estab-table" style="border-collapse:collapse;width:100%;table-layout:fixed;">
+                <colgroup>
+                  <col style="width:32%;">
+                  <col style="width:11%;">
+                  <col style="width:11%;">
+                  <col style="width:10%;">
+                  <col style="width:13%;">
+                  <col style="width:13%;">
+                  <col style="width:10%;">
+                </colgroup>
                 <thead>
-                  <tr style="position:sticky;top:0;z-index:2;background:#1a3a40;">
-                    <th style="text-align:left;color:#fff;padding:10px 12px;font-size:.82rem;font-weight:700;white-space:nowrap;">Estabelecimento</th>
-                    <th style="text-align:right;color:#fff;padding:10px 12px;font-size:.82rem;font-weight:700;white-space:nowrap;">Qtd. Produzida</th>
-                    <th style="text-align:right;color:#fff;padding:10px 12px;font-size:.82rem;font-weight:700;white-space:nowrap;">Qtd. Aprovada</th>
-                    <th style="text-align:right;color:#fff;padding:10px 12px;font-size:.82rem;font-weight:700;white-space:nowrap;">Glosa Qtd.</th>
-                    <th style="text-align:right;color:#fff;padding:10px 12px;font-size:.82rem;font-weight:700;white-space:nowrap;">Vl. Produção</th>
-                    <th style="text-align:right;color:#fff;padding:10px 12px;font-size:.82rem;font-weight:700;white-space:nowrap;">Vl. Aprovado</th>
-                    <th style="text-align:right;color:#fff;padding:10px 12px;font-size:.82rem;font-weight:700;white-space:nowrap;">Glosa Valor</th>
+                  <tr style="position:sticky;top:0;z-index:5;background:#1a3a40;">
+                    <th style="text-align:left;color:#fff;padding:10px 12px;font-size:.78rem;font-weight:700;">Estabelecimento</th>
+                    <th style="text-align:right;color:#fff;padding:10px 12px;font-size:.78rem;font-weight:700;">Qtd. Produzida</th>
+                    <th style="text-align:right;color:#fff;padding:10px 12px;font-size:.78rem;font-weight:700;">Qtd. Aprovada</th>
+                    <th style="text-align:right;color:#fff;padding:10px 12px;font-size:.78rem;font-weight:700;">Glosa Qtd.</th>
+                    <th style="text-align:right;color:#fff;padding:10px 12px;font-size:.78rem;font-weight:700;">Vl. Produção</th>
+                    <th style="text-align:right;color:#fff;padding:10px 12px;font-size:.78rem;font-weight:700;">Vl. Aprovado</th>
+                    <th style="text-align:right;color:#fff;padding:10px 12px;font-size:.78rem;font-weight:700;">Glosa Valor</th>
                   </tr>
                 </thead>
                 <tbody id="saude-tabela-body"></tbody>
@@ -2231,21 +2240,36 @@
       if (!procs.length) {
         trDrill.innerHTML = '<td colspan="7" style="padding:14px 28px;color:#888;font-style:italic;background:#f5fbfc;">Nenhum procedimento encontrado.</td>';
       } else {
-        // Cabeçalho do sub-quadro
-        var thStyle = 'padding:8px 12px;font-size:.78rem;font-weight:700;text-align:right;white-space:nowrap;background:#2c5f6b;color:#fff;border-right:1px solid #3a7a89;';
-        var thStyleL = thStyle + 'text-align:left;border-radius:0;min-width:260px;';
+        var nomeEstab = trRef.querySelector('.seta-estab') ?
+          trRef.cells[0].textContent.replace('▼','').replace('▶','').trim() :
+          trRef.cells[0].textContent.trim();
+
+        // sticky top = altura do thead principal (≈39px)
+        var thS = 'position:sticky;top:39px;z-index:4;' +
+                  'padding:8px 10px;font-size:.76rem;font-weight:700;text-align:right;' +
+                  'background:#2c5f6b;color:#fff;border-right:1px solid #3d8a9a;';
+        var thSL = thS + 'text-align:left;';
+
+        // título sticky logo abaixo do thead principal
+        var titleDiv = '<div style="position:sticky;top:39px;z-index:4;' +
+          'background:#e4f3f7;border-left:4px solid #367886;border-bottom:1px solid #c0dce4;' +
+          'padding:7px 14px;font-size:.77rem;font-weight:700;color:#1a3a40;letter-spacing:.03em;">' +
+          '📋 PROCEDIMENTOS — ' + nomeEstab.toUpperCase() + '</div>';
 
         var inner = '<td colspan="7" style="padding:0;border-left:4px solid #367886;background:#f0f8fa;">' +
-          '<div style="padding:10px 16px 4px 16px;font-size:.78rem;font-weight:700;color:#367886;letter-spacing:.04em;text-transform:uppercase;">📋 Procedimentos — ' + trRef.cells[0].textContent.replace('▼','').trim() + '</div>' +
-          '<table style="width:100%;border-collapse:collapse;">' +
+          titleDiv +
+          '<table style="width:100%;border-collapse:collapse;table-layout:fixed;">' +
+          '<colgroup>' +
+          '<col style="width:36%;"><col style="width:11%;"><col style="width:11%;"><col style="width:10%;"><col style="width:12%;"><col style="width:12%;"><col style="width:8%;">' +
+          '</colgroup>' +
           '<thead><tr>' +
-          '<th style="' + thStyleL + '">Procedimento</th>' +
-          '<th style="' + thStyle + '">Qtd. Produzida</th>' +
-          '<th style="' + thStyle + '">Qtd. Aprovada</th>' +
-          '<th style="' + thStyle + '">Glosa Qtd.</th>' +
-          '<th style="' + thStyle + '">Vl. Produção</th>' +
-          '<th style="' + thStyle + '">Vl. Aprovado</th>' +
-          '<th style="' + thStyle.replace('border-right:1px solid #3a7a89;','') + '">Glosa Valor</th>' +
+          '<th style="' + thSL + '">Procedimento</th>' +
+          '<th style="' + thS + '">Qtd. Produzida</th>' +
+          '<th style="' + thS + '">Qtd. Aprovada</th>' +
+          '<th style="' + thS + '">Glosa Qtd.</th>' +
+          '<th style="' + thS + '">Vl. Produção</th>' +
+          '<th style="' + thS + '">Vl. Aprovado</th>' +
+          '<th style="' + thS.replace('border-right:1px solid #3d8a9a;','') + '">Glosa Valor</th>' +
           '</tr></thead><tbody>';
 
         procs.forEach(function(p, i) {
@@ -2253,12 +2277,12 @@
           var dvl = parseFloat((p.vp - p.va).toFixed(2));
           var glosaQty = dqt > 0;
           var glosaVal = dvl > 0.01;
-          var bg = i % 2 === 0 ? '#f0f8fa' : '#e8f4f7';
-          var td = 'padding:7px 12px;font-size:.8rem;text-align:right;border-bottom:1px solid #d4e9ee;background:' + bg + ';';
-          var tdL = td + 'text-align:left;color:#1a3a40;font-weight:600;';
+          var bg = i % 2 === 0 ? '#f4fbfc' : '#eaf5f7';
+          var td = 'padding:7px 10px;font-size:.79rem;text-align:right;border-bottom:1px solid #d8ecf0;background:' + bg + ';overflow:hidden;text-overflow:ellipsis;';
+          var tdL = td + 'text-align:left;color:#1a3a40;font-weight:600;white-space:normal;';
 
           inner += '<tr>' +
-            '<td style="' + tdL + '">' + p.n + '</td>' +
+            '<td style="' + tdL + '" title="' + p.n + '">' + p.n + '</td>' +
             '<td style="' + td + '">' + p.qp.toLocaleString('pt-BR') + '</td>' +
             '<td style="' + td + '">' + p.qa.toLocaleString('pt-BR') + '</td>' +
             '<td style="' + td + 'font-weight:700;color:' + (glosaQty ? '#c0392b' : '#2e7d50') + ';">' +
@@ -2270,23 +2294,23 @@
             '</tr>';
         });
 
-        // Totais do drill-down
+        // Linha de totais
         var totQp  = procs.reduce(function(s,p){ return s+p.qp; }, 0);
         var totQa  = procs.reduce(function(s,p){ return s+p.qa; }, 0);
         var totVp  = procs.reduce(function(s,p){ return s+p.vp; }, 0);
         var totVa  = procs.reduce(function(s,p){ return s+p.va; }, 0);
         var totDqt = totQp - totQa;
         var totDvl = parseFloat((totVp - totVa).toFixed(2));
-        var totStyle = 'padding:8px 12px;font-size:.8rem;font-weight:700;text-align:right;background:#c8e6ed;border-top:2px solid #367886;color:#1a3a40;';
+        var totS = 'padding:8px 10px;font-size:.79rem;font-weight:700;text-align:right;background:#c8e6ed;border-top:2px solid #367886;color:#1a3a40;';
 
         inner += '<tr>' +
-          '<td style="' + totStyle + 'text-align:left;">TOTAL</td>' +
-          '<td style="' + totStyle + '">' + totQp.toLocaleString('pt-BR') + '</td>' +
-          '<td style="' + totStyle + '">' + totQa.toLocaleString('pt-BR') + '</td>' +
-          '<td style="' + totStyle + 'color:' + (totDqt>0?'#c0392b':'#2e7d50') + ';">' + (totDqt>0?totDqt.toLocaleString('pt-BR'):'—') + '</td>' +
-          '<td style="' + totStyle + '">' + fmtBRL(totVp) + '</td>' +
-          '<td style="' + totStyle + '">' + fmtBRL(totVa) + '</td>' +
-          '<td style="' + totStyle + 'color:' + (totDvl>0.01?'#c0392b':'#2e7d50') + ';">' + (totDvl>0.01?fmtBRL(totDvl):'—') + '</td>' +
+          '<td style="' + totS + 'text-align:left;">TOTAL</td>' +
+          '<td style="' + totS + '">' + totQp.toLocaleString('pt-BR') + '</td>' +
+          '<td style="' + totS + '">' + totQa.toLocaleString('pt-BR') + '</td>' +
+          '<td style="' + totS + 'color:' + (totDqt>0?'#c0392b':'#2e7d50') + ';">' + (totDqt>0?totDqt.toLocaleString('pt-BR'):'—') + '</td>' +
+          '<td style="' + totS + '">' + fmtBRL(totVp) + '</td>' +
+          '<td style="' + totS + '">' + fmtBRL(totVa) + '</td>' +
+          '<td style="' + totS + 'color:' + (totDvl>0.01?'#c0392b':'#2e7d50') + ';">' + (totDvl>0.01?fmtBRL(totDvl):'—') + '</td>' +
           '</tr>';
 
         inner += '</tbody></table></td>';
