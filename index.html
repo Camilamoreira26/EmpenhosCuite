@@ -692,19 +692,45 @@
               <input id="proc-busca" type="text" placeholder="Buscar procedimento..." oninput="filtrarProcedimentos()"
                 style="padding:7px 14px;border-radius:8px;border:1px solid #90bcc3;font-size:.85rem;color:#1a3a40;width:320px;">
             </div>
-            <div class="table-wrapper" style="max-height:380px;overflow-y:auto;">
-              <table id="proc-table">
-                <thead><tr>
-                  <th style="text-align:left;">Procedimento</th>
-                  <th class="num">Qtd. Produzida</th>
-                  <th class="num">Qtd. Aprovada</th>
-                  <th class="num">Vl. Produção (R$)</th>
-                  <th class="num">Vl. Aprovado (R$)</th>
-                  <th class="num">Média de Receita (R$)</th>
-                </tr></thead>
+            <div id="proc-scroll-wrapper" style="max-height:380px;overflow-y:auto;overflow-x:hidden;border-radius:10px;border:1px solid #c5dfe4;">
+              <table id="proc-table" style="border-collapse:collapse;width:100%;table-layout:fixed;">
+                <colgroup>
+                  <col style="width:38%;">
+                  <col style="width:11%;">
+                  <col style="width:11%;">
+                  <col style="width:13%;">
+                  <col style="width:13%;">
+                  <col style="width:14%;">
+                </colgroup>
+                <thead>
+                  <tr style="position:sticky;top:0;z-index:5;background:#1a3a40;">
+                    <th onclick="sortProcs('n')"    style="text-align:left;color:#fff;padding:10px 12px;font-size:.76rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;user-select:none;">Procedimento <span id="sort-icon-n">↕</span></th>
+                    <th onclick="sortProcs('qp')"   class="num" style="color:#fff;padding:10px 8px;font-size:.76rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;user-select:none;">Qtd. Prod. <span id="sort-icon-qp">↕</span></th>
+                    <th onclick="sortProcs('qa')"   class="num" style="color:#fff;padding:10px 8px;font-size:.76rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;user-select:none;">Qtd. Apr. <span id="sort-icon-qa">↕</span></th>
+                    <th onclick="sortProcs('vp')"   class="num" style="color:#fff;padding:10px 8px;font-size:.76rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;user-select:none;">Vl. Prod. (R$) <span id="sort-icon-vp">↕</span></th>
+                    <th onclick="sortProcs('va')"   class="num" style="color:#fff;padding:10px 8px;font-size:.76rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;user-select:none;">Vl. Apr. (R$) <span id="sort-icon-va">↕</span></th>
+                    <th onclick="sortProcs('mr')"   class="num" style="color:#fff;padding:10px 8px;font-size:.76rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;user-select:none;">Média (R$) <span id="sort-icon-mr">↕</span></th>
+                  </tr>
+                </thead>
                 <tbody id="proc-analise-body"></tbody>
               </table>
             </div>
+
+            <!-- Cards de análise individuais -->
+            <div id="proc-insight-cards" style="display:flex;gap:16px;margin-top:18px;flex-wrap:wrap;"></div>
+          </section>
+
+          <!-- Seção: Motivo das Glosas -->
+          <section style="margin-bottom:36px;">
+            <p class="section-title">⚠️ Motivo das Glosas (PA_QTDPRO &gt; PA_QTDAPR)</p>
+            <div id="glosa-section"></div>
+          </section>
+
+          <!-- Seção: Benchmark Municipal -->
+          <section style="margin-bottom:36px;">
+            <p class="section-title">🏆 Ranking — Municípios com População Similar (PB, 2025)</p>
+            <p style="font-size:.82rem;color:#4a7a84;margin:-8px 0 14px;">Municípios paraibanos com população entre 10.000 e 40.000 hab., ordenados pelo valor produzido em 2025.</p>
+            <div id="benchmark-section"></div>
           </section>
 
         </main>
@@ -1829,6 +1855,38 @@
     };
 
 
+    var SAUDE_GLOSA = {
+      "2025": [
+        {indica:'6', indica_desc:'Aprovado Parcial', codoco:'3', codoco_desc:'Dados Incompletos ou Inválidos', flqt:'M', flqt_desc:'Média Complexidade', glosa:21415, regs:160},
+        {indica:'0', indica_desc:'Não Aprovado',     codoco:'5', codoco_desc:'Produção Glosada',               flqt:'O', flqt_desc:'Produção Opcional',   glosa:11832, regs:1538},
+        {indica:'0', indica_desc:'Não Aprovado',     codoco:'4', codoco_desc:'Registro Rejeitado',             flqt:'N', flqt_desc:'Não faturável',        glosa:257,   regs:257},
+        {indica:'6', indica_desc:'Aprovado Parcial', codoco:'2', codoco_desc:'Produção Não Faturada',          flqt:'L', flqt_desc:'Laudo Obrigatório',    glosa:53,    regs:3}
+      ],
+      "2024": [
+        {indica:'6', indica_desc:'Aprovado Parcial', codoco:'2', codoco_desc:'Produção Não Faturada',          flqt:'L', flqt_desc:'Laudo Obrigatório',    glosa:280209, regs:2},
+        {indica:'6', indica_desc:'Aprovado Parcial', codoco:'3', codoco_desc:'Dados Incompletos ou Inválidos', flqt:'M', flqt_desc:'Média Complexidade',   glosa:59934,  regs:308},
+        {indica:'0', indica_desc:'Não Aprovado',     codoco:'5', codoco_desc:'Produção Glosada',               flqt:'O', flqt_desc:'Produção Opcional',    glosa:27966,  regs:1766},
+        {indica:'0', indica_desc:'Não Aprovado',     codoco:'4', codoco_desc:'Registro Rejeitado',             flqt:'N', flqt_desc:'Não faturável',        glosa:1358,   regs:1300}
+      ]
+    };
+
+    var SAUDE_BENCHMARK = {
+      cuite: {nome:'Cuité', pop:20208, valpro:2795223.54, n_estabs:22},
+      ranking: [
+        {nome:'Cuité',           pop:20208, valpro:2795223.54, n_estabs:22, is_cuite:true},
+        {nome:'Conde',           pop:30007, valpro:2627674.63, n_estabs:21, is_cuite:false},
+        {nome:'Dona Inês',       pop:10638, valpro:2435627.82, n_estabs:10, is_cuite:false},
+        {nome:'Pedras de Fogo',  pop:31356, valpro:2335277.79, n_estabs:11, is_cuite:false},
+        {nome:'Princesa Isabel', pop:21674, valpro:2313673.84, n_estabs:16, is_cuite:false},
+        {nome:'Catolé do Rocha', pop:32288, valpro:2180989.81, n_estabs:19, is_cuite:false},
+        {nome:'Alhandra',        pop:23065, valpro:2120832.83, n_estabs:20, is_cuite:false},
+        {nome:'Piancó',          pop:17088, valpro:1876690.60, n_estabs:24, is_cuite:false},
+        {nome:'Esperança',       pop:32599, valpro:1791005.51, n_estabs:25, is_cuite:false},
+        {nome:'São Bento',       pop:33845, valpro:1709275.26, n_estabs:26, is_cuite:false},
+        {nome:'Soledade',        pop:14409, valpro:1691799.38, n_estabs:15, is_cuite:false}
+      ]
+    };
+
     var MESES_ABREV = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
     var DIAS_MES    = [31,28,31,30,31,30,31,31,30,31,30,31];
 
@@ -2321,30 +2379,181 @@
     }
 
     var todosProcs = [];
+    var procSortCol = 'vp';
+    var procSortAsc = false;
+
     function renderAnalise() {
       var anoRef = saudeAnoAtivo;
       todosProcs = SAUDE_ANALISE[anoRef] || [];
+      filtrarProcedimentos();
+      renderInsightCards();
+      renderGlosa();
+      renderBenchmark();
+    }
+
+    function sortProcs(col) {
+      if (procSortCol === col) { procSortAsc = !procSortAsc; }
+      else { procSortCol = col; procSortAsc = col === 'n'; }
       filtrarProcedimentos();
     }
 
     function filtrarProcedimentos() {
       var busca = (document.getElementById('proc-busca')||{}).value || '';
       busca = busca.toLowerCase();
-      var lista = busca ? todosProcs.filter(function(p){ return p.n.toLowerCase().indexOf(busca) >= 0; }) : todosProcs;
+      var lista = busca ? todosProcs.filter(function(p){ return p.n.toLowerCase().indexOf(busca) >= 0; }) : todosProcs.slice();
+
+      // Ordenação
+      var col = procSortCol, asc = procSortAsc;
+      lista.sort(function(a,b){
+        var va = (col==='n') ? a.n : (a[col]||0);
+        var vb = (col==='n') ? b.n : (b[col]||0);
+        if (va < vb) return asc ? -1 : 1;
+        if (va > vb) return asc ? 1 : -1;
+        return 0;
+      });
+
+      // Atualizar ícones
+      ['n','qp','qa','vp','va','mr'].forEach(function(c){
+        var el = document.getElementById('sort-icon-'+c);
+        if (!el) return;
+        el.textContent = (c===col) ? (asc ? '▲' : '▼') : '↕';
+      });
+
       var tbody = document.getElementById('proc-analise-body');
       if (!tbody) return;
       tbody.innerHTML = '';
       lista.forEach(function(p) {
         var tr = document.createElement('tr');
+        var diff = p.qp - p.qa;
+        var diffStyle = diff > 0 ? 'color:#c0392b;font-weight:600;' : '';
         tr.innerHTML =
-          '<td style="font-size:.8rem;color:#1a3a40;">' + p.n + '</td>' +
-          '<td class="num">' + p.qp.toLocaleString('pt-BR') + '</td>' +
-          '<td class="num">' + p.qa.toLocaleString('pt-BR') + '</td>' +
-          '<td class="num">' + fmtBRL(p.vp) + '</td>' +
-          '<td class="num">' + fmtBRL(p.va) + '</td>' +
-          '<td class="num">' + (p.mr > 0 ? fmtBRL(p.mr) : '—') + '</td>';
+          '<td style="font-size:.8rem;color:#1a3a40;padding:8px 12px;white-space:normal;word-break:break-word;">' + p.n + '</td>' +
+          '<td class="num" style="padding:8px;">' + p.qp.toLocaleString('pt-BR') + '</td>' +
+          '<td class="num" style="padding:8px;' + diffStyle + '">' + p.qa.toLocaleString('pt-BR') + '</td>' +
+          '<td class="num" style="padding:8px;">' + fmtBRL(p.vp) + '</td>' +
+          '<td class="num" style="padding:8px;">' + fmtBRL(p.va) + '</td>' +
+          '<td class="num" style="padding:8px;">' + (p.mr > 0 ? fmtBRL(p.mr) : '—') + '</td>';
         tbody.appendChild(tr);
       });
+    }
+
+    function renderInsightCards() {
+      var anoRef = saudeAnoAtivo;
+      var lista = SAUDE_ANALISE[anoRef] || [];
+      var container = document.getElementById('proc-insight-cards');
+      if (!container || lista.length === 0) return;
+
+      // Maior valor produzido
+      var maiorVp = lista.reduce(function(best,p){ return p.vp > best.vp ? p : best; }, lista[0]);
+      // Mais rentável (maior média por aprovação)
+      var maiorMr = lista.filter(function(p){ return p.mr > 0; }).reduce(function(best,p){ return p.mr > best.mr ? p : best; }, lista.find(function(p){ return p.mr>0; })||lista[0]);
+
+      var cardStyle = 'flex:1;min-width:220px;background:#fff;border-radius:12px;padding:18px 20px;box-shadow:0 2px 10px rgba(54,120,134,.12);border-left:4px solid #367886;';
+      var labelStyle = 'font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#367886;margin-bottom:6px;';
+      var nameStyle = 'font-size:.84rem;font-weight:600;color:#1a3a40;margin-bottom:8px;line-height:1.35;';
+      var valStyle = 'font-size:1.1rem;font-weight:700;color:#367886;';
+
+      container.innerHTML =
+        '<div style="'+cardStyle+'border-left-color:#367886;">'+
+          '<div style="'+labelStyle+'">💰 Procedimento com Maior Valor</div>'+
+          '<div style="'+nameStyle+'">'+maiorVp.n+'</div>'+
+          '<div style="font-size:.75rem;color:#4a7a84;margin-bottom:4px;">Valor Produzido</div>'+
+          '<div style="'+valStyle+'">'+fmtBRL(maiorVp.vp)+'</div>'+
+        '</div>'+
+        '<div style="'+cardStyle+'border-left-color:#1a7a5e;">'+
+          '<div style="'+labelStyle+'color:#1a7a5e;">⭐ Procedimento Mais Rentável</div>'+
+          '<div style="'+nameStyle+'">'+maiorMr.n+'</div>'+
+          '<div style="font-size:.75rem;color:#4a7a84;margin-bottom:2px;">Quantidade realizada: <b>'+maiorMr.qa.toLocaleString('pt-BR')+'</b></div>'+
+          '<div style="font-size:.75rem;color:#4a7a84;margin-bottom:4px;">Valor aprovado: <b>'+fmtBRL(maiorMr.va)+'</b></div>'+
+          '<div style="font-size:.72rem;color:#999;margin-bottom:4px;">Média por aprovação</div>'+
+          '<div style="font-size:1.1rem;font-weight:700;color:#1a7a5e;">'+fmtBRL(maiorMr.mr)+'</div>'+
+        '</div>';
+    }
+
+    function renderGlosa() {
+      var anoRef = saudeAnoAtivo;
+      var lista = SAUDE_GLOSA[anoRef] || [];
+      var container = document.getElementById('glosa-section');
+      if (!container) return;
+
+      var totalGlosa = lista.reduce(function(s,g){ return s+g.glosa; }, 0);
+
+      var html = '<div style="overflow-x:hidden;border-radius:10px;border:1px solid #f4c1c1;">';
+      html += '<table style="width:100%;border-collapse:collapse;table-layout:fixed;">';
+      html += '<colgroup><col style="width:22%;"><col style="width:28%;"><col style="width:24%;"><col style="width:13%;"><col style="width:13%;"></colgroup>';
+      html += '<thead><tr style="background:#8b2020;color:#fff;">';
+      html += '<th style="padding:10px 12px;font-size:.73rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600;">Situação (PA_INDICA)</th>';
+      html += '<th style="padding:10px 12px;font-size:.73rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600;">Ocorrência (PA_CODOCO)</th>';
+      html += '<th style="padding:10px 12px;font-size:.73rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600;">Flag Quantidade (PA_FLQT)</th>';
+      html += '<th style="padding:10px 12px;font-size:.73rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600;text-align:right;">Qtd. Glosada</th>';
+      html += '<th style="padding:10px 12px;font-size:.73rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600;text-align:right;">Registros</th>';
+      html += '</tr></thead><tbody>';
+
+      lista.forEach(function(g, i) {
+        var pct = totalGlosa > 0 ? (g.glosa/totalGlosa*100).toFixed(1) : '0';
+        var bg = i%2===0 ? '#fff9f9' : '#fff';
+        var indicaColor = g.indica==='6' ? '#e67e22' : '#c0392b';
+        html += '<tr style="background:'+bg+';border-bottom:1px solid #f0dede;">';
+        html += '<td style="padding:10px 12px;font-size:.82rem;vertical-align:top;">';
+        html += '<span style="display:inline-block;background:'+indicaColor+';color:#fff;border-radius:4px;padding:1px 7px;font-size:.7rem;font-weight:700;margin-bottom:4px;">'+g.indica_desc+'</span>';
+        html += '</td>';
+        html += '<td style="padding:10px 12px;font-size:.82rem;color:#333;vertical-align:top;">'+g.codoco_desc+'</td>';
+        html += '<td style="padding:10px 12px;font-size:.82rem;color:#333;vertical-align:top;">'+g.flqt_desc+'</td>';
+        html += '<td style="padding:10px 12px;font-size:.85rem;font-weight:700;color:#8b2020;text-align:right;vertical-align:top;">'+g.glosa.toLocaleString('pt-BR')+'<br><span style="font-size:.7rem;font-weight:400;color:#999;">'+pct+'%</span></td>';
+        html += '<td style="padding:10px 12px;font-size:.85rem;color:#555;text-align:right;vertical-align:top;">'+g.regs.toLocaleString('pt-BR')+'</td>';
+        html += '</tr>';
+      });
+
+      html += '<tr style="background:#f4c1c1;font-weight:700;">';
+      html += '<td colspan="3" style="padding:9px 12px;font-size:.82rem;color:#8b2020;">Total Glosado</td>';
+      html += '<td style="padding:9px 12px;font-size:.9rem;color:#8b2020;text-align:right;">'+totalGlosa.toLocaleString('pt-BR')+'</td>';
+      html += '<td></td>';
+      html += '</tr>';
+      html += '</tbody></table></div>';
+
+      if (anoRef==='2024') {
+        html += '<p style="font-size:.75rem;color:#c0392b;margin-top:8px;">⚠️ Em 2024, o destaque é o valor de <b>280.209 unidades glosadas</b> via Laudo Obrigatório em apenas 2 registros — possivelmente relacionado ao CAPS I com produção concentrada em setembro.</p>';
+      }
+
+      container.innerHTML = html;
+    }
+
+    function renderBenchmark() {
+      var container = document.getElementById('benchmark-section');
+      if (!container) return;
+
+      var ranking = SAUDE_BENCHMARK.ranking;
+      var cuite = SAUDE_BENCHMARK.cuite;
+
+      var html = '<div style="overflow-x:hidden;border-radius:10px;border:1px solid #c5dfe4;">';
+      html += '<table style="width:100%;border-collapse:collapse;table-layout:fixed;">';
+      html += '<colgroup><col style="width:6%;"><col style="width:34%;"><col style="width:15%;"><col style="width:22%;"><col style="width:23%;"></colgroup>';
+      html += '<thead><tr style="background:#1a3a40;color:#fff;">';
+      html += '<th style="padding:10px 12px;font-size:.73rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600;">#</th>';
+      html += '<th style="padding:10px 12px;font-size:.73rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600;">Município</th>';
+      html += '<th style="padding:10px 12px;font-size:.73rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600;text-align:right;">População</th>';
+      html += '<th style="padding:10px 12px;font-size:.73rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600;text-align:right;">Valor Produzido (R$)</th>';
+      html += '<th style="padding:10px 12px;font-size:.73rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600;text-align:right;">Estabelecimentos</th>';
+      html += '</tr></thead><tbody>';
+
+      ranking.forEach(function(m, i) {
+        var bg = m.is_cuite ? '#e8f4ea' : (i%2===0 ? '#fff' : '#f7fbfc');
+        var nameStyle = m.is_cuite ? 'font-weight:700;color:#1a7a5e;' : 'color:#1a3a40;';
+        var badge = m.is_cuite ? ' <span style="background:#1a7a5e;color:#fff;border-radius:4px;padding:1px 6px;font-size:.68rem;font-weight:700;margin-left:4px;">🏆 1º</span>' : '';
+        var pctDiff = m.is_cuite ? '' : '<br><span style="font-size:.7rem;color:#c0392b;">-'+Math.round((1 - m.valpro/cuite.valpro)*100)+'% vs Cuité</span>';
+        html += '<tr style="background:'+bg+';border-bottom:1px solid #d5eaf0;">';
+        html += '<td style="padding:9px 12px;font-size:.85rem;font-weight:600;color:#367886;text-align:center;">'+(i+1)+'</td>';
+        html += '<td style="padding:9px 12px;font-size:.85rem;'+nameStyle+'">'+m.nome+badge+'</td>';
+        html += '<td style="padding:9px 12px;font-size:.85rem;color:#444;text-align:right;">'+m.pop.toLocaleString('pt-BR')+'</td>';
+        html += '<td style="padding:9px 12px;font-size:.85rem;font-weight:600;color:#1a3a40;text-align:right;">'+fmtBRL(m.valpro)+pctDiff+'</td>';
+        html += '<td style="padding:9px 12px;font-size:.85rem;color:#444;text-align:right;">'+m.n_estabs+'</td>';
+        html += '</tr>';
+      });
+
+      html += '</tbody></table></div>';
+      html += '<p style="font-size:.75rem;color:#4a7a84;margin-top:8px;">Fonte: SIA/SUS 2025. Municípios PB com população entre 10.000 e 40.000 hab.</p>';
+
+      container.innerHTML = html;
     }
 
     // Inicializar Saúde quando a aba for aberta
