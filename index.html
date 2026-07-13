@@ -1716,15 +1716,43 @@
     // Fonte: PostgreSQL dw / view Producao + PAPB2601 | PA_GESTAO=250510
     // ================================================================
     var SAUDE_DATA = {
-      "2024": {1:{qt:16201,vl:126072.70},2:{qt:17896,vl:120998.12},3:{qt:20794,vl:148219.75},
-               4:{qt:22225,vl:167156.07},5:{qt:21963,vl:143952.62},6:{qt:17913,vl:107413.38},
-               7:{qt:20458,vl:144711.10},8:{qt:21378,vl:139809.95},9:{qt:300511,vl:154731.01},
-               10:{qt:21411,vl:159018.63},11:{qt:18630,vl:136485.64}},
-      "2025": {1:{qt:19205,vl:107249.63},2:{qt:20563,vl:114999.14},3:{qt:22981,vl:280141.32},
-               4:{qt:22332,vl:293018.89},5:{qt:22773,vl:291472.81},6:{qt:22442,vl:313938.15},
-               7:{qt:24465,vl:304376.25},8:{qt:23533,vl:224370.62},9:{qt:22355,vl:216417.52},
-               10:{qt:21177,vl:238666.77},11:{qt:21152,vl:211404.85},12:{qt:19536,vl:199167.59}},
-      "2026": {1:{qt:19534,vl:129564.52}}
+      "2024": {1:{qt:16201,qa:9407, vl:126072.70},2:{qt:17896,qa:10664,vl:120998.12},3:{qt:20794,qa:12217,vl:148219.75},
+               4:{qt:22225,qa:12875,vl:167156.07},5:{qt:21963,qa:12563,vl:143952.62},6:{qt:17913,qa:11153,vl:107413.38},
+               7:{qt:20458,qa:12152,vl:144711.10},8:{qt:21378,qa:12222,vl:139809.95},9:{qt:300511,qa:12417,vl:154731.01},
+               10:{qt:21411,qa:12495,vl:159018.63},11:{qt:18630,qa:11748,vl:136485.64}},
+      "2025": {1:{qt:19205,qa:10892,vl:107249.63},2:{qt:20563,qa:11421,vl:114999.14},3:{qt:22981,qa:12638,vl:280141.32},
+               4:{qt:22332,qa:21517,vl:293018.89},5:{qt:22773,qa:22337,vl:291472.81},6:{qt:22442,qa:20896,vl:313938.15},
+               7:{qt:24465,qa:23494,vl:304376.25},8:{qt:23533,qa:22860,vl:224370.62},9:{qt:22355,qa:22019,vl:216417.52},
+               10:{qt:21177,qa:20738,vl:238666.77},11:{qt:21152,qa:20809,vl:211404.85},12:{qt:19536,qa:19336,vl:199167.59}},
+      "2026": {1:{qt:19534,qa:19228,vl:129564.52}}
+    };
+
+    // Estabelecimentos por ano (PA_CODUNI × CNES)
+    var SAUDE_ESTAB = {
+      "2025": [
+        {cod:'2342642',nome:'Hospital Municipal de Cuité',              qt:128050,qa:117276},
+        {cod:'0836516',nome:'Laboratório Municipal de Análises Clínicas',qt:81879, qa:62723},
+        {cod:'7844166',nome:'Consórcio Intermunicipal de Saúde Polo Cuité',qt:17250,qa:16130},
+        {cod:'6409490',nome:'CAPS I',                                   qt:11941, qa:11462},
+        {cod:'9679057',nome:'CAPS Infantil de Cuité',                   qt:11133, qa:9220 },
+        {cod:'7702027',nome:'Centro Especializado em Reabilitação',      qt:3015,  qa:3015 },
+        {cod:'5033853',nome:'Centro de Diag. e Trat. Câncer Colo/Mama', qt:2285,  qa:2285 },
+        {cod:'6408206',nome:'Centro de Especialidade Odontológica Tipo I',qt:2207, qa:2144 },
+        {cod:'3060292',nome:'Dept. de Vigilância Sanitária',            qt:1641,  qa:1641 },
+        {cod:'6930301',nome:'SAMU 192 Base Desc. Cuité USB',            qt:788,   qa:788  },
+        {cod:'2605740',nome:'UBSF Luiza Dantas de Medeiros',            qt:455,   qa:405  },
+        {cod:'2342561',nome:'UBSF Ezequias Venâncio dos Santos',        qt:326,   qa:326  },
+        {cod:'2342618',nome:'UBSF Diomedes Lucas Carvalho',             qt:310,   qa:310  },
+        {cod:'6992196',nome:'SAMU 192 Base Desc. Cuité USA',            qt:270,   qa:270  },
+        {cod:'3060284',nome:'UBSF Raimunda Domingos de Moura',          qt:249,   qa:247  },
+        {cod:'2342529',nome:'UBSF Abílio Chacon Filho',                 qt:199,   qa:199  },
+        {cod:'0678260',nome:'UBSF Francisca Freire Dias Lins Liene',    qt:164,   qa:164  },
+        {cod:'6411568',nome:'Secretaria Municipal de Saúde',            qt:140,   qa:140  },
+        {cod:'6538096',nome:'UBSF Assentamento Retiro e Batentes',      qt:80,    qa:80   },
+        {cod:'2342545',nome:'UBSF Catole',                              qt:60,    qa:60   },
+        {cod:'2342537',nome:'UBSF Melo',                                qt:37,    qa:37   },
+        {cod:'2342553',nome:'UBSF Serra do Bombocadinho',               qt:35,    qa:35   }
+      ]
     };
 
     var MESES_ABREV = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
@@ -1819,22 +1847,40 @@
       var corRef  = COR_ANOS[anoRef]  || COR_ANOS['2025'];
       var corComp = anoComp ? (COR_ANOS[anoComp] || COR_ANOS['2024']) : null;
 
-      var datasets = [{
-        label: 'Procedimentos ' + anoRef,
-        data: vRef,
-        borderColor: corRef.line,
-        backgroundColor: corRef.fill,
-        borderWidth: 2.5,
-        pointRadius: 5,
-        pointHoverRadius: 7,
-        tension: 0.35,
-        fill: true,
-        spanGaps: true
-      }];
+      var vRefApr  = MESES_ABREV.map(function(_,i){ var d = dadosRef[i+1];  return d && d.qa != null ? d.qa : null; });
+      var vCompApr = dadosComp ? MESES_ABREV.map(function(_,i){ var d = dadosComp[i+1]; return d && d.qa != null ? d.qa : null; }) : null;
+
+      var datasets = [
+        {
+          label: 'Quantidade Produzida ' + anoRef,
+          data: vRef,
+          borderColor: corRef.line,
+          backgroundColor: corRef.fill,
+          borderWidth: 2.5,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          tension: 0.35,
+          fill: true,
+          spanGaps: true
+        },
+        {
+          label: 'Quantidade Aprovada ' + anoRef,
+          data: vRefApr,
+          borderColor: '#e07b30',
+          backgroundColor: 'rgba(224,123,48,0.10)',
+          borderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          tension: 0.35,
+          fill: false,
+          spanGaps: true,
+          borderDash: [6,3]
+        }
+      ];
 
       if (vComp) {
         datasets.push({
-          label: 'Procedimentos ' + anoComp,
+          label: 'Quantidade Produzida ' + anoComp,
           data: vComp,
           borderColor: corComp.line,
           backgroundColor: corComp.fill,
@@ -1846,6 +1892,21 @@
           spanGaps: true,
           borderDash: [5,3]
         });
+        if (vCompApr) {
+          datasets.push({
+            label: 'Quantidade Aprovada ' + anoComp,
+            data: vCompApr,
+            borderColor: '#a04000',
+            backgroundColor: 'rgba(160,64,0,0.08)',
+            borderWidth: 1.5,
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            tension: 0.35,
+            fill: false,
+            spanGaps: true,
+            borderDash: [3,3]
+          });
+        }
       }
 
       if (chartSaudeProd) chartSaudeProd.destroy();
@@ -1882,34 +1943,50 @@
 
     function renderSaudeTabela() {
       var anoRef = saudeAnoAtivo;
-      var dados  = SAUDE_DATA[anoRef] || {};
-      var tbody  = document.getElementById('saude-tabela-body'); tbody.innerHTML='';
-      var totalQt = 0, totalVl = 0;
-      MESES_ABREV.forEach(function(nome, i) {
-        var mes = i + 1;
-        var d = dados[mes];
-        if (!d) return;
-        totalQt += d.qt; totalVl += d.vl;
-        var diasMes = DIAS_MES[i];
-        var mediaD  = Math.round(d.qt / diasMes);
-        var destaque = anoRef === '2024' && mes === 9; // outlier set/2024
+      var tbody  = document.getElementById('saude-tabela-body');
+      tbody.innerHTML = '';
+
+      // Cabeçalho — ajusta colunas da tabela de estabelecimentos
+      var thead = tbody.closest('table').querySelector('thead tr');
+      if (thead) {
+        thead.innerHTML =
+          '<th style="text-align:left;">Estabelecimento</th>' +
+          '<th class="num">Qtd. Produzida</th>' +
+          '<th class="num">Qtd. Aprovada</th>' +
+          '<th class="num">Diferença</th>';
+      }
+
+      var lista = (SAUDE_ESTAB[anoRef] || []).slice().sort(function(a,b){ return b.qt - a.qt; });
+
+      if (!lista.length) {
         var tr = document.createElement('tr');
-        if (destaque) tr.style.background = '#fff8e1';
+        tr.innerHTML = '<td colspan="4" style="text-align:center;color:#888;padding:16px;">Dados não disponíveis para ' + anoRef + '</td>';
+        tbody.appendChild(tr);
+        return;
+      }
+
+      var totalQt = 0, totalQa = 0, totalDif = 0;
+      lista.forEach(function(e) {
+        var dif = e.qt - e.qa;
+        totalQt += e.qt; totalQa += e.qa; totalDif += dif;
+        var tr = document.createElement('tr');
         tr.innerHTML =
-          '<td style="font-weight:600;color:#1a3a40;">' + nome + (destaque ? ' ⚠️' : '') + '</td>' +
-          '<td class="num">' + d.qt.toLocaleString('pt-BR') + '</td>' +
-          '<td class="num">' + fmtBRL(d.vl) + '</td>' +
-          '<td class="num">' + mediaD.toLocaleString('pt-BR') + '</td>';
+          '<td style="font-weight:600;color:#1a3a40;">' + e.nome + '</td>' +
+          '<td class="num">' + e.qt.toLocaleString('pt-BR') + '</td>' +
+          '<td class="num">' + e.qa.toLocaleString('pt-BR') + '</td>' +
+          '<td class="num" style="color:' + (dif > 0 ? '#c0392b' : '#1a7a4a') + ';font-weight:600;">' +
+            dif.toLocaleString('pt-BR') + '</td>';
         tbody.appendChild(tr);
       });
+
       // Total
       var trTot = document.createElement('tr');
       trTot.style.cssText = 'background:#d8eef2;font-weight:700;';
       trTot.innerHTML =
         '<td style="color:#1a3a40;font-weight:700;">TOTAL</td>' +
         '<td class="num">' + totalQt.toLocaleString('pt-BR') + '</td>' +
-        '<td class="num">' + fmtBRL(totalVl) + '</td>' +
-        '<td class="num">—</td>';
+        '<td class="num">' + totalQa.toLocaleString('pt-BR') + '</td>' +
+        '<td class="num" style="color:#c0392b;font-weight:700;">' + totalDif.toLocaleString('pt-BR') + '</td>';
       tbody.appendChild(trTot);
     }
 
