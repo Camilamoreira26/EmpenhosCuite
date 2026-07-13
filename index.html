@@ -657,17 +657,20 @@
           <!-- Tabela produção por estabelecimento com drill-down -->
           <section style="margin-bottom:36px;">
             <p class="section-title">🏢 Produção por Estabelecimento</p>
-            <div class="table-wrapper" style="max-height:340px;overflow-y:auto;">
-              <table id="estab-table">
-                <thead><tr>
-                  <th style="text-align:left;">Estabelecimento</th>
-                  <th class="num">Qtd. Produzida</th>
-                  <th class="num">Qtd. Aprovada</th>
-                  <th class="num">Δ Qtd.</th>
-                  <th class="num">Vl. Produção (R$)</th>
-                  <th class="num">Vl. Aprovado (R$)</th>
-                  <th class="num">Δ Valor (R$)</th>
-                </tr></thead>
+            <p style="font-size:.78rem;color:#6c8a8e;margin:-10px 0 10px;">Clique em um estabelecimento para ver os procedimentos realizados.</p>
+            <div class="table-wrapper" style="max-height:380px;overflow-y:auto;border-radius:10px;border:1px solid #c5dfe4;">
+              <table id="estab-table" style="border-collapse:collapse;width:100%;">
+                <thead>
+                  <tr style="position:sticky;top:0;z-index:2;background:#1a3a40;">
+                    <th style="text-align:left;color:#fff;padding:10px 12px;font-size:.82rem;font-weight:700;white-space:nowrap;">Estabelecimento</th>
+                    <th style="text-align:right;color:#fff;padding:10px 12px;font-size:.82rem;font-weight:700;white-space:nowrap;">Qtd. Produzida</th>
+                    <th style="text-align:right;color:#fff;padding:10px 12px;font-size:.82rem;font-weight:700;white-space:nowrap;">Qtd. Aprovada</th>
+                    <th style="text-align:right;color:#fff;padding:10px 12px;font-size:.82rem;font-weight:700;white-space:nowrap;">Glosa Qtd.</th>
+                    <th style="text-align:right;color:#fff;padding:10px 12px;font-size:.82rem;font-weight:700;white-space:nowrap;">Vl. Produção</th>
+                    <th style="text-align:right;color:#fff;padding:10px 12px;font-size:.82rem;font-weight:700;white-space:nowrap;">Vl. Aprovado</th>
+                    <th style="text-align:right;color:#fff;padding:10px 12px;font-size:.82rem;font-weight:700;white-space:nowrap;">Glosa Valor</th>
+                  </tr>
+                </thead>
                 <tbody id="saude-tabela-body"></tbody>
               </table>
             </div>
@@ -2164,75 +2167,132 @@
         return;
       }
 
-      lista.forEach(function(e) {
+      lista.forEach(function(e, idx) {
         var dqt = e.qp - e.qa;
         var dvl = parseFloat((e.vp - e.va).toFixed(2));
-        var redQty = dqt !== 0;
-        var redVal = Math.abs(dvl) > 0.01;
+        var hasGlosaQty = dqt > 0;
+        var hasGlosaVal = dvl > 0.01;
+        var bgBase = idx % 2 === 0 ? '#ffffff' : '#f7fbfc';
 
         var tr = document.createElement('tr');
-        tr.style.cssText = 'cursor:pointer;transition:background .12s;';
-        tr.onmouseenter = function(){ this.style.background='#eaf4f6'; };
-        tr.onmouseleave = function(){ this.style.background=''; };
-        tr.onclick = function() { toggleDrillDown(e.c, anoRef, tr); };
         tr.setAttribute('data-cod', e.c);
+        tr.setAttribute('data-bg', bgBase);
+        tr.style.cssText = 'cursor:pointer;background:' + bgBase + ';transition:background .12s;border-bottom:1px solid #e4eef0;';
+        tr.onmouseenter = function(){
+          if (estabExpandida !== e.c) this.style.background = '#daeef2';
+        };
+        tr.onmouseleave = function(){
+          if (estabExpandida !== e.c) this.style.background = this.getAttribute('data-bg');
+        };
+        tr.onclick = function() { toggleDrillDown(e.c, anoRef, tr); };
+
+        var cellStyle = 'padding:10px 12px;font-size:.82rem;';
         tr.innerHTML =
-          '<td style="font-weight:600;color:#1a3a40;">▶ ' + e.n + '</td>' +
-          '<td class="num">' + e.qp.toLocaleString('pt-BR') + '</td>' +
-          '<td class="num">' + e.qa.toLocaleString('pt-BR') + '</td>' +
-          '<td class="num" style="color:' + (redQty?'#c0392b':'#1a7a4a') + ';font-weight:600;">' + dqt.toLocaleString('pt-BR') + '</td>' +
-          '<td class="num">' + fmtBRL(e.vp) + '</td>' +
-          '<td class="num">' + fmtBRL(e.va) + '</td>' +
-          '<td class="num" style="color:' + (redVal?'#c0392b':'#1a7a4a') + ';font-weight:600;">' + fmtBRL(dvl) + '</td>';
+          '<td style="' + cellStyle + 'font-weight:700;color:#1a3a40;white-space:nowrap;">' +
+            '<span class="seta-estab" style="display:inline-block;width:18px;color:#367886;font-size:.9em;">▶</span>' + e.n +
+          '</td>' +
+          '<td style="' + cellStyle + 'text-align:right;">' + e.qp.toLocaleString('pt-BR') + '</td>' +
+          '<td style="' + cellStyle + 'text-align:right;">' + e.qa.toLocaleString('pt-BR') + '</td>' +
+          '<td style="' + cellStyle + 'text-align:right;font-weight:700;color:' + (hasGlosaQty ? '#c0392b' : '#2e7d50') + ';">' +
+            (hasGlosaQty ? dqt.toLocaleString('pt-BR') : '—') +
+          '</td>' +
+          '<td style="' + cellStyle + 'text-align:right;">' + fmtBRL(e.vp) + '</td>' +
+          '<td style="' + cellStyle + 'text-align:right;">' + fmtBRL(e.va) + '</td>' +
+          '<td style="' + cellStyle + 'text-align:right;font-weight:700;color:' + (hasGlosaVal ? '#c0392b' : '#2e7d50') + ';">' +
+            (hasGlosaVal ? fmtBRL(dvl) : '—') +
+          '</td>';
         tbody.appendChild(tr);
       });
     }
 
     function toggleDrillDown(cod, anoRef, trRef) {
-      // Remover drill-down anterior
       var old = document.getElementById('drill-' + (estabExpandida||''));
       if (old) old.remove();
-      // Atualizar seta
-      document.querySelectorAll('[data-cod]').forEach(function(r){
-        var td = r.cells[0];
-        td.textContent = td.textContent.replace('▼','▶');
+
+      // Restaurar linha anterior
+      document.querySelectorAll('[data-cod]').forEach(function(r) {
+        r.style.background = r.getAttribute('data-bg') || '';
+        var seta = r.querySelector('.seta-estab');
+        if (seta) seta.textContent = '▶';
       });
 
       if (estabExpandida === cod) { estabExpandida = null; return; }
       estabExpandida = cod;
 
+      // Destacar linha ativa
+      trRef.style.background = '#c8e6ed';
+      var seta = trRef.querySelector('.seta-estab');
+      if (seta) seta.textContent = '▼';
+
       var procs = (SAUDE_PROCS[anoRef]||{})[cod] || [];
       var trDrill = document.createElement('tr');
       trDrill.id = 'drill-' + cod;
-      trDrill.style.cssText = 'background:#f0f8fa;';
 
       if (!procs.length) {
-        trDrill.innerHTML = '<td colspan="7" style="padding:10px 24px;color:#888;font-style:italic;">Nenhum procedimento encontrado.</td>';
+        trDrill.innerHTML = '<td colspan="7" style="padding:14px 28px;color:#888;font-style:italic;background:#f5fbfc;">Nenhum procedimento encontrado.</td>';
       } else {
-        var inner = '<td colspan="7" style="padding:0 0 0 24px;"><table style="width:100%;font-size:.8rem;border-collapse:collapse;">' +
-          '<thead><tr style="background:#d8eef2;">' +
-          '<th style="text-align:left;padding:6px 8px;">Procedimento</th>' +
-          '<th style="text-align:right;padding:6px 8px;">Qtd. Prod.</th>' +
-          '<th style="text-align:right;padding:6px 8px;">Qtd. Aprov.</th>' +
-          '<th style="text-align:right;padding:6px 8px;">Vl. Produção</th>' +
-          '<th style="text-align:right;padding:6px 8px;">Vl. Aprovado</th>' +
+        // Cabeçalho do sub-quadro
+        var thStyle = 'padding:8px 12px;font-size:.78rem;font-weight:700;text-align:right;white-space:nowrap;background:#2c5f6b;color:#fff;border-right:1px solid #3a7a89;';
+        var thStyleL = thStyle + 'text-align:left;border-radius:0;min-width:260px;';
+
+        var inner = '<td colspan="7" style="padding:0;border-left:4px solid #367886;background:#f0f8fa;">' +
+          '<div style="padding:10px 16px 4px 16px;font-size:.78rem;font-weight:700;color:#367886;letter-spacing:.04em;text-transform:uppercase;">📋 Procedimentos — ' + trRef.cells[0].textContent.replace('▼','').trim() + '</div>' +
+          '<table style="width:100%;border-collapse:collapse;">' +
+          '<thead><tr>' +
+          '<th style="' + thStyleL + '">Procedimento</th>' +
+          '<th style="' + thStyle + '">Qtd. Produzida</th>' +
+          '<th style="' + thStyle + '">Qtd. Aprovada</th>' +
+          '<th style="' + thStyle + '">Glosa Qtd.</th>' +
+          '<th style="' + thStyle + '">Vl. Produção</th>' +
+          '<th style="' + thStyle + '">Vl. Aprovado</th>' +
+          '<th style="' + thStyle.replace('border-right:1px solid #3a7a89;','') + '">Glosa Valor</th>' +
           '</tr></thead><tbody>';
-        procs.forEach(function(p){
+
+        procs.forEach(function(p, i) {
+          var dqt = p.qp - p.qa;
           var dvl = parseFloat((p.vp - p.va).toFixed(2));
-          var red = Math.abs(dvl) > 0.01;
-          inner += '<tr style="border-bottom:1px solid #e8f2f4;">' +
-            '<td style="padding:5px 8px;color:#1a3a40;">' + p.n + '</td>' +
-            '<td style="text-align:right;padding:5px 8px;">' + p.qp.toLocaleString('pt-BR') + '</td>' +
-            '<td style="text-align:right;padding:5px 8px;">' + p.qa.toLocaleString('pt-BR') + '</td>' +
-            '<td style="text-align:right;padding:5px 8px;">' + fmtBRL(p.vp) + '</td>' +
-            '<td style="text-align:right;padding:5px 8px;color:' + (red?'#c0392b':'inherit') + ';font-weight:' + (red?'700':'400') + ';">' + fmtBRL(p.va) + '</td>' +
+          var glosaQty = dqt > 0;
+          var glosaVal = dvl > 0.01;
+          var bg = i % 2 === 0 ? '#f0f8fa' : '#e8f4f7';
+          var td = 'padding:7px 12px;font-size:.8rem;text-align:right;border-bottom:1px solid #d4e9ee;background:' + bg + ';';
+          var tdL = td + 'text-align:left;color:#1a3a40;font-weight:600;';
+
+          inner += '<tr>' +
+            '<td style="' + tdL + '">' + p.n + '</td>' +
+            '<td style="' + td + '">' + p.qp.toLocaleString('pt-BR') + '</td>' +
+            '<td style="' + td + '">' + p.qa.toLocaleString('pt-BR') + '</td>' +
+            '<td style="' + td + 'font-weight:700;color:' + (glosaQty ? '#c0392b' : '#2e7d50') + ';">' +
+              (glosaQty ? dqt.toLocaleString('pt-BR') : '—') + '</td>' +
+            '<td style="' + td + '">' + fmtBRL(p.vp) + '</td>' +
+            '<td style="' + td + '">' + fmtBRL(p.va) + '</td>' +
+            '<td style="' + td + 'font-weight:700;color:' + (glosaVal ? '#c0392b' : '#2e7d50') + ';">' +
+              (glosaVal ? fmtBRL(dvl) : '—') + '</td>' +
             '</tr>';
         });
+
+        // Totais do drill-down
+        var totQp  = procs.reduce(function(s,p){ return s+p.qp; }, 0);
+        var totQa  = procs.reduce(function(s,p){ return s+p.qa; }, 0);
+        var totVp  = procs.reduce(function(s,p){ return s+p.vp; }, 0);
+        var totVa  = procs.reduce(function(s,p){ return s+p.va; }, 0);
+        var totDqt = totQp - totQa;
+        var totDvl = parseFloat((totVp - totVa).toFixed(2));
+        var totStyle = 'padding:8px 12px;font-size:.8rem;font-weight:700;text-align:right;background:#c8e6ed;border-top:2px solid #367886;color:#1a3a40;';
+
+        inner += '<tr>' +
+          '<td style="' + totStyle + 'text-align:left;">TOTAL</td>' +
+          '<td style="' + totStyle + '">' + totQp.toLocaleString('pt-BR') + '</td>' +
+          '<td style="' + totStyle + '">' + totQa.toLocaleString('pt-BR') + '</td>' +
+          '<td style="' + totStyle + 'color:' + (totDqt>0?'#c0392b':'#2e7d50') + ';">' + (totDqt>0?totDqt.toLocaleString('pt-BR'):'—') + '</td>' +
+          '<td style="' + totStyle + '">' + fmtBRL(totVp) + '</td>' +
+          '<td style="' + totStyle + '">' + fmtBRL(totVa) + '</td>' +
+          '<td style="' + totStyle + 'color:' + (totDvl>0.01?'#c0392b':'#2e7d50') + ';">' + (totDvl>0.01?fmtBRL(totDvl):'—') + '</td>' +
+          '</tr>';
+
         inner += '</tbody></table></td>';
         trDrill.innerHTML = inner;
       }
 
-      trRef.cells[0].textContent = trRef.cells[0].textContent.replace('▶','▼');
       trRef.after(trDrill);
     }
 
