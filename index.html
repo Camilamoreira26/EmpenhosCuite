@@ -748,7 +748,7 @@
               <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">
                 <!-- Filtro Ano -->
                 <div style="display:flex;gap:6px;flex-wrap:wrap;" id="emenda-btns-ano"></div>
-                <!-- Filtro Tipo -->
+                <!-- Filtro Tipo de Emenda -->
                 <select id="emenda-filtro-tipo" onchange="renderEmendas()"
                   style="padding:6px 12px;border-radius:8px;border:1px solid #90bcc3;font-size:.82rem;color:#1a3a40;background:#fff;">
                   <option value="">Todos os Tipos</option>
@@ -756,6 +756,14 @@
                   <option value="INDIVIDUAL">Emenda Individual</option>
                   <option value="BANCADA OBRIGATÓRIA">Emenda de Bancada</option>
                   <option value="RELATORIA">Emenda de Relatoria</option>
+                </select>
+                <!-- Filtro Tipo de Instrumento -->
+                <select id="emenda-filtro-instrumento" onchange="renderEmendas()"
+                  style="padding:6px 12px;border-radius:8px;border:1px solid #90bcc3;font-size:.82rem;color:#1a3a40;background:#fff;">
+                  <option value="">Todos os Instrumentos</option>
+                  <option value="INCREMENTO MAC">Incremento MAC</option>
+                  <option value="INCREMENTO PAP">Incremento PAP</option>
+                  <option value="EQUIPAMENTO">Equipamento</option>
                 </select>
                 <!-- Filtro Parlamentar -->
                 <select id="emenda-filtro-parlamentar" onchange="renderEmendas()"
@@ -765,25 +773,27 @@
               </div>
             </section>
 
-            <!-- Cards por tipo de emenda -->
+            <!-- Cards + Gráfico Parlamentares (2 colunas) -->
             <section style="margin-bottom:28px;">
-              <div class="kpi-grid" id="emenda-cards"></div>
-            </section>
-
-            <!-- Gráficos -->
-            <section style="margin-bottom:36px;">
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-                <div style="background:#fff;border-radius:12px;padding:18px;box-shadow:0 2px 8px rgba(54,120,134,.10);">
-                  <p style="font-size:.78rem;font-weight:700;color:#1a3a40;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">Top 10 Municípios PB</p>
-                  <p style="font-size:.72rem;color:#4a7a84;margin-bottom:12px;">Por Instrumento (R$) — acumulado</p>
-                  <canvas id="emenda-chart-munic" height="280"></canvas>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;">
+                <!-- Cards por tipo de emenda (coluna esquerda) -->
+                <div>
+                  <p style="font-size:.72rem;font-weight:700;color:#1a3a40;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Emendas por Tipo</p>
+                  <div style="display:flex;flex-direction:column;gap:10px;" id="emenda-cards"></div>
                 </div>
+                <!-- Gráfico Parlamentares (coluna direita) -->
                 <div style="background:#fff;border-radius:12px;padding:18px;box-shadow:0 2px 8px rgba(54,120,134,.10);">
                   <p style="font-size:.78rem;font-weight:700;color:#1a3a40;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">Parlamentares — Cuité</p>
                   <p style="font-size:.72rem;color:#4a7a84;margin-bottom:12px;" id="emenda-parl-subtitle">Por Instrumento (R$)</p>
-                  <canvas id="emenda-chart-parl" height="280"></canvas>
+                  <canvas id="emenda-chart-parl" height="260"></canvas>
                 </div>
               </div>
+            </section>
+
+            <!-- Ranking Top Municípios PB -->
+            <section style="margin-bottom:36px;">
+              <p class="section-title">🏆 Ranking Top Municípios PB — Emendas da Saúde</p>
+              <div id="emenda-ranking-munic"></div>
             </section>
 
             <!-- Tabela -->
@@ -2717,12 +2727,14 @@
     }
 
     function emendaFiltrados() {
-      var tipo = (document.getElementById('emenda-filtro-tipo')||{}).value || '';
-      var parl = (document.getElementById('emenda-filtro-parlamentar')||{}).value || '';
+      var tipo  = (document.getElementById('emenda-filtro-tipo')||{}).value || '';
+      var instr = (document.getElementById('emenda-filtro-instrumento')||{}).value || '';
+      var parl  = (document.getElementById('emenda-filtro-parlamentar')||{}).value || '';
       return EMENDAS_CUITE.filter(function(r){
         if (emendaAnoAtivo !== 'Todos' && r.ano !== emendaAnoAtivo) return false;
-        if (tipo && r.tipo_emenda !== tipo) return false;
-        if (parl && r.parlamentar !== parl) return false;
+        if (tipo  && r.tipo_emenda      !== tipo)  return false;
+        if (instr && r.tipo_instrumento !== instr) return false;
+        if (parl  && r.parlamentar      !== parl)  return false;
         return true;
       });
     }
@@ -2730,7 +2742,7 @@
     function renderEmendas() {
       var lista = emendaFiltrados();
       renderEmendaCards(lista);
-      renderEmendaChartMunic();
+      renderEmendaRankingMunic();
       renderEmendaChartParl(lista);
       renderEmendaTabela(lista);
     }
@@ -2756,63 +2768,70 @@
         var d = totals[t]; if (!d) return;
         var m = MAP[t] || {label:t, icon:'💊', color:'#367886'};
         var pct = d.emp > 0 ? Math.round(d.pago/d.emp*100) : 0;
-        html += '<div class="kpi-card" style="border-top:4px solid '+m.color+';">'+
-          '<div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:'+m.color+';margin-bottom:4px;">'+m.icon+' '+m.label+'</div>'+
-          '<div style="font-size:1.15rem;font-weight:700;color:#1a3a40;margin-bottom:6px;">'+fmtBRL(d.instr)+'</div>'+
-          '<div style="font-size:.75rem;color:#4a7a84;display:flex;gap:12px;flex-wrap:wrap;">'+
+        var barW = Math.min(pct, 100);
+        html += '<div style="background:#fff;border-radius:10px;padding:14px 16px;box-shadow:0 2px 8px rgba(54,120,134,.10);border-left:5px solid '+m.color+';">'+
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'+
+            '<span style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:'+m.color+';">'+m.icon+' '+m.label+'</span>'+
+            '<span style="font-size:.7rem;background:'+m.color+';color:#fff;border-radius:4px;padding:2px 7px;font-weight:700;">'+pct+'% pago</span>'+
+          '</div>'+
+          '<div style="font-size:1.18rem;font-weight:800;color:#1a3a40;margin-bottom:6px;">'+fmtBRL(d.instr)+'</div>'+
+          '<div style="height:5px;background:#e8f4f7;border-radius:3px;margin-bottom:8px;">'+
+            '<div style="height:5px;background:'+m.color+';border-radius:3px;width:'+barW+'%;transition:width .4s;"></div>'+
+          '</div>'+
+          '<div style="font-size:.75rem;color:#4a7a84;display:flex;gap:14px;flex-wrap:wrap;">'+
             '<span>Emp: <b>'+fmtBRL(d.emp)+'</b></span>'+
             '<span>Pago: <b>'+fmtBRL(d.pago)+'</b></span>'+
-            '<span style="background:'+m.color+';color:#fff;border-radius:4px;padding:1px 6px;font-size:.7rem;font-weight:700;">'+pct+'% pago</span>'+
+            '<span style="color:#999;">'+d.cnt+' emenda'+(d.cnt>1?'s':'')+'</span>'+
           '</div>'+
-          '<div style="font-size:.72rem;color:#999;margin-top:4px;">'+d.cnt+' emenda'+(d.cnt>1?'s':'')+'</div>'+
         '</div>';
       });
       document.getElementById('emenda-cards').innerHTML = html;
     }
 
-    function renderEmendaChartMunic() {
-      var ctx = document.getElementById('emenda-chart-munic');
-      if (!ctx) return;
-      if (chartEmendaMunic) chartEmendaMunic.destroy();
-      var data = EMENDAS_MUNIC_PB.slice().sort(function(a,b){ return a.instrumento - b.instrumento; });
-      chartEmendaMunic = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: data.map(function(m){ return m.municipio + (m.is_cuite ? ' ★' : ''); }),
-          datasets: [{
-            label: 'Instrumento (R$)',
-            data: data.map(function(m){ return m.instrumento; }),
-            backgroundColor: data.map(function(m){ return m.is_cuite ? 'rgba(231,76,60,0.85)' : 'rgba(54,120,134,0.75)'; }),
-            borderRadius: 4
-          }]
-        },
-        options: {
-          indexAxis: 'y',
-          responsive: true,
-          plugins: {
-            legend: {display:false},
-            tooltip: {
-              callbacks: {
-                label: function(c){
-                  var m = data[c.dataIndex];
-                  var pct = m.empenhado > 0 ? Math.round(m.pago/m.empenhado*100) : 0;
-                  return [
-                    ' Instrumento: ' + fmtBRL(m.instrumento),
-                    ' Empenhado: '   + fmtBRL(m.empenhado),
-                    ' Pago: '        + fmtBRL(m.pago) + ' (' + pct + '%)',
-                    ' Emendas: '     + m.cnt
-                  ];
-                },
-                title: function(items){ return data[items[0].dataIndex].municipio; }
-              }
-            }
-          },
-          scales: {
-            x: { ticks: { font:{size:10}, color:'#367886', callback: function(v){ return 'R$ '+(v/1e6).toFixed(0)+'M'; }}, grid:{color:'rgba(54,120,134,.08)'} },
-            y: { ticks: { font:{size:10}, color:'#1a3a40' }, grid:{display:false} }
-          }
-        }
+    function renderEmendaRankingMunic() {
+      var wrap = document.getElementById('emenda-ranking-munic');
+      if (!wrap) return;
+      var data = EMENDAS_MUNIC_PB.slice().sort(function(a,b){ return b.instrumento - a.instrumento; });
+      var cuitePos = data.findIndex(function(m){ return m.is_cuite; }) + 1;
+      var html = '<div style="overflow-x:hidden;border-radius:10px;border:1px solid #c5dfe4;">'+
+        '<table style="width:100%;border-collapse:collapse;table-layout:fixed;">'+
+        '<colgroup><col style="width:6%;"><col style="width:34%;"><col style="width:22%;"><col style="width:18%;"><col style="width:12%;"><col style="width:8%;"></colgroup>'+
+        '<thead><tr style="background:#1a3a40;">'+
+          '<th style="color:#fff;padding:10px 8px;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;text-align:center;">#</th>'+
+          '<th style="color:#fff;padding:10px 12px;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;text-align:left;">Município</th>'+
+          '<th style="color:#fff;padding:10px 8px;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;text-align:right;">Instrumento (R$)</th>'+
+          '<th style="color:#fff;padding:10px 8px;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;text-align:right;">Pago (R$)</th>'+
+          '<th style="color:#fff;padding:10px 8px;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;text-align:center;">% Pago</th>'+
+          '<th style="color:#fff;padding:10px 8px;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;text-align:center;">Emendas</th>'+
+        '</tr></thead><tbody>';
+
+      data.forEach(function(m, i){
+        var pos = i + 1;
+        var pct = m.empenhado > 0 ? Math.round(m.pago/m.empenhado*100) : 0;
+        var isCuite = m.is_cuite;
+        var bg = isCuite ? '#e8f5e9' : (i%2===0 ? '#fff' : '#f7fbfc');
+        var fontW = isCuite ? '700' : '400';
+        var medal = pos===1 ? '🥇' : pos===2 ? '🥈' : pos===3 ? '🥉' : pos;
+        html +=
+          '<tr style="background:'+bg+';">'+
+            '<td style="padding:9px 8px;font-size:.82rem;font-weight:700;text-align:center;color:'+(isCuite?'#1a7a5e':'#4a7a84')+';">'+medal+'</td>'+
+            '<td style="padding:9px 12px;font-size:.82rem;font-weight:'+fontW+';color:#1a3a40;">'+
+              m.municipio+(isCuite?' <span style="font-size:.65rem;background:#1a7a5e;color:#fff;border-radius:4px;padding:1px 5px;">★ CUITÉ</span>':'')+
+            '</td>'+
+            '<td style="padding:9px 8px;font-size:.82rem;font-weight:'+fontW+';text-align:right;color:#1a3a40;">'+fmtBRL(m.instrumento)+'</td>'+
+            '<td style="padding:9px 8px;font-size:.82rem;text-align:right;color:#1a3a40;">'+fmtBRL(m.pago)+'</td>'+
+            '<td style="padding:9px 8px;font-size:.78rem;text-align:center;">'+
+              '<span style="background:'+(pct>=100?'#1a7a5e':'#e67e22')+';color:#fff;border-radius:4px;padding:2px 6px;font-size:.7rem;font-weight:700;">'+pct+'%</span>'+
+            '</td>'+
+            '<td style="padding:9px 8px;font-size:.8rem;text-align:center;color:#4a7a84;">'+m.cnt+'</td>'+
+          '</tr>';
       });
+
+      html += '</tbody></table></div>';
+      if (cuitePos > 0) {
+        html = '<p style="font-size:.75rem;color:#4a7a84;margin-bottom:8px;">Cuité ocupa a <b style="color:#1a7a5e;">'+cuitePos+'ª posição</b> no ranking de emendas da saúde na PB — acumulado histórico.</p>' + html;
+      }
+      wrap.innerHTML = html;
     }
 
     function renderEmendaChartParl(lista) {
@@ -2831,7 +2850,8 @@
         map[r.parlamentar].cnt++;
       });
       var arr = Object.keys(map).map(function(k){ return {nome:k, instr:map[k].instr, emp:map[k].emp, pago:map[k].pago, ult:map[k].ult, cnt:map[k].cnt}; });
-      arr.sort(function(a,b){ return a.instr - b.instr; });
+      // Maior para menor (primeiro = maior no topo do gráfico horizontal)
+      arr.sort(function(a,b){ return b.instr - a.instr; });
 
       var total = arr.reduce(function(s,a){ return s+a.instr; }, 0);
       var sub = document.getElementById('emenda-parl-subtitle');
