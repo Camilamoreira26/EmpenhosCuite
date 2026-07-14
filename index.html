@@ -283,7 +283,8 @@
           <span>🏥</span> Saúde <span class="sh-arrow">▾</span>
         </div>
         <div class="sidebar-subs hidden" id="subs-saude">
-          <button class="sidebar-sub active">🏥 Produção Ambulatorial</button>
+          <button class="sidebar-sub active" id="ssub-saude-producao" onclick="switchSaude('producao')">🏥 Produção Ambulatorial</button>
+          <button class="sidebar-sub"        id="ssub-saude-emendas"  onclick="switchSaude('emendas')">💊 Emendas da Saúde</button>
         </div>
       </div>
 
@@ -609,6 +610,9 @@
       <div id="tab-saude" class="tab-content">
         <main>
 
+          <!-- ── PANE: PRODUÇÃO AMBULATORIAL ── -->
+          <div id="saude-pane-producao">
+
           <!-- KPIs de topo -->
           <section style="margin-bottom:28px;">
             <p class="section-title">🏥 Produção Ambulatorial — Cuité (PB)</p>
@@ -732,6 +736,84 @@
             <p style="font-size:.82rem;color:#4a7a84;margin:-8px 0 14px;">Municípios paraibanos com população entre 10.000 e 40.000 hab., ordenados pelo valor produzido em 2025.</p>
             <div id="benchmark-section"></div>
           </section>
+
+          </div><!-- /saude-pane-producao -->
+
+          <!-- ── PANE: EMENDAS DA SAÚDE ── -->
+          <div id="saude-pane-emendas" style="display:none;">
+
+            <!-- Título + Filtros -->
+            <section style="margin-bottom:22px;">
+              <p class="section-title">💊 Emendas da Saúde — Cuité (PB)</p>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">
+                <!-- Filtro Ano -->
+                <div style="display:flex;gap:6px;flex-wrap:wrap;" id="emenda-btns-ano"></div>
+                <!-- Filtro Tipo -->
+                <select id="emenda-filtro-tipo" onchange="renderEmendas()"
+                  style="padding:6px 12px;border-radius:8px;border:1px solid #90bcc3;font-size:.82rem;color:#1a3a40;background:#fff;">
+                  <option value="">Todos os Tipos</option>
+                  <option value="COMISSAO">Emenda da Comissão</option>
+                  <option value="INDIVIDUAL">Emenda Individual</option>
+                  <option value="BANCADA OBRIGATÓRIA">Emenda de Bancada</option>
+                  <option value="RELATORIA">Emenda de Relatoria</option>
+                </select>
+                <!-- Filtro Parlamentar -->
+                <select id="emenda-filtro-parlamentar" onchange="renderEmendas()"
+                  style="padding:6px 12px;border-radius:8px;border:1px solid #90bcc3;font-size:.82rem;color:#1a3a40;background:#fff;max-width:260px;">
+                  <option value="">Todos os Parlamentares</option>
+                </select>
+              </div>
+            </section>
+
+            <!-- Cards por tipo de emenda -->
+            <section style="margin-bottom:28px;">
+              <div class="kpi-grid" id="emenda-cards"></div>
+            </section>
+
+            <!-- Gráficos -->
+            <section style="margin-bottom:36px;">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                <div style="background:#fff;border-radius:12px;padding:18px;box-shadow:0 2px 8px rgba(54,120,134,.10);">
+                  <p style="font-size:.78rem;font-weight:700;color:#1a3a40;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">Top 10 Municípios PB</p>
+                  <p style="font-size:.72rem;color:#4a7a84;margin-bottom:12px;">Por Instrumento (R$) — acumulado</p>
+                  <canvas id="emenda-chart-munic" height="280"></canvas>
+                </div>
+                <div style="background:#fff;border-radius:12px;padding:18px;box-shadow:0 2px 8px rgba(54,120,134,.10);">
+                  <p style="font-size:.78rem;font-weight:700;color:#1a3a40;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">Parlamentares — Cuité</p>
+                  <p style="font-size:.72rem;color:#4a7a84;margin-bottom:12px;" id="emenda-parl-subtitle">Por Instrumento (R$)</p>
+                  <canvas id="emenda-chart-parl" height="280"></canvas>
+                </div>
+              </div>
+            </section>
+
+            <!-- Tabela -->
+            <section style="margin-bottom:36px;">
+              <p class="section-title">📋 Detalhamento das Emendas</p>
+              <div style="margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+                <span id="emenda-tabela-count" style="font-size:.8rem;color:#4a7a84;"></span>
+                <span id="emenda-tabela-total" style="font-size:.82rem;font-weight:700;color:#1a3a40;"></span>
+              </div>
+              <div style="max-height:420px;overflow-y:auto;overflow-x:hidden;border-radius:10px;border:1px solid #c5dfe4;">
+                <table id="emenda-tabela" style="width:100%;border-collapse:collapse;table-layout:fixed;">
+                  <colgroup>
+                    <col style="width:13%;"><col style="width:28%;"><col style="width:16%;"><col style="width:16%;"><col style="width:14%;"><col style="width:13%;">
+                  </colgroup>
+                  <thead>
+                    <tr style="position:sticky;top:0;z-index:5;background:#1a3a40;">
+                      <th style="color:#fff;padding:10px 10px;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;text-align:left;">Nº Emenda</th>
+                      <th style="color:#fff;padding:10px 10px;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;text-align:left;">Tipo de Instrumento</th>
+                      <th style="color:#fff;padding:10px 8px;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;text-align:right;">Instrumento (R$)</th>
+                      <th style="color:#fff;padding:10px 8px;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;text-align:right;">Empenhado (R$)</th>
+                      <th style="color:#fff;padding:10px 8px;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;text-align:right;">Pago (R$)</th>
+                      <th style="color:#fff;padding:10px 8px;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;text-align:right;">Últ. Pgto</th>
+                    </tr>
+                  </thead>
+                  <tbody id="emenda-tabela-body"></tbody>
+                </table>
+              </div>
+            </section>
+
+          </div><!-- /saude-pane-emendas -->
 
         </main>
       </div>
@@ -2583,6 +2665,257 @@
       html += '<p style="font-size:.75rem;color:#4a7a84;margin-top:8px;">Fonte: SIA/SUS 2025. Municípios PB com população entre 10.000 e 40.000 hab.</p>';
 
       container.innerHTML = html;
+    }
+
+    // ── DADOS EMENDAS ─────────────────────────────────────────────
+    var EMENDAS_CUITE = [{"ano": "2026", "emenda": "27110002", "partido": "PP", "parlamentar": "AGUINALDO RIBEIRO", "tipo_emenda": "INDIVIDUAL", "tipo_instrumento": "INCREMENTO MAC", "instrumento": 600000.0, "empenhado": 600000.0, "pago": 600000.0, "data_pgto": "2026-06-02", "situacao": "PROPOSTA PAGA"}, {"ano": "2026", "emenda": "27110001", "partido": "PP", "parlamentar": "AGUINALDO RIBEIRO", "tipo_emenda": "INDIVIDUAL", "tipo_instrumento": "INCREMENTO PAP", "instrumento": 400000.0, "empenhado": 400000.0, "pago": 400000.0, "data_pgto": "2026-06-03", "situacao": "PROPOSTA PAGA"}, {"ano": "2026", "emenda": "50410001", "partido": "S.PART.", "parlamentar": "COMISSÃO DA SAÚDE", "tipo_emenda": "COMISSAO", "tipo_instrumento": "INCREMENTO MAC", "instrumento": 3000000.0, "empenhado": 3000000.0, "pago": 3000000.0, "data_pgto": "2026-06-29", "situacao": "PROPOSTA PAGA"}, {"ano": "2026", "emenda": "71160004", "partido": "S.PART.", "parlamentar": "BANCADA DA PARAÍBA", "tipo_emenda": "BANCADA OBRIGATÓRIA", "tipo_instrumento": "INCREMENTO PAP", "instrumento": 300000.0, "empenhado": 300000.0, "pago": 300000.0, "data_pgto": "2026-06-26", "situacao": "PROPOSTA PAGA"}, {"ano": "2026", "emenda": "50410002", "partido": "S.PART.", "parlamentar": "COMISSÃO DA SAÚDE", "tipo_emenda": "COMISSAO", "tipo_instrumento": "INCREMENTO PAP", "instrumento": 2000000.0, "empenhado": 2000000.0, "pago": 2000000.0, "data_pgto": "2026-06-29", "situacao": "PROPOSTA PAGA"}, {"ano": "2026", "emenda": "71160010", "partido": "S.PART.", "parlamentar": "BANCADA DA PARAÍBA", "tipo_emenda": "BANCADA OBRIGATÓRIA", "tipo_instrumento": "INCREMENTO MAC", "instrumento": 1200000.0, "empenhado": 1200000.0, "pago": 1200000.0, "data_pgto": "2026-06-29", "situacao": "PROPOSTA PAGA"}, {"ano": "2026", "emenda": "41410003", "partido": "PP", "parlamentar": "DANIELLA RIBEIRO", "tipo_emenda": "INDIVIDUAL", "tipo_instrumento": "INCREMENTO PAP", "instrumento": 100000.0, "empenhado": 100000.0, "pago": 100000.0, "data_pgto": "2026-06-03", "situacao": "PROPOSTA PAGA"}, {"ano": "2025", "emenda": "71160002", "partido": "S.PART.", "parlamentar": "BANCADA DA PARAÍBA", "tipo_emenda": "BANCADA OBRIGATÓRIA", "tipo_instrumento": "INCREMENTO PAP", "instrumento": 900000.0, "empenhado": 900000.0, "pago": 900000.0, "data_pgto": "2025-10-01", "situacao": "PROPOSTA PAGA"}, {"ano": "2025", "emenda": "60060004", "partido": "S.PART.", "parlamentar": "COMISSÃO DE ASSUNTOS SOCIAIS - CAS", "tipo_emenda": "COMISSAO", "tipo_instrumento": "INCREMENTO MAC", "instrumento": 600000.0, "empenhado": 600000.0, "pago": 600000.0, "data_pgto": "2025-12-16", "situacao": "PROPOSTA PAGA"}, {"ano": "2025", "emenda": "60060004", "partido": "S.PART.", "parlamentar": "COMISSÃO DE ASSUNTOS SOCIAIS - CAS", "tipo_emenda": "COMISSAO", "tipo_instrumento": "INCREMENTO MAC", "instrumento": 500000.0, "empenhado": 500000.0, "pago": 500000.0, "data_pgto": "2025-12-16", "situacao": "PROPOSTA PAGA"}, {"ano": "2025", "emenda": "71160010", "partido": "S.PART.", "parlamentar": "BANCADA DA PARAÍBA", "tipo_emenda": "BANCADA OBRIGATÓRIA", "tipo_instrumento": "INCREMENTO MAC", "instrumento": 400000.0, "empenhado": 400000.0, "pago": 400000.0, "data_pgto": "2025-10-21", "situacao": "PROPOSTA PAGA"}, {"ano": "2025", "emenda": "27110002", "partido": "PP", "parlamentar": "AGUINALDO RIBEIRO", "tipo_emenda": "INDIVIDUAL", "tipo_instrumento": "INCREMENTO MAC", "instrumento": 400000.0, "empenhado": 400000.0, "pago": 400000.0, "data_pgto": "2025-07-17", "situacao": "PROPOSTA PAGA"}, {"ano": "2025", "emenda": "27110001", "partido": "PP", "parlamentar": "AGUINALDO RIBEIRO", "tipo_emenda": "INDIVIDUAL", "tipo_instrumento": "INCREMENTO PAP", "instrumento": 300000.0, "empenhado": 300000.0, "pago": 300000.0, "data_pgto": "2025-06-23", "situacao": "PROPOSTA PAGA"}, {"ano": "2025", "emenda": "71160001", "partido": "S.PART.", "parlamentar": "BANCADA DA PARAÍBA", "tipo_emenda": "BANCADA OBRIGATÓRIA", "tipo_instrumento": "EQUIPAMENTO", "instrumento": 300000.0, "empenhado": 300000.0, "pago": 300000.0, "data_pgto": "2026-02-05", "situacao": "PROPOSTA PAGA"}, {"ano": "2024", "emenda": "50410002", "partido": "S.PART.", "parlamentar": "COMISSÃO DA SAÚDE", "tipo_emenda": "COMISSAO", "tipo_instrumento": "INCREMENTO MAC", "instrumento": 500000.0, "empenhado": 500000.0, "pago": 500000.0, "data_pgto": "2024-05-29", "situacao": "PROPOSTA PAGA"}, {"ano": "2024", "emenda": "50410004", "partido": "S.PART.", "parlamentar": "COMISSÃO DA SAÚDE", "tipo_emenda": "COMISSAO", "tipo_instrumento": "INCREMENTO PAP", "instrumento": 400000.0, "empenhado": 400000.0, "pago": 400000.0, "data_pgto": "2024-07-05", "situacao": "PROPOSTA PAGA"}, {"ano": "2024", "emenda": "27110002", "partido": "PP", "parlamentar": "AGUINALDO RIBEIRO", "tipo_emenda": "INDIVIDUAL", "tipo_instrumento": "INCREMENTO MAC", "instrumento": 300000.0, "empenhado": 300000.0, "pago": 300000.0, "data_pgto": "2024-05-17", "situacao": "PROPOSTA PAGA"}, {"ano": "2024", "emenda": "71160001", "partido": "S.PART.", "parlamentar": "BANCADA DA PARAÍBA", "tipo_emenda": "BANCADA OBRIGATÓRIA", "tipo_instrumento": "INCREMENTO MAC", "instrumento": 300000.0, "empenhado": 300000.0, "pago": 300000.0, "data_pgto": "2024-12-13", "situacao": "PROPOSTA PAGA"}, {"ano": "2024", "emenda": "50410002", "partido": "S.PART.", "parlamentar": "COMISSÃO DA SAÚDE", "tipo_emenda": "COMISSAO", "tipo_instrumento": "INCREMENTO MAC", "instrumento": 2800000.0, "empenhado": 2800000.0, "pago": 2800000.0, "data_pgto": "2024-07-02", "situacao": "PROPOSTA PAGA"}, {"ano": "2024", "emenda": "50410004", "partido": "S.PART.", "parlamentar": "COMISSÃO DA SAÚDE", "tipo_emenda": "COMISSAO", "tipo_instrumento": "INCREMENTO PAP", "instrumento": 200000.0, "empenhado": 200000.0, "pago": 200000.0, "data_pgto": "2024-07-05", "situacao": "PROPOSTA PAGA"}, {"ano": "2024", "emenda": "71160002", "partido": "S.PART.", "parlamentar": "BANCADA DA PARAÍBA", "tipo_emenda": "BANCADA OBRIGATÓRIA", "tipo_instrumento": "INCREMENTO PAP", "instrumento": 200000.0, "empenhado": 200000.0, "pago": 200000.0, "data_pgto": "2024-12-13", "situacao": "PROPOSTA PAGA"}, {"ano": "2024", "emenda": "50410004", "partido": "S.PART.", "parlamentar": "COMISSÃO DA SAÚDE", "tipo_emenda": "COMISSAO", "tipo_instrumento": "INCREMENTO PAP", "instrumento": 1700000.0, "empenhado": 1700000.0, "pago": 1700000.0, "data_pgto": "2024-06-28", "situacao": "PROPOSTA PAGA"}, {"ano": "2024", "emenda": "12710004", "partido": "PT", "parlamentar": "LUIZ COUTO", "tipo_emenda": "INDIVIDUAL", "tipo_instrumento": "INCREMENTO PAP", "instrumento": 100000.0, "empenhado": 100000.0, "pago": 100000.0, "data_pgto": "2024-05-10", "situacao": "PROPOSTA PAGA"}, {"ano": "2023", "emenda": "41410004", "partido": "PP", "parlamentar": "DANIELLA RIBEIRO", "tipo_emenda": "INDIVIDUAL", "tipo_instrumento": "INCREMENTO MAC", "instrumento": 85000.0, "empenhado": 85000.0, "pago": 85000.0, "data_pgto": "2023-06-06", "situacao": "PROPOSTA PAGA"}, {"ano": "2023", "emenda": "42180025", "partido": "MDB", "parlamentar": "NILDA GONDIM", "tipo_emenda": "INDIVIDUAL", "tipo_instrumento": "INCREMENTO PAP", "instrumento": 500000.0, "empenhado": 500000.0, "pago": 500000.0, "data_pgto": "2023-08-31", "situacao": "PROPOSTA PAGA"}, {"ano": "2023", "emenda": "71160002", "partido": "S.PART.", "parlamentar": "BANCADA DA PARAÍBA", "tipo_emenda": "BANCADA OBRIGATÓRIA", "tipo_instrumento": "INCREMENTO PAP", "instrumento": 3275875.0, "empenhado": 3275875.0, "pago": 3275875.0, "data_pgto": "2023-10-02", "situacao": "PROPOSTA PAGA"}, {"ano": "2023", "emenda": "39920007", "partido": "PT", "parlamentar": "FREI ANASTACIO RIBEIRO", "tipo_emenda": "INDIVIDUAL", "tipo_instrumento": "EQUIPAMENTO", "instrumento": 299931.0, "empenhado": 299931.0, "pago": 299931.0, "data_pgto": "2023-10-02", "situacao": "PROPOSTA PAGA"}, {"ano": "2023", "emenda": "27110006", "partido": "PP", "parlamentar": "AGUINALDO RIBEIRO", "tipo_emenda": "INDIVIDUAL", "tipo_instrumento": "INCREMENTO MAC", "instrumento": 250000.0, "empenhado": 250000.0, "pago": 250000.0, "data_pgto": "2023-06-06", "situacao": "PROPOSTA PAGA"}, {"ano": "2023", "emenda": "71160002", "partido": "S.PART.", "parlamentar": "BANCADA DA PARAÍBA", "tipo_emenda": "BANCADA OBRIGATÓRIA", "tipo_instrumento": "INCREMENTO PAP", "instrumento": 200000.0, "empenhado": 200000.0, "pago": 200000.0, "data_pgto": "2023-10-02", "situacao": "PROPOSTA PAGA"}, {"ano": "2023", "emenda": "41410003", "partido": "PP", "parlamentar": "DANIELLA RIBEIRO", "tipo_emenda": "INDIVIDUAL", "tipo_instrumento": "INCREMENTO PAP", "instrumento": 200000.0, "empenhado": 200000.0, "pago": 200000.0, "data_pgto": "2023-06-07", "situacao": "PROPOSTA PAGA"}, {"ano": "2023", "emenda": "71160001", "partido": "S.PART.", "parlamentar": "BANCADA DA PARAÍBA", "tipo_emenda": "BANCADA OBRIGATÓRIA", "tipo_instrumento": "INCREMENTO MAC", "instrumento": 200000.0, "empenhado": 200000.0, "pago": 200000.0, "data_pgto": "2023-10-03", "situacao": "PROPOSTA PAGA"}, {"ano": "2023", "emenda": "71160002", "partido": "S.PART.", "parlamentar": "BANCADA DA PARAÍBA", "tipo_emenda": "BANCADA OBRIGATÓRIA", "tipo_instrumento": "INCREMENTO PAP", "instrumento": 150000.0, "empenhado": 150000.0, "pago": 150000.0, "data_pgto": "2023-10-02", "situacao": "PROPOSTA PAGA"}, {"ano": "2023", "emenda": "41410004", "partido": "PP", "parlamentar": "DANIELLA RIBEIRO", "tipo_emenda": "INDIVIDUAL", "tipo_instrumento": "INCREMENTO MAC", "instrumento": 115000.0, "empenhado": 115000.0, "pago": 115000.0, "data_pgto": "2023-06-06", "situacao": "PROPOSTA PAGA"}, {"ano": "2023", "emenda": "40880021", "partido": "MDB", "parlamentar": "VENEZIANO VITAL DO RÊGO", "tipo_emenda": "INDIVIDUAL", "tipo_instrumento": "INCREMENTO MAC", "instrumento": 100000.0, "empenhado": 100000.0, "pago": 100000.0, "data_pgto": "2023-06-09", "situacao": "PROPOSTA PAGA"}, {"ano": "2023", "emenda": "71160001", "partido": "S.PART.", "parlamentar": "BANCADA DA PARAÍBA", "tipo_emenda": "BANCADA OBRIGATÓRIA", "tipo_instrumento": "INCREMENTO MAC", "instrumento": 100000.0, "empenhado": 100000.0, "pago": 100000.0, "data_pgto": "2023-10-03", "situacao": "PROPOSTA PAGA"}, {"ano": "2023", "emenda": "27110005", "partido": "PP", "parlamentar": "AGUINALDO RIBEIRO", "tipo_emenda": "INDIVIDUAL", "tipo_instrumento": "INCREMENTO PAP", "instrumento": 100000.0, "empenhado": 100000.0, "pago": 100000.0, "data_pgto": "2023-06-07", "situacao": "PROPOSTA PAGA"}, {"ano": "2022", "emenda": "81000312", "partido": "S.PART.", "parlamentar": "RELATOR GERAL", "tipo_emenda": "RELATORIA", "tipo_instrumento": "INCREMENTO PAP", "instrumento": 500000.0, "empenhado": 500000.0, "pago": 500000.0, "data_pgto": "2022-06-28", "situacao": "PROPOSTA PAGA"}, {"ano": "2022", "emenda": "27110003", "partido": "PP", "parlamentar": "AGUINALDO RIBEIRO", "tipo_emenda": "INDIVIDUAL", "tipo_instrumento": "INCREMENTO PAP", "instrumento": 236279.0, "empenhado": 236279.0, "pago": 236279.0, "data_pgto": "2022-06-15", "situacao": "PROPOSTA PAGA"}, {"ano": "2022", "emenda": "27110002", "partido": "PP", "parlamentar": "AGUINALDO RIBEIRO", "tipo_emenda": "INDIVIDUAL", "tipo_instrumento": "INCREMENTO MAC", "instrumento": 215194.0, "empenhado": 215194.0, "pago": 215194.0, "data_pgto": "2022-06-15", "situacao": "PROPOSTA PAGA"}, {"ano": "2022", "emenda": "42180002", "partido": "MDB", "parlamentar": "NILDA GONDIM", "tipo_emenda": "INDIVIDUAL", "tipo_instrumento": "INCREMENTO MAC", "instrumento": 200000.0, "empenhado": 200000.0, "pago": 200000.0, "data_pgto": "2022-06-17", "situacao": "PROPOSTA PAGA"}, {"ano": "2022", "emenda": "71160001", "partido": "S.PART.", "parlamentar": "BANCADA DA PARAÍBA", "tipo_emenda": "BANCADA OBRIGATÓRIA", "tipo_instrumento": "INCREMENTO MAC", "instrumento": 200000.0, "empenhado": 200000.0, "pago": 200000.0, "data_pgto": "2022-06-10", "situacao": "PROPOSTA PAGA"}, {"ano": "2022", "emenda": "41410002", "partido": "PP", "parlamentar": "DANIELLA RIBEIRO", "tipo_emenda": "INDIVIDUAL", "tipo_instrumento": "INCREMENTO MAC", "instrumento": 150000.0, "empenhado": 150000.0, "pago": 150000.0, "data_pgto": "2022-06-15", "situacao": "PROPOSTA PAGA"}, {"ano": "2022", "emenda": "71160003", "partido": "S.PART.", "parlamentar": "BANCADA DA PARAÍBA", "tipo_emenda": "BANCADA OBRIGATÓRIA", "tipo_instrumento": "INCREMENTO PAP", "instrumento": 150000.0, "empenhado": 150000.0, "pago": 150000.0, "data_pgto": "2022-06-10", "situacao": "PROPOSTA PAGA"}, {"ano": "2022", "emenda": "41410001", "partido": "PP", "parlamentar": "DANIELLA RIBEIRO", "tipo_emenda": "INDIVIDUAL", "tipo_instrumento": "INCREMENTO PAP", "instrumento": 100000.0, "empenhado": 100000.0, "pago": 100000.0, "data_pgto": "2022-06-15", "situacao": "PROPOSTA PAGA"}];
+    var EMENDAS_MUNIC_PB = [{"municipio": "JOAO PESSOA", "instrumento": 341927115.0, "empenhado": 344914798.0, "pago": 858126788.0, "ult_pgto": "2026-07-03", "cnt": 278, "is_cuite": false}, {"municipio": "CAMPINA GRANDE", "instrumento": 193920363.0, "empenhado": 194437296.0, "pago": 1177104187.0, "ult_pgto": "2026-06-29", "cnt": 167, "is_cuite": false}, {"municipio": "SANTA RITA", "instrumento": 54361653.0, "empenhado": 54361653.0, "pago": 43089340.0, "ult_pgto": "2026-07-03", "cnt": 73, "is_cuite": false}, {"municipio": "BAYEUX", "instrumento": 50843830.0, "empenhado": 50843830.0, "pago": 48985830.0, "ult_pgto": "2026-07-02", "cnt": 44, "is_cuite": false}, {"municipio": "SAPE", "instrumento": 44926752.0, "empenhado": 44926752.0, "pago": 43926752.0, "ult_pgto": "2026-07-03", "cnt": 47, "is_cuite": false}, {"municipio": "LAGOA SECA", "instrumento": 44306126.0, "empenhado": 44306126.0, "pago": 40543126.0, "ult_pgto": "2026-06-29", "cnt": 59, "is_cuite": false}, {"municipio": "CAJAZEIRAS", "instrumento": 42406363.0, "empenhado": 42406363.0, "pago": 35386435.0, "ult_pgto": "2026-06-19", "cnt": 61, "is_cuite": false}, {"municipio": "ALAGOA GRANDE", "instrumento": 39839517.0, "empenhado": 39839517.0, "pago": 37939517.0, "ult_pgto": "2026-07-02", "cnt": 64, "is_cuite": false}, {"municipio": "INGA", "instrumento": 38166160.0, "empenhado": 38166160.0, "pago": 32405197.0, "ult_pgto": "2026-06-29", "cnt": 63, "is_cuite": false}, {"municipio": "GUARABIRA", "instrumento": 34423591.0, "empenhado": 34423591.0, "pago": 31223591.0, "ult_pgto": "2026-07-03", "cnt": 43, "is_cuite": false}, {"municipio": "CUITE", "instrumento": 24827279.0, "empenhado": 24827279.0, "pago": 24827279.0, "ult_pgto": "2026-06-29", "cnt": 44, "is_cuite": true}];
+
+    // ── SUB-ABA EMENDAS ───────────────────────────────────────────
+    var emendaAnoAtivo = 'Todos';
+    var chartEmendaMunic = null;
+    var chartEmendaParl  = null;
+
+    function switchSaude(sub) {
+      document.getElementById('saude-pane-producao').style.display = sub === 'producao' ? '' : 'none';
+      document.getElementById('saude-pane-emendas').style.display  = sub === 'emendas'  ? '' : 'none';
+      document.querySelectorAll('#subs-saude .sidebar-sub').forEach(function(b){ b.classList.remove('active'); });
+      var btn = document.getElementById('ssub-saude-' + sub);
+      if (btn) btn.classList.add('active');
+      if (sub === 'emendas') initEmendas();
+    }
+
+    var emendaIniciado = false;
+    function initEmendas() {
+      if (emendaIniciado) { renderEmendas(); return; }
+      emendaIniciado = true;
+
+      // Preencher filtro de parlamentar
+      var sel = document.getElementById('emenda-filtro-parlamentar');
+      ["AGUINALDO RIBEIRO","BANCADA DA PARAÍBA","COMISSÃO DA SAÚDE","COMISSÃO DE ASSUNTOS SOCIAIS - CAS","DANIELLA RIBEIRO","FREI ANASTACIO RIBEIRO","LUIZ COUTO","NILDA GONDIM","RELATOR GERAL","VENEZIANO VITAL DO RÊGO"].forEach(function(p){
+        var o = document.createElement('option'); o.value = p; o.textContent = p;
+        sel.appendChild(o);
+      });
+
+      // Botões de ano
+      var wrap = document.getElementById('emenda-btns-ano');
+      ['Todos','2022','2023','2024','2025','2026'].forEach(function(a){
+        var b = document.createElement('button');
+        b.textContent = a; b.setAttribute('data-ano', a);
+        b.style.cssText = 'padding:5px 14px;border-radius:20px;border:2px solid #367886;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .15s;background:#fff;color:#367886;';
+        b.onclick = function(){
+          emendaAnoAtivo = a;
+          wrap.querySelectorAll('button').forEach(function(x){ x.style.background='#fff'; x.style.color='#367886'; });
+          b.style.background='#367886'; b.style.color='#fff';
+          renderEmendas();
+        };
+        if (a === 'Todos') { b.style.background='#367886'; b.style.color='#fff'; }
+        wrap.appendChild(b);
+      });
+
+      renderEmendas();
+    }
+
+    function emendaFiltrados() {
+      var tipo = (document.getElementById('emenda-filtro-tipo')||{}).value || '';
+      var parl = (document.getElementById('emenda-filtro-parlamentar')||{}).value || '';
+      return EMENDAS_CUITE.filter(function(r){
+        if (emendaAnoAtivo !== 'Todos' && r.ano !== emendaAnoAtivo) return false;
+        if (tipo && r.tipo_emenda !== tipo) return false;
+        if (parl && r.parlamentar !== parl) return false;
+        return true;
+      });
+    }
+
+    function renderEmendas() {
+      var lista = emendaFiltrados();
+      renderEmendaCards(lista);
+      renderEmendaChartMunic();
+      renderEmendaChartParl(lista);
+      renderEmendaTabela(lista);
+    }
+
+    function renderEmendaCards(lista) {
+      var MAP = {
+        'COMISSAO':            {label:'Emenda da Comissão',  icon:'🏛️', color:'#1a5276'},
+        'INDIVIDUAL':          {label:'Emenda Individual',   icon:'👤', color:'#1a7a5e'},
+        'BANCADA OBRIGATÓRIA': {label:'Emenda de Bancada',   icon:'🤝', color:'#7d6608'},
+        'RELATORIA':           {label:'Emenda de Relatoria', icon:'📝', color:'#6c3483'}
+      };
+      var totals = {};
+      lista.forEach(function(r){
+        if (!totals[r.tipo_emenda]) totals[r.tipo_emenda] = {instr:0, emp:0, pago:0, cnt:0};
+        totals[r.tipo_emenda].instr += r.instrumento;
+        totals[r.tipo_emenda].emp   += r.empenhado;
+        totals[r.tipo_emenda].pago  += r.pago;
+        totals[r.tipo_emenda].cnt++;
+      });
+      var order = ['COMISSAO','BANCADA OBRIGATÓRIA','INDIVIDUAL','RELATORIA'];
+      var html = '';
+      order.forEach(function(t){
+        var d = totals[t]; if (!d) return;
+        var m = MAP[t] || {label:t, icon:'💊', color:'#367886'};
+        var pct = d.emp > 0 ? Math.round(d.pago/d.emp*100) : 0;
+        html += '<div class="kpi-card" style="border-top:4px solid '+m.color+';">'+
+          '<div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:'+m.color+';margin-bottom:4px;">'+m.icon+' '+m.label+'</div>'+
+          '<div style="font-size:1.15rem;font-weight:700;color:#1a3a40;margin-bottom:6px;">'+fmtBRL(d.instr)+'</div>'+
+          '<div style="font-size:.75rem;color:#4a7a84;display:flex;gap:12px;flex-wrap:wrap;">'+
+            '<span>Emp: <b>'+fmtBRL(d.emp)+'</b></span>'+
+            '<span>Pago: <b>'+fmtBRL(d.pago)+'</b></span>'+
+            '<span style="background:'+m.color+';color:#fff;border-radius:4px;padding:1px 6px;font-size:.7rem;font-weight:700;">'+pct+'% pago</span>'+
+          '</div>'+
+          '<div style="font-size:.72rem;color:#999;margin-top:4px;">'+d.cnt+' emenda'+(d.cnt>1?'s':'')+'</div>'+
+        '</div>';
+      });
+      document.getElementById('emenda-cards').innerHTML = html;
+    }
+
+    function renderEmendaChartMunic() {
+      var ctx = document.getElementById('emenda-chart-munic');
+      if (!ctx) return;
+      if (chartEmendaMunic) chartEmendaMunic.destroy();
+      var data = EMENDAS_MUNIC_PB.slice().sort(function(a,b){ return a.instrumento - b.instrumento; });
+      chartEmendaMunic = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: data.map(function(m){ return m.municipio + (m.is_cuite ? ' ★' : ''); }),
+          datasets: [{
+            label: 'Instrumento (R$)',
+            data: data.map(function(m){ return m.instrumento; }),
+            backgroundColor: data.map(function(m){ return m.is_cuite ? 'rgba(231,76,60,0.85)' : 'rgba(54,120,134,0.75)'; }),
+            borderRadius: 4
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          plugins: {
+            legend: {display:false},
+            tooltip: {
+              callbacks: {
+                label: function(c){
+                  var m = data[c.dataIndex];
+                  var pct = m.empenhado > 0 ? Math.round(m.pago/m.empenhado*100) : 0;
+                  return [
+                    ' Instrumento: ' + fmtBRL(m.instrumento),
+                    ' Empenhado: '   + fmtBRL(m.empenhado),
+                    ' Pago: '        + fmtBRL(m.pago) + ' (' + pct + '%)',
+                    ' Emendas: '     + m.cnt
+                  ];
+                },
+                title: function(items){ return data[items[0].dataIndex].municipio; }
+              }
+            }
+          },
+          scales: {
+            x: { ticks: { font:{size:10}, color:'#367886', callback: function(v){ return 'R$ '+(v/1e6).toFixed(0)+'M'; }}, grid:{color:'rgba(54,120,134,.08)'} },
+            y: { ticks: { font:{size:10}, color:'#1a3a40' }, grid:{display:false} }
+          }
+        }
+      });
+    }
+
+    function renderEmendaChartParl(lista) {
+      var ctx = document.getElementById('emenda-chart-parl');
+      if (!ctx) return;
+      if (chartEmendaParl) chartEmendaParl.destroy();
+
+      // Agrupar por parlamentar
+      var map = {};
+      lista.forEach(function(r){
+        if (!map[r.parlamentar]) map[r.parlamentar] = {instr:0, emp:0, pago:0, ult:'', cnt:0};
+        map[r.parlamentar].instr += r.instrumento;
+        map[r.parlamentar].emp   += r.empenhado;
+        map[r.parlamentar].pago  += r.pago;
+        if (r.data_pgto > map[r.parlamentar].ult) map[r.parlamentar].ult = r.data_pgto;
+        map[r.parlamentar].cnt++;
+      });
+      var arr = Object.keys(map).map(function(k){ return {nome:k, instr:map[k].instr, emp:map[k].emp, pago:map[k].pago, ult:map[k].ult, cnt:map[k].cnt}; });
+      arr.sort(function(a,b){ return a.instr - b.instr; });
+
+      var total = arr.reduce(function(s,a){ return s+a.instr; }, 0);
+      var sub = document.getElementById('emenda-parl-subtitle');
+      if (sub) sub.textContent = 'Total: ' + fmtBRL(total) + ' — ' + arr.length + ' parlamentar' + (arr.length!==1?'es':'');
+
+      var COLORS = ['rgba(54,120,134,0.8)','rgba(26,58,64,0.8)','rgba(231,76,60,0.75)','rgba(39,174,96,0.8)','rgba(155,89,182,0.8)','rgba(243,156,18,0.8)','rgba(52,152,219,0.8)','rgba(231,76,60,0.7)','rgba(26,188,156,0.8)','rgba(230,126,34,0.8)'];
+
+      chartEmendaParl = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: arr.map(function(a){ return a.nome.length > 20 ? a.nome.substring(0,18)+'…' : a.nome; }),
+          datasets: [{
+            label: 'Instrumento (R$)',
+            data: arr.map(function(a){ return a.instr; }),
+            backgroundColor: arr.map(function(_,i){ return COLORS[i % COLORS.length]; }),
+            borderRadius: 4
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          plugins: {
+            legend: {display:false},
+            tooltip: {
+              callbacks: {
+                label: function(c){
+                  var a = arr[c.dataIndex];
+                  var pct = a.emp > 0 ? Math.round(a.pago/a.emp*100) : 0;
+                  return [
+                    ' Instrumento: ' + fmtBRL(a.instr),
+                    ' Empenhado: '   + fmtBRL(a.emp),
+                    ' Pago: '        + fmtBRL(a.pago) + ' (' + pct + '%)',
+                    ' Último Pgto: ' + (a.ult || '—'),
+                    ' Emendas: '     + a.cnt
+                  ];
+                },
+                title: function(items){ return arr[items[0].dataIndex].nome; }
+              }
+            }
+          },
+          scales: {
+            x: { ticks: { font:{size:10}, color:'#367886', callback: function(v){ return 'R$ '+(v/1e6).toFixed(1)+'M'; }}, grid:{color:'rgba(54,120,134,.08)'} },
+            y: { ticks: { font:{size:10}, color:'#1a3a40' }, grid:{display:false} }
+          }
+        }
+      });
+    }
+
+    function renderEmendaTabela(lista) {
+      var tbody = document.getElementById('emenda-tabela-body');
+      if (!tbody) return;
+      var totInstr = 0, totEmp = 0, totPago = 0;
+      tbody.innerHTML = '';
+      lista.forEach(function(r, i){
+        totInstr += r.instrumento; totEmp += r.empenhado; totPago += r.pago;
+        var bg = i%2===0 ? '#fff' : '#f7fbfc';
+        var tr = document.createElement('tr');
+        var pct = r.empenhado > 0 ? Math.round(r.pago/r.empenhado*100) : 0;
+        var pctBadge = '<span style="font-size:.65rem;background:'+(pct>=100?'#1a7a5e':'#e67e22')+';color:#fff;border-radius:3px;padding:1px 4px;margin-left:4px;">'+pct+'%</span>';
+        tr.innerHTML =
+          '<td style="padding:8px 10px;font-size:.8rem;color:#367886;font-weight:600;background:'+bg+';">'+r.emenda+'<br><span style="font-size:.7rem;color:#4a7a84;font-weight:400;">'+r.ano+'</span></td>'+
+          '<td style="padding:8px 10px;font-size:.79rem;color:#1a3a40;background:'+bg+';white-space:normal;">'+r.tipo_instrumento+'<br><span style="font-size:.68rem;color:#4a7a84;">'+r.parlamentar+'</span></td>'+
+          '<td style="padding:8px 8px;font-size:.82rem;font-weight:600;color:#1a3a40;text-align:right;background:'+bg+';">'+fmtBRL(r.instrumento)+'</td>'+
+          '<td style="padding:8px 8px;font-size:.82rem;text-align:right;background:'+bg+';">'+fmtBRL(r.empenhado)+'</td>'+
+          '<td style="padding:8px 8px;font-size:.82rem;text-align:right;background:'+bg+';">'+fmtBRL(r.pago)+pctBadge+'</td>'+
+          '<td style="padding:8px 8px;font-size:.78rem;text-align:right;color:#4a7a84;background:'+bg+';">'+
+            (r.data_pgto ? r.data_pgto.split('-').reverse().join('/') : '—')+'</td>';
+        tbody.appendChild(tr);
+      });
+      // Linha de totais
+      if (lista.length > 0) {
+        var tfoot = document.createElement('tr');
+        tfoot.innerHTML =
+          '<td colspan="2" style="padding:9px 10px;font-size:.8rem;font-weight:700;background:#c8e6ed;border-top:2px solid #367886;color:#1a3a40;">TOTAL ('+lista.length+' emendas)</td>'+
+          '<td style="padding:9px 8px;font-size:.85rem;font-weight:700;text-align:right;background:#c8e6ed;border-top:2px solid #367886;color:#1a3a40;">'+fmtBRL(totInstr)+'</td>'+
+          '<td style="padding:9px 8px;font-size:.85rem;font-weight:700;text-align:right;background:#c8e6ed;border-top:2px solid #367886;color:#1a3a40;">'+fmtBRL(totEmp)+'</td>'+
+          '<td style="padding:9px 8px;font-size:.85rem;font-weight:700;text-align:right;background:#c8e6ed;border-top:2px solid #367886;color:#1a3a40;">'+fmtBRL(totPago)+'</td>'+
+          '<td style="background:#c8e6ed;border-top:2px solid #367886;"></td>';
+        tbody.appendChild(tfoot);
+      }
+      var cnt = document.getElementById('emenda-tabela-count');
+      var tot = document.getElementById('emenda-tabela-total');
+      if (cnt) cnt.textContent = lista.length + ' emenda' + (lista.length!==1?'s':'') + ' encontrada' + (lista.length!==1?'s':'');
+      if (tot) tot.textContent = 'Total Instrumento: ' + fmtBRL(totInstr);
     }
 
     // Inicializar Saúde quando a aba for aberta
