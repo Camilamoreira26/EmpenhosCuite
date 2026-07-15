@@ -2716,20 +2716,6 @@
       if (emendaIniciado) { renderEmendas(); return; }
       emendaIniciado = true;
 
-      // Preencher filtro de parlamentar
-      var selParl = document.getElementById('emenda-filtro-parlamentar');
-      EMENDAS_PARLAMENTARES.forEach(function(p){
-        var o = document.createElement('option'); o.value = p; o.textContent = p;
-        selParl.appendChild(o);
-      });
-
-      // Preencher filtro de situação DS
-      var selSit = document.getElementById('emenda-filtro-situacao');
-      EMENDAS_SITUACOES_DS.forEach(function(s){
-        var o = document.createElement('option'); o.value = s; o.textContent = s;
-        selSit.appendChild(o);
-      });
-
       // Botões de ano
       var wrap = document.getElementById('emenda-btns-ano');
       ['Todos'].concat(EMENDAS_ANOS).forEach(function(a){
@@ -2749,25 +2735,61 @@
       renderEmendas();
     }
 
-    function emendaFiltrados() {
+    // Filtra ignorando um campo específico (para cascata)
+    function emendaFiltradosSem(excludeField) {
       var tipo  = (document.getElementById('emenda-filtro-tipo')||{}).value || '';
       var instr = (document.getElementById('emenda-filtro-instrumento')||{}).value || '';
       var parl  = (document.getElementById('emenda-filtro-parlamentar')||{}).value || '';
       var sit   = (document.getElementById('emenda-filtro-situacao')||{}).value || '';
       return EMENDAS_CUITE.filter(function(r){
         if (emendaAnoAtivo !== 'Todos' && r.ano !== emendaAnoAtivo) return false;
-        if (tipo  && r.tipo_emenda      !== tipo)  return false;
-        if (instr && r.tipo_instrumento !== instr) return false;
-        if (parl  && r.parlamentar      !== parl)  return false;
-        if (sit   && r.situacao_ds      !== sit)   return false;
+        if (excludeField !== 'tipo'  && tipo  && r.tipo_emenda      !== tipo)  return false;
+        if (excludeField !== 'instr' && instr && r.tipo_instrumento !== instr) return false;
+        if (excludeField !== 'parl'  && parl  && r.parlamentar      !== parl)  return false;
+        if (excludeField !== 'sit'   && sit   && r.situacao_ds      !== sit)   return false;
         return true;
       });
     }
 
+    function emendaFiltrados() {
+      return emendaFiltradosSem('__none__');
+    }
+
+    // Recalcula as opções de cada dropdown com base nos dados filtrados pelos outros
+    function atualizarDropdownsEmenda() {
+      function rebuildSelect(id, field, baseData, firstLabel) {
+        var sel = document.getElementById(id);
+        if (!sel) return;
+        var currentVal = sel.value;
+        var vals = [];
+        var seen = {};
+        baseData.forEach(function(r){
+          var v = r[field];
+          if (v && !seen[v]) { seen[v] = true; vals.push(v); }
+        });
+        vals.sort();
+        while (sel.options.length > 1) sel.remove(1);
+        vals.forEach(function(v){
+          var o = document.createElement('option');
+          o.value = v; o.textContent = v;
+          sel.appendChild(o);
+        });
+        // Mantém o valor atual se ainda está disponível, senão reseta
+        if (currentVal && seen[currentVal]) sel.value = currentVal;
+        else sel.value = '';
+      }
+
+      rebuildSelect('emenda-filtro-tipo',        'tipo_emenda',      emendaFiltradosSem('tipo'),  'Todos os Tipos');
+      rebuildSelect('emenda-filtro-instrumento',  'tipo_instrumento', emendaFiltradosSem('instr'), 'Todos os Instrumentos');
+      rebuildSelect('emenda-filtro-parlamentar',  'parlamentar',      emendaFiltradosSem('parl'),  'Todos os Parlamentares');
+      rebuildSelect('emenda-filtro-situacao',     'situacao_ds',      emendaFiltradosSem('sit'),   'Todas as Situações');
+    }
+
     function renderEmendas() {
+      atualizarDropdownsEmenda();
       var lista = emendaFiltrados();
       renderEmendaCards(lista);
-      renderEmendaRankingMunic();
+      renderEmendaRankingMunic(lista);
       renderEmendaChartParl(lista);
       renderEmendaChartInstr(lista);
       renderEmendaTabela(lista);
@@ -2813,12 +2835,37 @@
       document.getElementById('emenda-cards').innerHTML = html;
     }
 
-    function renderEmendaRankingMunic() {
+    function renderEmendaRankingMunic(lista) {
       var wrap = document.getElementById('emenda-ranking-munic');
       if (!wrap) return;
-      var data = EMENDAS_MUNIC_PB.slice().sort(function(a,b){ return b.instrumento - a.instrumento; });
+
+      // Calcula o total filtrado de Cuité a partir dos dados filtrados
+      var cuiteInstrFiltrado = 0, cuitePagoFiltrado = 0, cuiteEmpFiltrado = 0, cuiteCntFiltrado = 0;
+      if (lista) {
+        lista.forEach(function(r){ cuiteInstrFiltrado += r.instrumento; cuitePagoFiltrado += r.pago; cuiteEmpFiltrado += r.empenhado; cuiteCntFiltrado++; });
+      }
+      var filtroAtivo = emendaAnoAtivo !== 'Todos' ||
+        (document.getElementById('emenda-filtro-tipo')||{}).value ||
+        (document.getElementById('emenda-filtro-instrumento')||{}).value ||
+        (document.getElementById('emenda-filtro-parlamentar')||{}).value ||
+        (document.getElementById('emenda-filtro-situacao')||{}).value;
+
+      // Usa dados históricos para os demais municípios; para Cuité, substitui pelo valor filtrado se filtro ativo
+      var data = EMENDAS_MUNIC_PB.slice().map(function(m){
+        if (m.is_cuite && filtroAtivo && lista) {
+          return Object.assign({}, m, {instrumento: cuiteInstrFiltrado, empenhado: cuiteEmpFiltrado, pago: cuitePagoFiltrado, cnt: cuiteCntFiltrado});
+        }
+        return m;
+      }).sort(function(a,b){ return b.instrumento - a.instrumento; });
+
       var cuitePos = data.findIndex(function(m){ return m.is_cuite; }) + 1;
-      var html = '<div style="overflow-x:hidden;border-radius:10px;border:1px solid #c5dfe4;">'+
+
+      var nota = filtroAtivo
+        ? '<p style="font-size:.75rem;color:#4a7a84;margin-bottom:8px;">Cuité ocupa a <b style="color:#1a7a5e;">'+cuitePos+'ª posição</b> histórica na PB. ' +
+          '<span style="color:#e67e22;">⚠ Os outros municípios exibem totais acumulados — o filtro afeta apenas os dados de Cuité.</span></p>'
+        : '<p style="font-size:.75rem;color:#4a7a84;margin-bottom:8px;">Cuité ocupa a <b style="color:#1a7a5e;">'+cuitePos+'ª posição</b> no ranking de emendas da saúde na PB — acumulado histórico.</p>';
+
+      var html = nota + '<div style="overflow-x:hidden;border-radius:10px;border:1px solid #c5dfe4;">'+
         '<table style="width:100%;border-collapse:collapse;table-layout:fixed;">'+
         '<colgroup><col style="width:6%;"><col style="width:34%;"><col style="width:22%;"><col style="width:18%;"><col style="width:12%;"><col style="width:8%;"></colgroup>'+
         '<thead><tr style="background:#1a3a40;">'+
@@ -2837,11 +2884,12 @@
         var bg = isCuite ? '#e8f5e9' : (i%2===0 ? '#fff' : '#f7fbfc');
         var fontW = isCuite ? '700' : '400';
         var medal = pos===1 ? '🥇' : pos===2 ? '🥈' : pos===3 ? '🥉' : pos;
+        var filtLabel = (isCuite && filtroAtivo) ? ' <span style="font-size:.62rem;background:#e67e22;color:#fff;border-radius:3px;padding:1px 4px;">filtrado</span>' : '';
         html +=
           '<tr style="background:'+bg+';">'+
             '<td style="padding:9px 8px;font-size:.82rem;font-weight:700;text-align:center;color:'+(isCuite?'#1a7a5e':'#4a7a84')+';">'+medal+'</td>'+
             '<td style="padding:9px 12px;font-size:.82rem;font-weight:'+fontW+';color:#1a3a40;">'+
-              m.municipio+(isCuite?' <span style="font-size:.65rem;background:#1a7a5e;color:#fff;border-radius:4px;padding:1px 5px;">★ CUITÉ</span>':'')+
+              m.municipio+(isCuite?' <span style="font-size:.65rem;background:#1a7a5e;color:#fff;border-radius:4px;padding:1px 5px;">★ CUITÉ</span>':'')+filtLabel+
             '</td>'+
             '<td style="padding:9px 8px;font-size:.82rem;font-weight:'+fontW+';text-align:right;color:#1a3a40;">'+fmtBRL(m.instrumento)+'</td>'+
             '<td style="padding:9px 8px;font-size:.82rem;text-align:right;color:#1a3a40;">'+fmtBRL(m.pago)+'</td>'+
@@ -2853,9 +2901,6 @@
       });
 
       html += '</tbody></table></div>';
-      if (cuitePos > 0) {
-        html = '<p style="font-size:.75rem;color:#4a7a84;margin-bottom:8px;">Cuité ocupa a <b style="color:#1a7a5e;">'+cuitePos+'ª posição</b> no ranking de emendas da saúde na PB — acumulado histórico.</p>' + html;
-      }
       wrap.innerHTML = html;
     }
 
